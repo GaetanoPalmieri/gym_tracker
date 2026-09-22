@@ -179,6 +179,20 @@
 .skip-exercise{margin-top:12px;color:var(--accent2)}
 #stats-exercise,#stats-metric{width:100%;margin:10px 0;padding:12px 8px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:14px}
 .history-chart{width:100%;height:auto;margin:12px 0}.chart-empty{height:190px;display:grid;place-items:center;color:var(--sub);text-align:center;border-bottom:1px solid var(--line)}
+
+.title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:12px}
+header.top .title-row h1{font-size:26px;line-height:1.2;margin:0;padding-top:3px;min-width:0}
+#header-session{flex:0 0 auto;text-align:right}
+#header-session:empty{display:none}
+.session-panel{padding:0;margin:0;background:none;border:0}
+.session-panel .exmeta{font-size:10px;margin:0}
+.session-panel .session-clock{font-size:24px;line-height:1.2;margin:2px 0 6px}
+.session-panel .session-actions{gap:4px;justify-content:flex-end;flex-wrap:nowrap}
+.session-panel .session-actions button{font-size:10px;padding:7px 6px;border-radius:7px;white-space:nowrap}
+.exercise-topline{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.exercise-topline .exercise-status{margin:0}
+.exercise-topline .skip-exercise{margin:0 0 0 auto;padding:7px 9px;font-size:11px;white-space:nowrap;flex-shrink:0}
+@media(max-width:360px){header.top .title-row h1{font-size:22px}.session-panel .session-clock{font-size:21px}.session-panel .session-actions button{font-size:9px;padding:7px 5px}}
 </style>
 </head>
 <body>
@@ -213,7 +227,7 @@
 </script>
 <div id="app">
   <header class="top">
-    <h1 id="pagetitle">Allenamento</h1>
+    <div class="title-row"><h1 id="pagetitle">Allenamento</h1><div id="header-session"></div></div>
     <div id="weekbar" class="seg"></div>
     <div id="daybar" class="daytabs"></div>
   </header>
@@ -802,7 +816,7 @@ function escapeHTML(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
 function lineChart(rows,metric){const points=rows.filter(r=>!r.e.skipped&&r.e.done>0&&(metric!=='weight'||r.e.weight!==null)&&!r.s.legacy);if(!points.length)return '<div class="chart-empty">Nessun dato registrato per questo grafico.</div>';
  const max=Math.max(1,...points.map(r=>r.e[metric]));const coords=points.map((r,i)=>({x:points.length===1?180:45+i*280/(points.length-1),y:145-r.e[metric]/max*115,r}));
  return `<svg class="history-chart" viewBox="0 0 360 185" role="img" aria-label="${metric==='weight'?'Carico in kg':'Serie svolte'} nel tempo"><path d="M45 20V145H335" fill="none" stroke="#52616c"/><text x="3" y="30" fill="#9fb0ab" font-size="12">${Math.round(max*10)/10}</text><text x="22" y="149" fill="#9fb0ab" font-size="12">0</text><polyline points="${coords.map(p=>`${p.x},${p.y}`).join(' ')}" fill="none" stroke="#2f9e8f" stroke-width="3"/>${coords.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="5" fill="#e8a33d"><title>${escapeHTML(new Date(p.r.s.started).toLocaleString('it-IT'))}: ${p.r.e[metric]}</title></circle>`).join('')}<text x="45" y="175" fill="#9fb0ab" font-size="11">${new Date(points[0].s.started).toLocaleDateString('it-IT')}</text><text x="335" y="175" text-anchor="end" fill="#9fb0ab" font-size="11">${points.length>1?new Date(points.at(-1).s.started).toLocaleDateString('it-IT'):''}</text></svg>`;}
-function renderStats(){pagetitle.textContent='Statistiche';const names=[...new Set(DAYS.flatMap(d=>d.exercises.map(e=>e.name)))];const selected=names.includes(state.statsExercise)?state.statsExercise:names[0];const metric=state.statsMetric==='done'?'done':'weight';
+function renderStats(){document.getElementById("header-session").innerHTML="";pagetitle.textContent='Statistiche';const names=[...new Set(DAYS.flatMap(d=>d.exercises.map(e=>e.name)))];const selected=names.includes(state.statsExercise)?state.statsExercise:names[0];const metric=state.statsMetric==='done'?'done':'weight';
  const rows=sessions.flatMap(s=>s.exercises.filter(e=>e.name===selected&&(e.done||e.skipped||e.weight!==null)).map(e=>({s,e}))).sort((a,b)=>(a.s.started||'').localeCompare(b.s.started||''));
  let html=`<div class="card"><label for="stats-exercise">Esercizio</label><select id="stats-exercise">${names.map(n=>`<option ${n===selected?'selected':''}>${escapeHTML(n)}</option>`).join('')}</select><select id="stats-metric" aria-label="Misura del grafico"><option value="weight" ${metric==='weight'?'selected':''}>Carico (kg)</option><option value="done" ${metric==='done'?'selected':''}>Serie svolte</option></select>${lineChart(rows,metric)}<div class="exmeta">Grafico delle sessioni registrate. Gli esercizi saltati e i dati precedenti senza data sono esclusi.</div></div><div class="sectiontitle">Storico esercizio</div>`;
  html+=rows.length?rows.slice().reverse().map(({s,e})=>`<div class="card"><b>${s.legacy?'Dati precedenti · data non disponibile':new Date(s.started).toLocaleString('it-IT')}</b><div class="exmeta">Sett. ${s.week} · ${escapeHTML(s.day)}${s.legacy?'':` · ${s.ended?'Terminata':'In corso'} · ${timeLabel(elapsed(s))}`}</div><p>${e.skipped?'Non Effettuato':e.done===e.total?'Completato':e.done?'Parziale':'Carico annotato'}</p><div>${e.weight===null?'Carico non indicato':e.weight+' kg'} · ${e.done}/${e.total} serie svolte · ${escapeHTML(e.reps)} rip.</div>${e.note?`<div class="exmeta">${escapeHTML(e.note)}</div>`:''}</div>`).join(''):'<div class="card">Nessuno storico per questo esercizio. Avvia una sessione e registra le serie.</div>';
@@ -817,7 +831,8 @@ function renderWorkout(){
   pagetitle.textContent = "Allenamento";
   const day = DAYS[state.dayIdx];
   const checked = getChecked();
-  let html = sessionPanel();
+  document.getElementById("header-session").innerHTML = sessionPanel();
+  let html = "";
   const skipped = getSkipped();
   const ordered = day.exercises.map((ex, exIdx)=>{
     const count = ex.sets - (state.week%4===0 && ex.compound && ex.sets>1 ? 1 : 0);
@@ -843,7 +858,10 @@ function renderWorkout(){
     const hasNote = !!getNote(exIdx);
 
     html += `<div class="card ${complete?'exercise-complete':exIdx===nextIdx?'exercise-next':''}" data-exercise="${exIdx}">
+      <div class="exercise-topline">
       ${skipped[exIdx]?'<div class="exercise-status">Non Effettuato</div>':complete?'<div class="exercise-status">✓ Completato</div>':exIdx===nextIdx?'<div class="exercise-status">Prossimo esercizio</div>':''}
+      <button class="skip-exercise" data-skip-ex="${exIdx}">${skipped[exIdx]?'Ripristina esercizio':'Salta esercizio'}</button>
+      </div>
       <div class="exhead">
         <div>
           <div class="exname">${ex.name}</div>
@@ -856,7 +874,6 @@ function renderWorkout(){
         </div>
       </div>
       <div class="setsrow">${setBtns}</div>
-      <button class="skip-exercise" data-skip-ex="${exIdx}">${skipped[exIdx]?'Ripristina esercizio':'Salta esercizio'}</button>
       <div class="weightrow">
         <label>Carico</label>
         <input type="number" inputmode="decimal" placeholder="kg" data-weight="${exIdx}" value="${curVal}">
@@ -912,6 +929,7 @@ function renderWorkout(){
 }
 
 function renderFood(){
+  document.getElementById("header-session").innerHTML="";
   pagetitle.textContent = "Nutrizione";
   const which = state.foodTab || "d1";
   let html = `<div class="daytabs foodtabs" style="margin-bottom:12px;">` +
