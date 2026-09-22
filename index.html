@@ -173,6 +173,12 @@
     .launch-logo,.launch-spinner{ animation:none; }
     #launch-screen,#app{ transition:none; }
   }
+
+.session-clock{font-size:32px;font-weight:750;font-variant-numeric:tabular-nums;margin:10px 0;color:var(--accent2)}
+.session-actions{display:flex;gap:8px;flex-wrap:wrap}.session-actions button,.skip-exercise{border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:9px;padding:10px 14px}
+.skip-exercise{margin-top:12px;color:var(--accent2)}
+#stats-exercise,#stats-metric{width:100%;margin:10px 0;padding:12px 8px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:14px}
+.history-chart{width:100%;height:auto;margin:12px 0}.chart-empty{height:190px;display:grid;place-items:center;color:var(--sub);text-align:center;border-bottom:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -217,6 +223,7 @@
 <nav class="bottom">
   <button id="navWorkout" class="active"><span class="ic">🏋️</span>Allenamento</button>
   <button id="navFood"><span class="ic">🍽️</span>Nutrizione</button>
+  <button id="navStats"><span class="ic">📊</span>Statistiche</button>
 </nav>
 
 <div class="modal-bg" id="infoBg">
@@ -759,6 +766,50 @@ function renderTopBars(){
   weekbar.style.display = state.tab==="workout" ? "flex" : "none";
 }
 
+/* Sessioni e storico persistenti */
+function readJSON(key,fallback){try{return JSON.parse(localStorage.getItem(key))||fallback;}catch(e){return fallback;}}
+let sessions=readJSON('rc_sessions_v1',[]);
+function persistSessions(){localStorage.setItem('rc_sessions_v1',JSON.stringify(sessions));}
+function contextKey(){return `${state.week}_${DAYS[state.dayIdx].key}`;}
+function skippedKey(){return `rc_skipped_${contextKey()}`;}
+function getSkipped(){return readJSON(skippedKey(),{});}
+function effectiveSets(ex,week=state.week){return ex.sets-(week%4===0&&ex.compound&&ex.sets>1?1:0);}
+function snapshot(){const checked=getChecked(),skipped=getSkipped();return DAYS[state.dayIdx].exercises.map((ex,i)=>{
+ const total=effectiveSets(ex),done=Array.from({length:total},(_,j)=>!!checked[`e${i}_s${j}`]).filter(Boolean).length;
+ const raw=localStorage.getItem(weightKey(i));return {name:ex.name,total,done,weight:raw!==null&&raw!==''&&Number.isFinite(Number(raw))?Number(raw):null,reps:ex.reps,note:getNote(i),skipped:!!skipped[i]};
+});}
+function activeSession(){return sessions.find(s=>s.context===contextKey()&&!s.ended&&!s.legacy);}
+function elapsed(s){return s? s.elapsed+(s.runningSince?Date.now()-s.runningSince:0):0;}
+function timeLabel(ms){const n=Math.floor(ms/1000);return [Math.floor(n/3600),Math.floor(n/60)%60,n%60].map(v=>String(v).padStart(2,'0')).join(':');}
+function ensureSession(){let s=activeSession();if(s)return s;
+ // Una sola sessione in corso conta il tempo; le altre rimangono in pausa.
+ sessions.filter(x=>x.runningSince).forEach(x=>{x.elapsed=elapsed(x);x.runningSince=null;});
+ const previous=sessions.some(x=>x.context===contextKey()&&x.ended&&!x.legacy);
+ if(previous){setChecked({});localStorage.removeItem(skippedKey());}
+ s={id:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2),context:contextKey(),week:state.week,day:DAYS[state.dayIdx].short,started:new Date().toISOString(),ended:null,elapsed:0,runningSince:Date.now(),exercises:snapshot()};sessions.push(s);persistSessions();return s;
+}
+function syncSession(){const s=activeSession();if(s){s.exercises=snapshot();persistSessions();}}
+function sessionPanel(){const s=activeSession();return `<div class="card session-panel"><div class="exmeta">Tempo totale sessione${s&&!s.runningSince?' · In pausa':''}</div><div id="session-clock" class="session-clock">${timeLabel(elapsed(s))}</div><div class="session-actions"><button id="session-toggle">${!s?'Avvia sessione':s.runningSince?'Pausa':'Riprendi'}</button>${s?'<button id="session-end">Termina sessione</button>':''}</div></div>`;}
+function bindSession(){document.getElementById('session-toggle').onclick=()=>{let s=activeSession();if(!s)ensureSession();else if(s.runningSince){s.elapsed=elapsed(s);s.runningSince=null;persistSessions();}else{sessions.filter(x=>x.runningSince).forEach(x=>{x.elapsed=elapsed(x);x.runningSince=null;});s.runningSince=Date.now();persistSessions();}renderWorkout();};
+ const end=document.getElementById('session-end');if(end)end.onclick=()=>{const s=activeSession();if(!s)return;syncSession();s.elapsed=elapsed(s);s.runningSince=null;s.ended=new Date().toISOString();persistSessions();closeTimer();renderWorkout();};}
+setInterval(()=>{const el=document.getElementById('session-clock');if(el)el.textContent=timeLabel(elapsed(activeSession()));},1000);
+function importLegacy(){if(localStorage.getItem('rc_history_imported'))return;
+ for(let w=1;w<=8;w++)DAYS.forEach(day=>{const checked=readJSON(`rc_checked_w${w}_${day.key}`,{});const skipped=readJSON(`rc_skipped_${w}_${day.key}`,{});
+ const exercises=day.exercises.map((ex,i)=>{const raw=localStorage.getItem(`rc_weight_w${w}_${day.key}_e${i}`);const total=effectiveSets(ex,w);return {name:ex.name,total,done:Array.from({length:total},(_,j)=>!!checked[`e${i}_s${j}`]).filter(Boolean).length,weight:raw!==null&&raw!==''&&Number.isFinite(Number(raw))?Number(raw):null,reps:ex.reps,skipped:!!skipped[i],note:localStorage.getItem(`rc_note_${day.key}_e${i}`)||''};});
+ if(exercises.some(e=>e.done||e.weight!==null||e.skipped))sessions.push({id:`legacy-${w}-${day.key}`,context:`${w}_${day.key}`,week:w,day:day.short,legacy:true,elapsed:0,exercises});});persistSessions();localStorage.setItem('rc_history_imported','1');}
+importLegacy();
+function escapeHTML(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function lineChart(rows,metric){const points=rows.filter(r=>!r.e.skipped&&r.e.done>0&&(metric!=='weight'||r.e.weight!==null)&&!r.s.legacy);if(!points.length)return '<div class="chart-empty">Nessun dato registrato per questo grafico.</div>';
+ const max=Math.max(1,...points.map(r=>r.e[metric]));const coords=points.map((r,i)=>({x:points.length===1?180:45+i*280/(points.length-1),y:145-r.e[metric]/max*115,r}));
+ return `<svg class="history-chart" viewBox="0 0 360 185" role="img" aria-label="${metric==='weight'?'Carico in kg':'Serie svolte'} nel tempo"><path d="M45 20V145H335" fill="none" stroke="#52616c"/><text x="3" y="30" fill="#9fb0ab" font-size="12">${Math.round(max*10)/10}</text><text x="22" y="149" fill="#9fb0ab" font-size="12">0</text><polyline points="${coords.map(p=>`${p.x},${p.y}`).join(' ')}" fill="none" stroke="#2f9e8f" stroke-width="3"/>${coords.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="5" fill="#e8a33d"><title>${escapeHTML(new Date(p.r.s.started).toLocaleString('it-IT'))}: ${p.r.e[metric]}</title></circle>`).join('')}<text x="45" y="175" fill="#9fb0ab" font-size="11">${new Date(points[0].s.started).toLocaleDateString('it-IT')}</text><text x="335" y="175" text-anchor="end" fill="#9fb0ab" font-size="11">${points.length>1?new Date(points.at(-1).s.started).toLocaleDateString('it-IT'):''}</text></svg>`;}
+function renderStats(){pagetitle.textContent='Statistiche';const names=[...new Set(DAYS.flatMap(d=>d.exercises.map(e=>e.name)))];const selected=names.includes(state.statsExercise)?state.statsExercise:names[0];const metric=state.statsMetric==='done'?'done':'weight';
+ const rows=sessions.flatMap(s=>s.exercises.filter(e=>e.name===selected&&(e.done||e.skipped||e.weight!==null)).map(e=>({s,e}))).sort((a,b)=>(a.s.started||'').localeCompare(b.s.started||''));
+ let html=`<div class="card"><label for="stats-exercise">Esercizio</label><select id="stats-exercise">${names.map(n=>`<option ${n===selected?'selected':''}>${escapeHTML(n)}</option>`).join('')}</select><select id="stats-metric" aria-label="Misura del grafico"><option value="weight" ${metric==='weight'?'selected':''}>Carico (kg)</option><option value="done" ${metric==='done'?'selected':''}>Serie svolte</option></select>${lineChart(rows,metric)}<div class="exmeta">Grafico delle sessioni registrate. Gli esercizi saltati e i dati precedenti senza data sono esclusi.</div></div><div class="sectiontitle">Storico esercizio</div>`;
+ html+=rows.length?rows.slice().reverse().map(({s,e})=>`<div class="card"><b>${s.legacy?'Dati precedenti · data non disponibile':new Date(s.started).toLocaleString('it-IT')}</b><div class="exmeta">Sett. ${s.week} · ${escapeHTML(s.day)}${s.legacy?'':` · ${s.ended?'Terminata':'In corso'} · ${timeLabel(elapsed(s))}`}</div><p>${e.skipped?'Non Effettuato':e.done===e.total?'Completato':e.done?'Parziale':'Carico annotato'}</p><div>${e.weight===null?'Carico non indicato':e.weight+' kg'} · ${e.done}/${e.total} serie svolte · ${escapeHTML(e.reps)} rip.</div>${e.note?`<div class="exmeta">${escapeHTML(e.note)}</div>`:''}</div>`).join(''):'<div class="card">Nessuno storico per questo esercizio. Avvia una sessione e registra le serie.</div>';
+ html+='<div class="sectiontitle">Sessioni di allenamento</div>'+sessions.filter(s=>!s.legacy).slice().reverse().map(s=>`<div class="card"><b>${escapeHTML(s.day)} · Sett. ${s.week}</b><div class="exmeta">${new Date(s.started).toLocaleString('it-IT')}</div><p>${timeLabel(elapsed(s))} · ${s.ended?'Terminata':s.runningSince?'In corso':'In pausa'}</p><div class="exmeta">${s.exercises.filter(e=>!e.skipped&&e.done===e.total).length} completati · ${s.exercises.filter(e=>e.skipped).length} non effettuati</div></div>`).join('');
+ html+='<p class="exmeta">Dati salvati su questo dispositivo e browser.</p>';main.innerHTML=html;
+ document.getElementById('stats-exercise').onchange=e=>{state.statsExercise=e.target.value;saveState();renderStats();};document.getElementById('stats-metric').onchange=e=>{state.statsMetric=e.target.value;saveState();renderStats();};}
+
 /* ===================== RENDER MAIN ===================== */
 const main = document.getElementById("main");
 
@@ -766,10 +817,11 @@ function renderWorkout(){
   pagetitle.textContent = "Allenamento";
   const day = DAYS[state.dayIdx];
   const checked = getChecked();
-  let html = "";
+  let html = sessionPanel();
+  const skipped = getSkipped();
   const ordered = day.exercises.map((ex, exIdx)=>{
     const count = ex.sets - (state.week%4===0 && ex.compound && ex.sets>1 ? 1 : 0);
-    const complete = Array.from({length:count}, (_,s)=>!!checked[`e${exIdx}_s${s}`]).every(Boolean);
+    const complete = !!skipped[exIdx] || Array.from({length:count}, (_,s)=>!!checked[`e${exIdx}_s${s}`]).every(Boolean);
     return {ex, exIdx, complete};
   }).sort((a,b)=>Number(a.complete)-Number(b.complete) || a.exIdx-b.exIdx);
   const nextIdx = ordered.find(item=>!item.complete)?.exIdx;
@@ -791,7 +843,7 @@ function renderWorkout(){
     const hasNote = !!getNote(exIdx);
 
     html += `<div class="card ${complete?'exercise-complete':exIdx===nextIdx?'exercise-next':''}" data-exercise="${exIdx}">
-      ${complete?'<div class="exercise-status">✓ Completato</div>':exIdx===nextIdx?'<div class="exercise-status">Prossimo esercizio</div>':''}
+      ${skipped[exIdx]?'<div class="exercise-status">Non Effettuato</div>':complete?'<div class="exercise-status">✓ Completato</div>':exIdx===nextIdx?'<div class="exercise-status">Prossimo esercizio</div>':''}
       <div class="exhead">
         <div>
           <div class="exname">${ex.name}</div>
@@ -804,6 +856,7 @@ function renderWorkout(){
         </div>
       </div>
       <div class="setsrow">${setBtns}</div>
+      <button class="skip-exercise" data-skip-ex="${exIdx}">${skipped[exIdx]?'Ripristina esercizio':'Salta esercizio'}</button>
       <div class="weightrow">
         <label>Carico</label>
         <input type="number" inputmode="decimal" placeholder="kg" data-weight="${exIdx}" value="${curVal}">
@@ -815,14 +868,23 @@ function renderWorkout(){
 
   main.innerHTML = html;
 
+  bindSession();
+  main.querySelectorAll("[data-skip-ex]").forEach(btn=>btn.onclick=()=>{
+    ensureSession();const i=btn.dataset.skipEx;const skipped=getSkipped();skipped[i]=!skipped[i];
+    localStorage.setItem(skippedKey(),JSON.stringify(skipped));syncSession();renderWorkout();
+    main.querySelector(".exercise-next")?.scrollIntoView({behavior:"smooth",block:"start"});
+  });
   main.querySelectorAll(".setbtn").forEach(btn=>{
     btn.addEventListener("click", ()=>{
+      ensureSession();
       const exIdx = btn.dataset.ex, s = btn.dataset.set, rest = parseInt(btn.dataset.rest,10);
       const k = `e${exIdx}_s${s}`;
       const cur = getChecked();
       const nowDone = !cur[k];
       cur[k] = nowDone;
       setChecked(cur);
+      const skipped=getSkipped();delete skipped[exIdx];localStorage.setItem(skippedKey(),JSON.stringify(skipped));
+      syncSession();
       renderWorkout();
       const exercise = day.exercises[exIdx];
       const count = exercise.sets - (state.week%4===0 && exercise.compound && exercise.sets>1 ? 1 : 0);
@@ -836,6 +898,7 @@ function renderWorkout(){
   main.querySelectorAll("[data-weight]").forEach(inp=>{
     inp.addEventListener("change", ()=>{
       localStorage.setItem(weightKey(inp.dataset.weight), inp.value);
+      syncSession();
     });
   });
 
@@ -886,12 +949,14 @@ function renderFood(){
 
 function renderAll(){
   renderTopBars();
-  if(state.tab === "workout") renderWorkout(); else renderFood();
+  if(state.tab === "workout") renderWorkout(); else if(state.tab === "stats") renderStats(); else renderFood();
   navWorkout.classList.toggle("active", state.tab==="workout");
   navFood.classList.toggle("active", state.tab==="food");
+  document.getElementById("navStats").classList.toggle("active",state.tab==="stats");
 }
 
 navWorkout.addEventListener("click", ()=>{ state.tab="workout"; saveState(); renderAll(); });
+document.getElementById("navStats").addEventListener("click",()=>{state.tab="stats";saveState();renderAll();});
 navFood.addEventListener("click", ()=>{ state.tab="food"; saveState(); renderAll(); });
 
 /* ===================== MODAL INFO ===================== */
@@ -921,7 +986,7 @@ function openNote(exIdx){
   noteBg.classList.add("show");
 }
 document.getElementById("noteSave").addEventListener("click", ()=>{
-  if(currentNoteExIdx !== null){ setNote(currentNoteExIdx, noteArea.value); }
+  if(currentNoteExIdx !== null){ setNote(currentNoteExIdx, noteArea.value); syncSession(); }
   noteBg.classList.remove("show");
   renderWorkout();
 });
