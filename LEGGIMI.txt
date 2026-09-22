@@ -1,0 +1,40 @@
+RECOMPAPP / GYM 1.1.0
+
+AGGIORNAMENTO
+Carica TUTTO il contenuto dello ZIP nella stessa posizione della precedente app. Conserva tutti i file JavaScript, CSS, manifest e la cartella icons. Mantieni stesso indirizzo e browser; non cancellare i dati del sito.
+La nuova app migra automaticamente sessioni, carichi e note precedenti. I vecchi dati restano nel browser e non sono rimossi. Dopo l'aggiornamento esporta subito un backup da Altro.
+
+NOVITA
+- Peso e ripetizioni effettive per ogni serie; minuti per il cardio.
+- Ultima sessione dello stesso esercizio mostrata sulla card.
+- Completati e saltati raccolti in fondo; Interrotto distingue un esercizio parzialmente svolto.
+- Timer totale e recupero persistenti, comandi più grandi, recupero in barra senza bloccare lo schermo.
+- Avviso per sessioni rimaste aperte; correzione di orari, durata e serie; eliminazione sessione.
+- Riepilogo finale, calendario allenamenti e grafici di carico, ripetizioni/minuti, serie, volume e frequenza.
+- Schede modificabili: aggiunta, modifica, sostituzione, rimozione e riordino, senza riscrivere lo storico.
+- Nuovi cicli di otto settimane, mantenendo lo storico. Chiudi prima le sessioni aperte.
+- Nutrizione modificabile per ingredienti/quantità, catalogo alimenti modificabile, lista della spesa.
+- Integratori separati in Altro.
+- Backup/ripristino con riepilogo e gestione degli errori di salvataggio.
+
+DATI STORICI
+Nelle serie precedenti non erano registrate le ripetizioni effettive: restano vuote e non generano volume inventato. Puoi completarle correggendo la sessione.
+Per avviare il timer prima della prima serie usa Avvia. Anche la prima registrazione di un carico avvia la sessione.
+Il timer totale continua anche ad app chiusa, salvo Pausa. Alla riapertura puoi correggere l'orario finale. Il suono del recupero in background dipende dal browser/sistema operativo; il tempo si riallinea quando riapri l'app.
+I backup esportano le sessioni aperte in pausa, con il tempo accumulato fino al momento dell'esportazione.
+
+NUTRIZIONE
+I valori per 100 g/ml sono stime modificabili dalle etichette dei prodotti, non una nuova prescrizione alimentare. I totali derivano dalla somma degli ingredienti e possono differire dal vecchio piano.
+Porzioni prive di peso nel testo originale: mela/arancia 150 g, banana 120 g, kiwi 75 g, verdure 200 g, miele 15 g, due uova 100 g senza guscio. Per le alternative sono inizialmente scelti merluzzo e tonno al naturale. Il testo originale è conservato in un dettaglio del pasto; per il calcolo fanno fede gli ingredienti attuali.
+
+VERIFICA
+Testati flussi nel DOM, serie, timer persistenti, migrazione, correzioni, schede/storico, nutrienti, backup e recupero errori. La resa su Safari/iPhone richiede una verifica diretta sul dispositivo.
+
+ULTIME CORREZIONI INTERFACCIA
+- Favicon ICO multi-risoluzione, PNG e icona Apple nella cartella principale; riferimenti aggiornati per limitare l'uso di vecchie icone in cache.
+- Timer sulla linea del titolo, avvio grande e controlli pausa/fine da almeno 44 px.
+- Salta/Ripristina con area di tocco più grande.
+- Animazioni al tocco per tutti i pulsanti, disattivate se è attiva Riduci movimento.
+- Otto settimane in griglia fissa 4 × 2; nessuno slider orizzontale. Anche i giorni dell'allenamento rimangono entro la larghezza dello schermo.
+- Campi a 16 px e vincoli di larghezza per ridurre zoom automatico e spostamenti laterali su Safari. Lo scorrimento verticale necessario a rendere visibile il campo sopra la tastiera resta consentito.
+Se l'icona Home non cambia dopo l'aggiornamento, prova ad aggiungere nuovamente il collegamento dalla pagina aggiornata. Non cancellare i dati del sito.
