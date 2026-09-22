@@ -1,40 +1,27 @@
-RECOMPAPP / GYM 1.1.0
+GYM TRACKER 1.2.0
 
 AGGIORNAMENTO
-Carica TUTTO il contenuto dello ZIP nella stessa posizione della precedente app. Conserva tutti i file JavaScript, CSS, manifest e la cartella icons. Mantieni stesso indirizzo e browser; non cancellare i dati del sito.
-La nuova app migra automaticamente sessioni, carichi e note precedenti. I vecchi dati restano nel browser e non sono rimossi. Dopo l'aggiornamento esporta subito un backup da Altro.
+Carica tutti i file dello ZIP nella stessa cartella del sito, mantenendo lo stesso indirizzo. Esporta prima un backup da Altro. Non cancellare i dati del sito: contengono il tuo storico locale.
 
-NOVITA
-- Peso e ripetizioni effettive per ogni serie; minuti per il cardio.
-- Ultima sessione dello stesso esercizio mostrata sulla card.
-- Completati e saltati raccolti in fondo; Interrotto distingue un esercizio parzialmente svolto.
-- Timer totale e recupero persistenti, comandi più grandi, recupero in barra senza bloccare lo schermo.
-- Avviso per sessioni rimaste aperte; correzione di orari, durata e serie; eliminazione sessione.
-- Riepilogo finale, calendario allenamenti e grafici di carico, ripetizioni/minuti, serie, volume e frequenza.
-- Schede modificabili: aggiunta, modifica, sostituzione, rimozione e riordino, senza riscrivere lo storico.
-- Nuovi cicli di otto settimane, mantenendo lo storico. Chiudi prima le sessioni aperte.
-- Nutrizione modificabile per ingredienti/quantità, catalogo alimenti modificabile, lista della spesa.
-- Integratori separati in Altro.
-- Backup/ripristino con riepilogo e gestione degli errori di salvataggio.
+NOVITÀ
+- Note contenute nel riquadro, testo lungo a capo, X rosso acceso.
+- Feedback animato su tutti i pulsanti, incluse serie completate e azioni che aggiornano la schermata.
+- Recupero con tre segnali acustici, prova suono in Altro; pausa della sessione sospende anche il recupero.
+- Tieni premuto per 0,6 secondi il giorno (es. G1 · Push) per modificare la scheda. Uno spostamento del dito annulla la gesture. Da tastiera: Alt+Invio sul giorno. Termina prima l’eventuale sessione attiva di quella scheda.
+- Schede valide per tutte le settimane e i nuovi cicli. Modifica mantiene l’identità dell’esercizio; Sostituisci ne crea una nuova, senza riusare i carichi del vecchio esercizio.
+- Carichi, ripetizioni, velocità e pendenza ricordati per esercizio e serie, anche tra giorni che ripetono lo stesso esercizio. I nuovi allenamenti hanno valori precompilati ma nessuna serie già completata. Se vengono aggiunte serie, possono riprendere i valori dell’ultima serie disponibile. Puoi modificarli o svuotarli.
+- Completati e saltati/interrotti in sezioni distinte. Il prossimo esercizio rimane in cima.
+- Statistiche > Sessioni, raggiungibile anche da Altro: durata effettiva, serie, completati, parziali e saltati. Filtrabile per data, con riepilogo e correzioni.
+- Tapis roulant/corsa: velocità (km/h), pendenza (%) e minuti; gli stessi campi nello storico, nelle correzioni e nei grafici. I precedenti kg del cardio non vengono convertiti in velocità.
+- Attrezzatura/impugnatura specificata per gli esercizi predefiniti e modificabile; animazioni nelle info con riproduzione/pausa. Le figure sono schemi del movimento, non dimostrazioni precise di ogni variante.
+- Pausa: pannello centrale con Riprendi sessione e Termina e salva. Tempo delle pause escluso.
+- Termina e salva registra automaticamente durata e orario di fine. Gli esercizi non terminati diventano saltati o interrotti. Si richiede una correzione soltanto se mancano ripetizioni/minuti in serie segnate come fatte. Il riepilogo salvato è compatto, con dettagli espandibili.
 
-DATI STORICI
-Nelle serie precedenti non erano registrate le ripetizioni effettive: restano vuote e non generano volume inventato. Puoi completarle correggendo la sessione.
-Per avviare il timer prima della prima serie usa Avvia. Anche la prima registrazione di un carico avvia la sessione.
-Il timer totale continua anche ad app chiusa, salvo Pausa. Alla riapertura puoi correggere l'orario finale. Il suono del recupero in background dipende dal browser/sistema operativo; il tempo si riallinea quando riapri l'app.
-I backup esportano le sessioni aperte in pausa, con il tempo accumulato fino al momento dell'esportazione.
+PERSISTENZA E TIMER
+I dati sono locali al browser e restano tra riaperture e aggiornamenti sullo stesso indirizzo. Backup JSON in Altro per trasferirli o recuperarli. Non cancellare dati del sito. La durata continua se chiudi l’app lasciando la sessione in esecuzione; usa Pausa o Termina per fermarla. Le correzioni di orario restano facoltative nello storico.
 
-NUTRIZIONE
-I valori per 100 g/ml sono stime modificabili dalle etichette dei prodotti, non una nuova prescrizione alimentare. I totali derivano dalla somma degli ingredienti e possono differire dal vecchio piano.
-Porzioni prive di peso nel testo originale: mela/arancia 150 g, banana 120 g, kiwi 75 g, verdure 200 g, miele 15 g, due uova 100 g senza guscio. Per le alternative sono inizialmente scelti merluzzo e tonno al naturale. Il testo originale è conservato in un dettaglio del pasto; per il calcolo fanno fede gli ingredienti attuali.
+AUDIO E ANIMAZIONI
+Attiva il volume e prova il suono da Altro. Il suono richiede un’interazione iniziale e l’app attiva; Safari può sospendere l’audio con schermo bloccato o app in background. Il timer conserva comunque la scadenza. La preferenza di movimento ridotto disattiva le animazioni automatiche; la spiegazione animata può essere avviata dal suo pulsante.
 
 VERIFICA
-Testati flussi nel DOM, serie, timer persistenti, migrazione, correzioni, schede/storico, nutrienti, backup e recupero errori. La resa su Safari/iPhone richiede una verifica diretta sul dispositivo.
-
-ULTIME CORREZIONI INTERFACCIA
-- Favicon ICO multi-risoluzione, PNG e icona Apple nella cartella principale; riferimenti aggiornati per limitare l'uso di vecchie icone in cache.
-- Timer sulla linea del titolo, avvio grande e controlli pausa/fine da almeno 44 px.
-- Salta/Ripristina con area di tocco più grande.
-- Animazioni al tocco per tutti i pulsanti, disattivate se è attiva Riduci movimento.
-- Otto settimane in griglia fissa 4 × 2; nessuno slider orizzontale. Anche i giorni dell'allenamento rimangono entro la larghezza dello schermo.
-- Campi a 16 px e vincoli di larghezza per ridurre zoom automatico e spostamenti laterali su Safari. Lo scorrimento verticale necessario a rendere visibile il campo sopra la tastiera resta consentito.
-Se l'icona Home non cambia dopo l'aggiornamento, prova ad aggiungere nuovamente il collegamento dalla pagina aggiornata. Non cancellare i dati del sito.
+Verificati salvataggi, memoria tra settimane/riaperture e compatibilità dati precedenti, gesture e annullamento al movimento, cardio/storico/grafici, completati/saltati, note, animazioni dopo aggiornamenti, pausa/durata automatica, riepiloghi, programmazione e cancellazione del suono. Resa visiva, gesture e audio su Safari/iPhone da verificare sul dispositivo.
