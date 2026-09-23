@@ -1,3 +1,8 @@
+VERSIONE 1.3.2
+- Corretto il CSS di collasso che nella 1.3.1 conteneva sequenze \n letterali.
+- Settimane/giorni Allenamento e giorni Nutrizione ora si nascondono in base alla posizione reale del contenuto, non a window.scrollY.
+- Asset cache-busted a v132 per iPhone Home Screen/PWA.
+
 GYM TRACKER 1.3.1
 
 CORREZIONI 1.3.1
@@ -32,3 +37,8 @@ Attiva il volume e prova il suono da Altro. Il suono richiede un’interazione i
 
 VERIFICA
 Verificati salvataggi, memoria tra settimane/riaperture e compatibilità dati precedenti, gesture e annullamento al movimento, cardio/storico/grafici, completati/saltati, note, animazioni dopo aggiornamenti, pausa/durata automatica, riepiloghi, programmazione e cancellazione del suono. Resa visiva, gesture e audio su Safari/iPhone da verificare sul dispositivo.
+
+
+VERSIONE 1.3.3
+- Mantiene integralmente i fix 1.3.2 per il collasso di settimane/giorni durante lo scroll.
+- Reintroduce il solo fix iPhone Home Screen per estendere la barra inferiore fino al bordo fisico dello schermo.
