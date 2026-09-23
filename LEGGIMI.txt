@@ -1,4 +1,11 @@
-GYM TRACKER 1.2.0
+GYM TRACKER 1.3.1
+
+CORREZIONI 1.3.1
+- Navigazione inferiore corretta per iPhone/PWA installata in Home: fondo ancorato al viewport e area Home Indicator coperta dallo stesso sfondo della barra.
+- In Allenamento, i pulsanti Settimane e Giorni si richiudono durante lo scroll e ricompaiono tornando in alto.
+- In Nutrizione, i pulsanti dei Giorni si richiudono durante lo scroll per lasciare più spazio ai pasti.
+- Rilevamento scroll compatibile con window, document, viewport iOS e touch.
+- Asset CSS/JS portati a v131 per evitare che l'icona Home di iPhone continui a usare la cache precedente.
 
 AGGIORNAMENTO
 Carica tutti i file dello ZIP nella stessa cartella del sito, mantenendo lo stesso indirizzo. Esporta prima un backup da Altro. Non cancellare i dati del sito: contengono il tuo storico locale.
