@@ -147,16 +147,23 @@ body.controls-scrolled[data-active-tab="food"] .foodtabs{
 }
 body.controls-scrolled[data-active-tab="food"] .nutrition-head{margin-top:0}
 
-/* 1.3.3 — iPhone Home Screen bottom navigation fix layered on top of 1.3.2.
-   Keep all 1.3.2 scroll-collapse behaviour; only extend the bottom bar through
-   the iOS home-indicator area so no empty strip remains below the navigation. */
-@media (display-mode: standalone) {
-  @supports (-webkit-touch-callout: none) {
-    nav.bottom {
-      --ios-home-indicator-fill: max(env(safe-area-inset-bottom), 48px);
-      bottom: calc(-1 * var(--ios-home-indicator-fill)) !important;
-      padding-bottom: var(--ios-home-indicator-fill) !important;
-      background: var(--card) !important;
-    }
-  }
+/* 1.3.4 — iPhone standalone tab bar.
+   The previous workaround only painted the empty strip below the navigation;
+   the controls themselves stayed too high.  In standalone iOS we measure the
+   part of the physical screen that sits below the CSS viewport and move the
+   tab controls into that space while keeping them above the Home Indicator. */
+body.ios-standalone::after{display:none!important}
+body.ios-standalone nav.bottom{
+  --ios-viewport-gap:0px;
+  --ios-controls-shift:0px;
+  bottom:calc(-1 * var(--ios-viewport-gap))!important;
+  padding-bottom:var(--ios-viewport-gap)!important;
+  background:var(--card)!important;
+  overflow:visible!important;
+}
+body.ios-standalone nav.bottom button{
+  transform:translateY(var(--ios-controls-shift));
+}
+body.ios-standalone nav.bottom button:active{
+  transform:translateY(var(--ios-controls-shift)) scale(.96);
 }

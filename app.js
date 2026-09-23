@@ -120,4 +120,45 @@ function setupAdaptiveChrome(){
   window.visualViewport?.addEventListener('scroll',scheduleAdaptiveChrome,{passive:true});
   requestAnimationFrame(measureAdaptiveChrome);
 }
-document.addEventListener('click',buttonFeedback,true);document.querySelectorAll('nav [data-tab]').forEach(b=>b.onclick=()=>{if(mutate(n=>n.tab=b.dataset.tab)){setAdaptiveChrome(false);window.scrollTo(0,0);render()}});setInterval(()=>{const c=document.getElementById('session-clock');if(c)c.textContent=U.duration(elapsed(active()));if(gym.rest)updateRest()},1000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')updateRest()});document.addEventListener('pointerdown',unlockAudio,{passive:true});document.addEventListener('keydown',unlockAudio);render();document.body.classList.remove('launching');requestAnimationFrame(()=>{const splash=document.getElementById('launch-screen');if(splash){splash.classList.add('leaving');setTimeout(()=>splash.remove(),400)}});
+let bottomNavProbe=null,bottomNavFrame=0;
+function safeAreaPx(side){
+  if(!bottomNavProbe){
+    bottomNavProbe=document.createElement('div');
+    bottomNavProbe.setAttribute('aria-hidden','true');
+    bottomNavProbe.style.cssText='position:fixed;visibility:hidden;pointer-events:none;left:0;top:0;width:0;height:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);';
+    document.body.append(bottomNavProbe);
+  }
+  const style=getComputedStyle(bottomNavProbe);
+  return parseFloat(side==='top'?style.paddingTop:style.paddingBottom)||0;
+}
+function syncBottomNavigation(){
+  bottomNavFrame=0;
+  const nav=document.querySelector('nav.bottom');
+  if(!nav)return;
+  const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const standalone=navigator.standalone===true||window.matchMedia?.('(display-mode: standalone)').matches;
+  const active=ios&&standalone;
+  document.body.classList.toggle('ios-standalone',active);
+  if(!active){nav.style.removeProperty('--ios-viewport-gap');nav.style.removeProperty('--ios-controls-shift');return}
+  const safeTop=safeAreaPx('top'),safeBottom=safeAreaPx('bottom');
+  const screenH=Number(window.screen?.height)||0,viewportH=Number(window.innerHeight)||0;
+  const rawMissing=screenH&&viewportH?Math.max(0,screenH-viewportH):0;
+  // iOS standalone can expose a CSS viewport shorter than the physical screen.
+  // The missing strip normally tracks the top safe area; subtract the bottom
+  // safe area when screen.innerHeight reports both insets.
+  const gap=Math.min(90,Math.max(0,safeTop,rawMissing-safeBottom));
+  // Put the labels/icons lower like a native tab bar, but keep the Home
+  // Indicator's safe area free.
+  const shift=Math.max(0,gap-safeBottom);
+  nav.style.setProperty('--ios-viewport-gap',`${Math.round(gap)}px`);
+  nav.style.setProperty('--ios-controls-shift',`${Math.round(shift)}px`);
+}
+function scheduleBottomNavigation(){
+  if(bottomNavFrame)return;
+  bottomNavFrame=requestAnimationFrame(syncBottomNavigation);
+}
+window.addEventListener('resize',scheduleBottomNavigation,{passive:true});
+window.addEventListener('orientationchange',scheduleBottomNavigation,{passive:true});
+window.visualViewport?.addEventListener('resize',scheduleBottomNavigation,{passive:true});
+window.visualViewport?.addEventListener('scroll',scheduleBottomNavigation,{passive:true});
+document.addEventListener('click',buttonFeedback,true);document.querySelectorAll('nav [data-tab]').forEach(b=>b.onclick=()=>{if(mutate(n=>n.tab=b.dataset.tab)){setAdaptiveChrome(false);window.scrollTo(0,0);render()}});setInterval(()=>{const c=document.getElementById('session-clock');if(c)c.textContent=U.duration(elapsed(active()));if(gym.rest)updateRest()},1000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')updateRest()});document.addEventListener('pointerdown',unlockAudio,{passive:true});document.addEventListener('keydown',unlockAudio);render();syncBottomNavigation();document.body.classList.remove('launching');requestAnimationFrame(()=>{const splash=document.getElementById('launch-screen');if(splash){splash.classList.add('leaving');setTimeout(()=>splash.remove(),400)}});
