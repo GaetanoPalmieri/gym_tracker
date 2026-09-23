@@ -42,3 +42,9 @@ Verificati salvataggi, memoria tra settimane/riaperture e compatibilità dati pr
 VERSIONE 1.3.3
 - Mantiene integralmente i fix 1.3.2 per il collasso di settimane/giorni durante lo scroll.
 - Reintroduce il solo fix iPhone Home Screen per estendere la barra inferiore fino al bordo fisico dello schermo.
+
+
+VERSIONE 1.3.5
+- Correzione barra di navigazione inferiore su iPhone in modalità Aggiungi a Home.
+- Rimossa la compensazione manuale basata su screen.height/innerHeight che poteva creare spazio vuoto sotto la barra.
+- La barra ora aderisce al bordo inferiore della PWA e usa solo la safe area nativa per l'Home Indicator.

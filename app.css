@@ -147,23 +147,20 @@ body.controls-scrolled[data-active-tab="food"] .foodtabs{
 }
 body.controls-scrolled[data-active-tab="food"] .nutrition-head{margin-top:0}
 
-/* 1.3.4 — iPhone standalone tab bar.
-   The previous workaround only painted the empty strip below the navigation;
-   the controls themselves stayed too high.  In standalone iOS we measure the
-   part of the physical screen that sits below the CSS viewport and move the
-   tab controls into that space while keeping them above the Home Indicator. */
+/* 1.3.5 — iPhone standalone tab bar.
+   In a Home Screen PWA there is no Safari bottom toolbar to reserve space for.
+   Keep the navigation anchored to the actual viewport edge and let iOS expose
+   only the Home Indicator safe area through env(safe-area-inset-bottom). */
 body.ios-standalone::after{display:none!important}
 body.ios-standalone nav.bottom{
-  --ios-viewport-gap:0px;
-  --ios-controls-shift:0px;
-  bottom:calc(-1 * var(--ios-viewport-gap))!important;
-  padding-bottom:var(--ios-viewport-gap)!important;
+  bottom:0!important;
+  padding-bottom:max(env(safe-area-inset-bottom),0px)!important;
   background:var(--card)!important;
   overflow:visible!important;
 }
 body.ios-standalone nav.bottom button{
-  transform:translateY(var(--ios-controls-shift));
+  transform:none!important;
 }
 body.ios-standalone nav.bottom button:active{
-  transform:translateY(var(--ios-controls-shift)) scale(.96);
+  transform:scale(.96)!important;
 }
