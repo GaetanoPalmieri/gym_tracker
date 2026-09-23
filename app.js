@@ -121,18 +121,86 @@ function setupAdaptiveChrome(){
   requestAnimationFrame(measureAdaptiveChrome);
 }
 let bottomNavFrame=0;
-function syncBottomNavigation(){
-  bottomNavFrame=0;
+let keyboardRecoveryActive=false;
+let keyboardRecoveryTimers=[];
+const editableSelector='input,textarea,select,[contenteditable=\"true\"],[contenteditable=\"\"]';
+function isIosStandalone(){
   const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   const standalone=navigator.standalone===true||window.matchMedia?.('(display-mode: standalone)').matches;
-  document.body.classList.toggle('ios-standalone',ios&&standalone);
+  return ios&&standalone;
+}
+function isEditableElement(el){return !!el?.matches?.(editableSelector)}
+function syncBottomNavigation(){
+  bottomNavFrame=0;
+  const active=isIosStandalone();
+  document.body.classList.toggle('ios-standalone',active);
+  document.documentElement.classList.toggle('ios-standalone',active);
+  if(!active)document.querySelector('nav.bottom')?.style.removeProperty('--ios-nav-recovery-y');
 }
 function scheduleBottomNavigation(){
   if(bottomNavFrame)return;
   bottomNavFrame=requestAnimationFrame(syncBottomNavigation);
 }
-window.addEventListener('resize',scheduleBottomNavigation,{passive:true});
-window.addEventListener('orientationchange',scheduleBottomNavigation,{passive:true});
-window.visualViewport?.addEventListener('resize',scheduleBottomNavigation,{passive:true});
-window.visualViewport?.addEventListener('scroll',scheduleBottomNavigation,{passive:true});
+/* iOS standalone can leave a fixed bottom bar attached to the keyboard-sized
+   visual viewport after an input loses focus. During the short recovery window
+   we compare the bar's real bottom edge with the current visual viewport bottom
+   and compensate only for the measured gap. No screen-height/Safari-toolbar
+   assumptions are used, so the normal Home Indicator safe area stays untouched. */
+function recoverBottomNavigation(){
+  if(!keyboardRecoveryActive||!isIosStandalone()||isEditableElement(document.activeElement))return;
+  const nav=document.querySelector('nav.bottom');
+  if(!nav)return;
+  const vv=window.visualViewport;
+  const visibleBottom=vv?vv.offsetTop+vv.height:window.innerHeight;
+  const currentCorrection=parseFloat(nav.style.getPropertyValue('--ios-nav-recovery-y'))||0;
+  const rect=nav.getBoundingClientRect();
+  const uncorrectedBottom=rect.bottom-currentCorrection;
+  const maxCorrection=Math.max(0,(vv?.height||window.innerHeight)*0.65);
+  const gap=Math.max(0,Math.min(maxCorrection,Math.round(visibleBottom-uncorrectedBottom)));
+  nav.style.setProperty('--ios-nav-recovery-y',gap>1?`${gap}px`:'0px');
+}
+function startKeyboardRecovery(){
+  if(!isIosStandalone())return;
+  keyboardRecoveryTimers.forEach(clearTimeout);
+  keyboardRecoveryTimers=[];
+  keyboardRecoveryActive=true;
+  [0,50,120,220,360,550,800,1150,1550].forEach((delay,index)=>{
+    keyboardRecoveryTimers.push(setTimeout(()=>{
+      scheduleBottomNavigation();
+      recoverBottomNavigation();
+      if(index===8){
+        keyboardRecoveryActive=false;
+        keyboardRecoveryTimers=[];
+        // One last geometry pass after iOS has finished restoring the viewport.
+        const nav=document.querySelector('nav.bottom');
+        if(nav&&!isEditableElement(document.activeElement)){
+          const vv=window.visualViewport;
+          const visibleBottom=vv?vv.offsetTop+vv.height:window.innerHeight;
+          const current=parseFloat(nav.style.getPropertyValue('--ios-nav-recovery-y'))||0;
+          const baseBottom=nav.getBoundingClientRect().bottom-current;
+          const gap=Math.max(0,Math.round(visibleBottom-baseBottom));
+          nav.style.setProperty('--ios-nav-recovery-y',gap>1?`${gap}px`:'0px');
+        }
+      }
+    },delay));
+  });
+}
+document.addEventListener('focusin',event=>{
+  if(!isEditableElement(event.target))return;
+  keyboardRecoveryActive=false;
+  keyboardRecoveryTimers.forEach(clearTimeout);
+  keyboardRecoveryTimers=[];
+  document.querySelector('nav.bottom')?.style.setProperty('--ios-nav-recovery-y','0px');
+},{passive:true});
+document.addEventListener('focusout',event=>{
+  if(!isEditableElement(event.target))return;
+  setTimeout(()=>{if(!isEditableElement(document.activeElement))startKeyboardRecovery()},0);
+},{passive:true});
+window.addEventListener('resize',()=>{scheduleBottomNavigation();recoverBottomNavigation()},{passive:true});
+window.addEventListener('orientationchange',()=>{
+  document.querySelector('nav.bottom')?.style.setProperty('--ios-nav-recovery-y','0px');
+  scheduleBottomNavigation();
+},{passive:true});
+window.visualViewport?.addEventListener('resize',()=>{scheduleBottomNavigation();recoverBottomNavigation()},{passive:true});
+window.visualViewport?.addEventListener('scroll',()=>{scheduleBottomNavigation();recoverBottomNavigation()},{passive:true});
 document.addEventListener('click',buttonFeedback,true);document.querySelectorAll('nav [data-tab]').forEach(b=>b.onclick=()=>{if(mutate(n=>n.tab=b.dataset.tab)){setAdaptiveChrome(false);window.scrollTo(0,0);render()}});setInterval(()=>{const c=document.getElementById('session-clock');if(c)c.textContent=U.duration(elapsed(active()));if(gym.rest)updateRest()},1000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')updateRest()});document.addEventListener('pointerdown',unlockAudio,{passive:true});document.addEventListener('keydown',unlockAudio);render();syncBottomNavigation();document.body.classList.remove('launching');requestAnimationFrame(()=>{const splash=document.getElementById('launch-screen');if(splash){splash.classList.add('leaving');setTimeout(()=>splash.remove(),400)}});

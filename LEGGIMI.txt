@@ -48,3 +48,11 @@ VERSIONE 1.3.5
 - Correzione barra di navigazione inferiore su iPhone in modalità Aggiungi a Home.
 - Rimossa la compensazione manuale basata su screen.height/innerHeight che poteva creare spazio vuoto sotto la barra.
 - La barra ora aderisce al bordo inferiore della PWA e usa solo la safe area nativa per l'Home Indicator.
+
+
+VERSIONE 1.3.6
+- Corretto il caso iPhone/PWA in cui, dopo l'apertura e la chiusura della tastiera, la barra inferiore poteva restare sollevata.
+- In modalità iPhone Home Screen lo scroll viene contenuto nel body invece che nel root viewport, evitando che la barra fixed erediti lo stato errato lasciato dalla tastiera.
+- Come fallback, la correzione misura il bordo reale del visualViewport e riposiziona temporaneamente la barra solo durante il ripristino della tastiera.
+- Nessuna compensazione basata su screen.height: resta invariato il fix 1.3.5 per l'aderenza al bordo e la safe area Home Indicator.
+- Asset CSS/JS aggiornati a v136 per evitare cache della versione precedente.
