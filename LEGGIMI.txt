@@ -1,76 +1,22 @@
-VERSIONE 1.3.8
+VERSIONE 1.4.0
 
-Novità 1.3.8:
-- Pulsante “Salta sessione” spostato sotto l’intestazione e reso più largo, per evitare overflow su iPhone.
-- Cambio scheda tramite swipe con animazione di uscita/entrata.
-- I giorni già saltati o conclusi non vengono più mostrati come nuove sessioni avviabili.
-- Sessione saltata: banner con ripristino; il ripristino annulla il salto e riapre la sessione in pausa.
-- Sessione conclusa completa: modifica consentita solo per carichi, ripetizioni e note.
-- Sessione conclusa con esercizi mancanti: è possibile modificare i dati già svolti oppure completare gli esercizi/serie rimasti, mantenendo bloccate le serie già concluse.
-- Asset cache-busted a v138.
+Novità 1.4.0:
+- Ripristina sessione riapre realmente una sessione saltata come allenamento in corso.
+- Se non era stata completata alcuna serie, la sessione riparte da zero.
+- Se erano già state completate delle serie, lo stato svolto viene mantenuto e tornano disponibili normalmente le serie mancanti.
+- Riprendi sessione, per una sessione conclusa parzialmente, torna alla modalità standard di allenamento con recuperi, note, timer e controlli esercizio attivi.
+- Le sessioni completate al 100% restano modificabili solo nei dati già registrati.
+- Aggiornato cache-busting degli asset a v140.
 
-- Rimossa la barra di navigazione inferiore; cambio sezione con swipe orizzontale (sinistra avanti, destra indietro).
-- Nutrizione: nuovi orari (08:00, 11:30, 13:00, 16:30, workout 19:00, cena 21:00, pre nanna 23:00), pasti chiusi di default e apribili a tendina.
-- Nutrizione: Modifica piano e Lista spesa ora sono icone affiancate; rimosso il pulsante Alimenti dalla pagina.
-- Allenamento: aggiunto Salta sessione; terminare o saltare porta automaticamente alla sessione successiva, anche al riavvio dell'app.
-- Allenamento: rimosso il testo Ciclo 1 e aggiunto il pulsante Variante agli esercizi con alternative disponibili.
-- Asset cache-busted a v137.
+VERSIONE 1.3.9
 
-VERSIONE 1.3.2
-- Corretto il CSS di collasso che nella 1.3.1 conteneva sequenze \n letterali.
-- Settimane/giorni Allenamento e giorni Nutrizione ora si nascondono in base alla posizione reale del contenuto, non a window.scrollY.
-- Asset cache-busted a v132 per iPhone Home Screen/PWA.
+Novità 1.3.9:
+- Corretto lo start_url della PWA iOS: ora punta alla build corrente e non più alla v1.3.7.
+- Rimossi CSS e JavaScript residui della vecchia barra inferiore.
+- Rimossa la fascia/padding inferiore aggiuntiva in modalità standalone su iPhone.
+- Aggiornato cache-busting degli asset a v139.
+- Mantiene tutte le modifiche introdotte nella 1.3.8 su swipe e stato sessioni.
 
-GYM TRACKER 1.3.1
-
-CORREZIONI 1.3.1
-- Navigazione inferiore corretta per iPhone/PWA installata in Home: fondo ancorato al viewport e area Home Indicator coperta dallo stesso sfondo della barra.
-- In Allenamento, i pulsanti Settimane e Giorni si richiudono durante lo scroll e ricompaiono tornando in alto.
-- In Nutrizione, i pulsanti dei Giorni si richiudono durante lo scroll per lasciare più spazio ai pasti.
-- Rilevamento scroll compatibile con window, document, viewport iOS e touch.
-- Asset CSS/JS portati a v131 per evitare che l'icona Home di iPhone continui a usare la cache precedente.
-
-AGGIORNAMENTO
-Carica tutti i file dello ZIP nella stessa cartella del sito, mantenendo lo stesso indirizzo. Esporta prima un backup da Altro. Non cancellare i dati del sito: contengono il tuo storico locale.
-
-NOVITÀ
-- Note contenute nel riquadro, testo lungo a capo, X rosso acceso.
-- Feedback animato su tutti i pulsanti, incluse serie completate e azioni che aggiornano la schermata.
-- Recupero con tre segnali acustici, prova suono in Altro; pausa della sessione sospende anche il recupero.
-- Tieni premuto per 0,6 secondi il giorno (es. G1 · Push) per modificare la scheda. Uno spostamento del dito annulla la gesture. Da tastiera: Alt+Invio sul giorno. Termina prima l’eventuale sessione attiva di quella scheda.
-- Schede valide per tutte le settimane e i nuovi cicli. Modifica mantiene l’identità dell’esercizio; Sostituisci ne crea una nuova, senza riusare i carichi del vecchio esercizio.
-- Carichi, ripetizioni, velocità e pendenza ricordati per esercizio e serie, anche tra giorni che ripetono lo stesso esercizio. I nuovi allenamenti hanno valori precompilati ma nessuna serie già completata. Se vengono aggiunte serie, possono riprendere i valori dell’ultima serie disponibile. Puoi modificarli o svuotarli.
-- Completati e saltati/interrotti in sezioni distinte. Il prossimo esercizio rimane in cima.
-- Statistiche > Sessioni, raggiungibile anche da Altro: durata effettiva, serie, completati, parziali e saltati. Filtrabile per data, con riepilogo e correzioni.
-- Tapis roulant/corsa: velocità (km/h), pendenza (%) e minuti; gli stessi campi nello storico, nelle correzioni e nei grafici. I precedenti kg del cardio non vengono convertiti in velocità.
-- Attrezzatura/impugnatura specificata per gli esercizi predefiniti e modificabile; animazioni nelle info con riproduzione/pausa. Le figure sono schemi del movimento, non dimostrazioni precise di ogni variante.
-- Pausa: pannello centrale con Riprendi sessione e Termina e salva. Tempo delle pause escluso.
-- Termina e salva registra automaticamente durata e orario di fine. Gli esercizi non terminati diventano saltati o interrotti. Si richiede una correzione soltanto se mancano ripetizioni/minuti in serie segnate come fatte. Il riepilogo salvato è compatto, con dettagli espandibili.
-
-PERSISTENZA E TIMER
-I dati sono locali al browser e restano tra riaperture e aggiornamenti sullo stesso indirizzo. Backup JSON in Altro per trasferirli o recuperarli. Non cancellare dati del sito. La durata continua se chiudi l’app lasciando la sessione in esecuzione; usa Pausa o Termina per fermarla. Le correzioni di orario restano facoltative nello storico.
-
-AUDIO E ANIMAZIONI
-Attiva il volume e prova il suono da Altro. Il suono richiede un’interazione iniziale e l’app attiva; Safari può sospendere l’audio con schermo bloccato o app in background. Il timer conserva comunque la scadenza. La preferenza di movimento ridotto disattiva le animazioni automatiche; la spiegazione animata può essere avviata dal suo pulsante.
-
-VERIFICA
-Verificati salvataggi, memoria tra settimane/riaperture e compatibilità dati precedenti, gesture e annullamento al movimento, cardio/storico/grafici, completati/saltati, note, animazioni dopo aggiornamenti, pausa/durata automatica, riepiloghi, programmazione e cancellazione del suono. Resa visiva, gesture e audio su Safari/iPhone da verificare sul dispositivo.
-
-
-VERSIONE 1.3.3
-- Mantiene integralmente i fix 1.3.2 per il collasso di settimane/giorni durante lo scroll.
-- Reintroduce il solo fix iPhone Home Screen per estendere la barra inferiore fino al bordo fisico dello schermo.
-
-
-VERSIONE 1.3.5
-- Correzione barra di navigazione inferiore su iPhone in modalità Aggiungi a Home.
-- Rimossa la compensazione manuale basata su screen.height/innerHeight che poteva creare spazio vuoto sotto la barra.
-- La barra ora aderisce al bordo inferiore della PWA e usa solo la safe area nativa per l'Home Indicator.
-
-
-VERSIONE 1.3.6
-- Corretto il caso iPhone/PWA in cui, dopo l'apertura e la chiusura della tastiera, la barra inferiore poteva restare sollevata.
-- In modalità iPhone Home Screen lo scroll viene contenuto nel body invece che nel root viewport, evitando che la barra fixed erediti lo stato errato lasciato dalla tastiera.
-- Come fallback, la correzione misura il bordo reale del visualViewport e riposiziona temporaneamente la barra solo durante il ripristino della tastiera.
-- Nessuna compensazione basata su screen.height: resta invariato il fix 1.3.5 per l'aderenza al bordo e la safe area Home Indicator.
-- Asset CSS/JS aggiornati a v136 per evitare cache della versione precedente.
+Nota iPhone:
+Dopo il deploy, se l'app era già stata aggiunta alla Home, rimuovere la vecchia icona e aggiungerla nuovamente da Safari per aggiornare lo start URL salvato da iOS.
+La sottile Home Indicator di sistema di iPhone, se visibile, appartiene a iOS e non può essere nascosta da una PWA web.
