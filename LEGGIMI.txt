@@ -1,4 +1,14 @@
-VERSIONE 1.3.7
+VERSIONE 1.3.8
+
+Novità 1.3.8:
+- Pulsante “Salta sessione” spostato sotto l’intestazione e reso più largo, per evitare overflow su iPhone.
+- Cambio scheda tramite swipe con animazione di uscita/entrata.
+- I giorni già saltati o conclusi non vengono più mostrati come nuove sessioni avviabili.
+- Sessione saltata: banner con ripristino; il ripristino annulla il salto e riapre la sessione in pausa.
+- Sessione conclusa completa: modifica consentita solo per carichi, ripetizioni e note.
+- Sessione conclusa con esercizi mancanti: è possibile modificare i dati già svolti oppure completare gli esercizi/serie rimasti, mantenendo bloccate le serie già concluse.
+- Asset cache-busted a v138.
+
 - Rimossa la barra di navigazione inferiore; cambio sezione con swipe orizzontale (sinistra avanti, destra indietro).
 - Nutrizione: nuovi orari (08:00, 11:30, 13:00, 16:30, workout 19:00, cena 21:00, pre nanna 23:00), pasti chiusi di default e apribili a tendina.
 - Nutrizione: Modifica piano e Lista spesa ora sono icone affiancate; rimosso il pulsante Alimenti dalla pagina.
