@@ -20,3 +20,6 @@ Novità 1.3.9:
 Nota iPhone:
 Dopo il deploy, se l'app era già stata aggiunta alla Home, rimuovere la vecchia icona e aggiungerla nuovamente da Safari per aggiornare lo start URL salvato da iOS.
 La sottile Home Indicator di sistema di iPhone, se visibile, appartiene a iOS e non può essere nascosta da una PWA web.
+
+
+v1.4.3: suono recupero rinforzato; notifiche blocco schermo/Apple Watch tramite PWA quando abilitate; service worker notifiche.
