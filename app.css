@@ -287,3 +287,40 @@ main>:first-child:not(.scroll-collapse-sentinel){margin-top:0!important}
 .stats-tabs,.foodtabs,.workout-top-actions,.workout-hint{min-height:44px;align-items:center}
 .stats-tabs,.foodtabs{margin-top:0!important}
 .nutrition-head,.stats-overview,.card:first-of-type{scroll-margin-top:140px}
+
+/* 1.4.2 — iOS Home Screen sticky header + always-visible recovery timer */
+@media (display-mode: standalone){
+  #app{
+    padding-top:0!important;
+  }
+  header.top{
+    position:-webkit-sticky!important;
+    position:sticky!important;
+    top:0!important;
+    z-index:100!important;
+    padding-top:calc(14px + env(safe-area-inset-top))!important;
+    background:var(--bg)!important;
+  }
+}
+
+#rest-bar{
+  position:fixed!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:calc(12px + env(safe-area-inset-bottom))!important;
+  transform:translateX(-50%)!important;
+  z-index:5000!important;
+  width:min(calc(100% - 24px),496px)!important;
+  max-width:496px!important;
+  margin:0!important;
+  box-shadow:0 10px 30px #0009!important;
+}
+#rest-bar .row{gap:8px}
+#rest-bar .row>span{min-width:86px}
+#rest-bar .actions{flex-wrap:nowrap!important}
+@media(max-width:380px){
+  #rest-bar{padding:10px!important}
+  #rest-bar .row{align-items:center}
+  #rest-bar .actions{gap:3px!important}
+  #rest-bar button{padding:7px 6px!important;font-size:11px!important}
+}
