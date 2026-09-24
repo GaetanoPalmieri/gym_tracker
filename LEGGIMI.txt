@@ -1,3 +1,11 @@
+VERSIONE 1.3.7
+- Rimossa la barra di navigazione inferiore; cambio sezione con swipe orizzontale (sinistra avanti, destra indietro).
+- Nutrizione: nuovi orari (08:00, 11:30, 13:00, 16:30, workout 19:00, cena 21:00, pre nanna 23:00), pasti chiusi di default e apribili a tendina.
+- Nutrizione: Modifica piano e Lista spesa ora sono icone affiancate; rimosso il pulsante Alimenti dalla pagina.
+- Allenamento: aggiunto Salta sessione; terminare o saltare porta automaticamente alla sessione successiva, anche al riavvio dell'app.
+- Allenamento: rimosso il testo Ciclo 1 e aggiunto il pulsante Variante agli esercizi con alternative disponibili.
+- Asset cache-busted a v137.
+
 VERSIONE 1.3.2
 - Corretto il CSS di collasso che nella 1.3.1 conteneva sequenze \n letterali.
 - Settimane/giorni Allenamento e giorni Nutrizione ora si nascondono in base alla posizione reale del contenuto, non a window.scrollY.

@@ -140,37 +140,37 @@ const MEALS = {
     "macros": "~205g proteine · 327g carbo · 82g grassi",
     "items": [
       {
-        "t": "7:00",
+        "t": "08:00 · Colazione",
         "icon": "🥣",
         "txt": "250g yogurt greco 0% + 80g fiocchi d'avena + 200ml latte parzialmente scremato; 1 banana (circa 120g) + 15g burro d'arachidi. Mescola a freddo, senza cottura.",
         "m": "734 kcal · P48 · C96 · G18"
       },
       {
-        "t": "10:30",
+        "t": "11:30 · Spuntino",
         "icon": "🥜",
         "txt": "30g mandorle + 1 mela",
         "m": "265 kcal · P6 · C31 · G15"
       },
       {
-        "t": "13:00",
+        "t": "13:00 · Pranzo",
         "icon": "🍗",
         "txt": "200g petto di pollo alla griglia; 90g riso basmati (a crudo); verdure con 10g olio EVO",
         "m": "740 kcal · P68 · C70 · G17"
       },
       {
-        "t": "16:30 (pre-workout)",
+        "t": "16:30 · Spuntino",
         "icon": "🍌",
         "txt": "1 banana + 40g gallette di riso con miele",
         "m": "250 kcal · P3 · C55 · G1"
       },
       {
-        "t": "19:30 (post-workout)",
+        "t": "21:00 · Cena",
         "icon": "🥩",
         "txt": "220g manzo magro (5%) alla piastra; 300g patate dolci al forno; insalata con 10g olio EVO",
         "m": "650 kcal · P55 · C60 · G22"
       },
       {
-        "t": "21:30",
+        "t": "23:00 · Pre nanna",
         "icon": "🥣",
         "txt": "250g yogurt greco 0%; 20g cioccolato fondente 85%",
         "m": "260 kcal · P25 · C15 · G9"
@@ -183,37 +183,37 @@ const MEALS = {
     "macros": "~189g proteine · 272g carbo · 91g grassi",
     "items": [
       {
-        "t": "7:00",
+        "t": "08:00 · Colazione",
         "icon": "🥣",
         "txt": "250g yogurt greco 0% + 70g fiocchi d'avena + 100g mirtilli + 15g burro d'arachidi. Tutto in una ciotola, senza cottura.",
         "m": "555 kcal · P39 · C67 · G14"
       },
       {
-        "t": "10:30",
+        "t": "11:30 · Spuntino",
         "icon": "🍎",
         "txt": "1 mela + 20g burro di arachidi",
         "m": "250 kcal · P7 · C25 · G16"
       },
       {
-        "t": "13:00",
+        "t": "13:00 · Pranzo",
         "icon": "🦃",
         "txt": "220g petto di tacchino alla griglia; 90g pasta integrale (a crudo); verdure con 10g olio EVO",
         "m": "760 kcal · P66 · C72 · G18"
       },
       {
-        "t": "16:30 (pre-workout)",
+        "t": "16:30 · Spuntino",
         "icon": "🍌",
         "txt": "1 banana + 30g gallette di riso con 15g miele",
         "m": "230 kcal · P3 · C50 · G1"
       },
       {
-        "t": "19:30 (post-workout)",
+        "t": "21:00 · Cena",
         "icon": "🐟",
         "txt": "200g salmone al forno; 250g patate; insalata con 10g olio EVO",
         "m": "640 kcal · P46 · C48 · G28"
       },
       {
-        "t": "21:30",
+        "t": "23:00 · Pre nanna",
         "icon": "🥣",
         "txt": "200g fiocchi di latte magri (cottage) + 20g mandorle",
         "m": "280 kcal · P28 · C10 · G14"
@@ -226,37 +226,37 @@ const MEALS = {
     "macros": "~216g proteine · 311g carbo · 80g grassi",
     "items": [
       {
-        "t": "7:00",
+        "t": "08:00 · Colazione",
         "icon": "🥛",
         "txt": "250ml latte parzialmente scremato + 100g fiocchi d'avena; 250g yogurt greco 0% + 15g burro d'arachidi. Avena a freddo o lasciata in ammollo in frigorifero dalla sera prima.",
         "m": "724 kcal · P51 · C83 · G20"
       },
       {
-        "t": "10:30",
+        "t": "11:30 · Spuntino",
         "icon": "🥣",
         "txt": "200g yogurt greco 0% in vasetto + 1 banana (circa 120g) + 10g mandorle. Pronti da consumare; tieni lo yogurt al fresco.",
         "m": "286 kcal · P24 · C35 · G7"
       },
       {
-        "t": "13:00",
+        "t": "13:00 · Pranzo",
         "icon": "🍗",
         "txt": "200g petto di pollo; 90g riso basmati (a crudo); verdure con 10g olio EVO",
         "m": "740 kcal · P68 · C70 · G17"
       },
       {
-        "t": "16:30 (pre-workout)",
+        "t": "16:30 · Spuntino",
         "icon": "🍯",
         "txt": "1 banana + 30g miele su 40g gallette di riso",
         "m": "280 kcal · P3 · C60 · G1"
       },
       {
-        "t": "19:30 (post-workout)",
+        "t": "21:00 · Cena",
         "icon": "🐟",
         "txt": "200g salmone al forno; 250g patate dolci; insalata con 10g olio EVO",
         "m": "620 kcal · P45 · C48 · G26"
       },
       {
-        "t": "21:30",
+        "t": "23:00 · Pre nanna",
         "icon": "🍫",
         "txt": "250g yogurt greco 0% + 20g cioccolato fondente 85%",
         "m": "260 kcal · P25 · C15 · G9"
@@ -269,37 +269,37 @@ const MEALS = {
     "macros": "~198g proteine · 312g carbo · 77g grassi",
     "items": [
       {
-        "t": "7:00",
+        "t": "08:00 · Colazione",
         "icon": "🍞",
         "txt": "100g pane integrale con 25g burro d'arachidi e 20g marmellata; 250g yogurt greco 0%. Pane pronto, senza tostatura.",
         "m": "598 kcal · P41 · C67 · G18"
       },
       {
-        "t": "10:30",
+        "t": "11:30 · Spuntino",
         "icon": "🥣",
         "txt": "200g yogurt greco 0% in vasetto + 1 banana (circa 120g) + 10g mandorle. Nessun frullatore; tieni lo yogurt al fresco.",
         "m": "286 kcal · P24 · C35 · G7"
       },
       {
-        "t": "13:00",
+        "t": "13:00 · Pranzo",
         "icon": "🥩",
         "txt": "200g manzo magro (5%) macinato; 90g couscous integrale (a crudo); verdure con 10g olio EVO",
         "m": "730 kcal · P56 · C75 · G20"
       },
       {
-        "t": "16:30 (pre-workout)",
+        "t": "16:30 · Spuntino",
         "icon": "🍎",
         "txt": "40g gallette di riso con 20g miele + 1 mela",
         "m": "260 kcal · P3 · C60 · G1"
       },
       {
-        "t": "19:30 (post-workout)",
+        "t": "21:00 · Cena",
         "icon": "🍳",
         "txt": "2 uova intere ben cotte + 120g petto di pollo alla piastra; 300g patate al forno; 200g insalata con 10g olio EVO. Le uova sostituiscono parte del pollo.",
         "m": "646 kcal · P49 · C60 · G22"
       },
       {
-        "t": "21:30",
+        "t": "23:00 · Pre nanna",
         "icon": "🍫",
         "txt": "250g yogurt greco 0% + 20g cioccolato fondente 85%",
         "m": "260 kcal · P25 · C15 · G9"
@@ -312,37 +312,37 @@ const MEALS = {
     "macros": "~181g proteine · 206g carbo · 83g grassi",
     "items": [
       {
-        "t": "7:30",
+        "t": "08:00 · Colazione",
         "icon": "🥣",
         "txt": "250g yogurt greco 0% + 60g fiocchi d'avena + 200ml latte parzialmente scremato + 20g burro d'arachidi. Mescola a freddo o prepara la sera prima e conserva in frigorifero.",
         "m": "584 kcal · P46 · C57 · G18"
       },
       {
-        "t": "10:30",
+        "t": "11:30 · Spuntino",
         "icon": "🥜",
         "txt": "20g mandorle + 1 mela",
         "m": "200 kcal · P4 · C27 · G10"
       },
       {
-        "t": "13:00",
+        "t": "13:00 · Pranzo",
         "icon": "🦃",
         "txt": "200g petto di tacchino alla griglia; 70g riso basmati (a crudo); verdure con 10g olio EVO",
         "m": "650 kcal · P62 · C55 · G17"
       },
       {
-        "t": "16:30",
+        "t": "16:30 · Spuntino",
         "icon": "🥣",
         "txt": "200g yogurt greco 0% + 15g noci",
         "m": "250 kcal · P23 · C8 · G13"
       },
       {
-        "t": "19:30",
+        "t": "21:00 · Cena",
         "icon": "🐟",
         "txt": "200g merluzzo o platessa al forno; 200g patate al forno; insalata con 10g olio EVO",
         "m": "480 kcal · P44 · C45 · G16"
       },
       {
-        "t": "21:30",
+        "t": "23:00 · Pre nanna",
         "icon": "🍫",
         "txt": "20g cioccolato fondente 85% + 1 kiwi",
         "m": "150 kcal · P2 · C14 · G9"
@@ -355,37 +355,37 @@ const MEALS = {
     "macros": "~168g proteine · 251g carbo · 69g grassi",
     "items": [
       {
-        "t": "7:30",
+        "t": "08:00 · Colazione",
         "icon": "🥣",
         "txt": "250g yogurt greco 0% + 60g fiocchi d'avena + 200ml latte parzialmente scremato + 20g burro d'arachidi. Mescola a freddo o prepara la sera prima e conserva in frigorifero.",
         "m": "584 kcal · P46 · C57 · G18"
       },
       {
-        "t": "10:30",
+        "t": "11:30 · Spuntino",
         "icon": "🧀",
         "txt": "150g fiocchi di latte magri (cottage) + 1 mela",
         "m": "230 kcal · P24 · C25 · G3"
       },
       {
-        "t": "13:00",
+        "t": "13:00 · Pranzo",
         "icon": "🧆",
         "txt": "220g ceci cotti (scolati); 60g riso basmati (a crudo); verdure con 10g olio EVO",
         "m": "600 kcal · P26 · C90 · G14"
       },
       {
-        "t": "16:30",
+        "t": "16:30 · Spuntino",
         "icon": "🥝",
         "txt": "20g mandorle + 1 kiwi",
         "m": "200 kcal · P4 · C22 · G11"
       },
       {
-        "t": "19:30",
+        "t": "21:00 · Cena",
         "icon": "🐟",
         "txt": "200g tonno al naturale (o pesce spada); 200g patate al forno; insalata con 10g olio EVO",
         "m": "460 kcal · P46 · C42 · G14"
       },
       {
-        "t": "21:30",
+        "t": "23:00 · Pre nanna",
         "icon": "🍫",
         "txt": "200g yogurt greco 0% + 20g cioccolato fondente 85%",
         "m": "230 kcal · P22 · C15 · G9"
@@ -398,37 +398,37 @@ const MEALS = {
     "macros": "~164g proteine · 206g carbo · 96g grassi",
     "items": [
       {
-        "t": "7:30",
+        "t": "08:00 · Colazione",
         "icon": "🍞",
         "txt": "80g pane integrale con 20g burro d'arachidi; 250g yogurt greco 0% + 150ml latte parzialmente scremato. Tutto pronto, senza cottura.",
         "m": "538 kcal · P43 · C53 · G17"
       },
       {
-        "t": "10:30",
+        "t": "11:30 · Spuntino",
         "icon": "🍊",
         "txt": "1 arancia + 15g noci",
         "m": "170 kcal · P3 · C20 · G10"
       },
       {
-        "t": "13:00",
+        "t": "13:00 · Pranzo",
         "icon": "🐟",
         "txt": "200g salmone al forno; 70g quinoa (a crudo); verdure con 10g olio EVO",
         "m": "640 kcal · P44 · C55 · G28"
       },
       {
-        "t": "16:30",
+        "t": "16:30 · Spuntino",
         "icon": "🍏",
         "txt": "1 mela + 20g mandorle",
         "m": "215 kcal · P5 · C25 · G12"
       },
       {
-        "t": "19:30",
+        "t": "21:00 · Cena",
         "icon": "🍳",
         "txt": "2 uova intere ben cotte + 120g petto di pollo alla piastra; 200g patate al forno; 200g insalata con 10g olio EVO. Le uova sostituiscono parte del pollo.",
         "m": "569 kcal · P47 · C43 · G22"
       },
       {
-        "t": "21:30",
+        "t": "23:00 · Pre nanna",
         "icon": "🥣",
         "txt": "200g yogurt greco 0% + 10g cioccolato fondente 85%",
         "m": "210 kcal · P22 · C10 · G7"
