@@ -395,3 +395,43 @@ button{min-height:44px}
 .page-nav button:focus-visible{outline:2px solid #85cdb2;outline-offset:2px}
 body.controls-scrolled header.top .page-nav{margin-bottom:4px}
 @media(max-width:360px){.page-nav{gap:4px}.page-nav button{font-size:10.5px;padding-inline:2px}}
+
+/* 1.4.7 — uniform page vertical rhythm + statistics tabs */
+body[data-active-tab="food"] header.top{
+  padding-bottom:8px!important;
+}
+body[data-active-tab="food"] header.top .title-row{
+  margin-bottom:12px!important;
+}
+body[data-active-tab="food"] main{
+  padding-top:12px!important;
+}
+main{
+  padding-top:12px!important;
+}
+main>.scroll-collapse-sentinel:first-child{
+  height:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+main>.scroll-collapse-sentinel:first-child + *{
+  margin-top:0!important;
+}
+main>.stats-tabs:first-child,
+main>.foodtabs:first-child,
+main>.workout-top-actions:first-of-type{
+  margin-top:0!important;
+}
+.stats-tabs{
+  align-items:stretch;
+}
+.stats-tabs button{
+  min-height:56px!important;
+  height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  line-height:1.2;
+  padding:7px 6px!important;
+}

@@ -1,10 +1,10 @@
 'use strict';
-const CACHE='recompapp-v146';
+const CACHE='recompapp-v147';
 const APP_SHELL=[
-  './','./index.html?v=146','./index.html','./shared.css?v=2','./app.css?v=146',
-  './shared.js?v=146','./data.js?v=146','./foods.js?v=120','./app.js?v=146',
-  './manifest.webmanifest?v=146','./gym-icon-192.png?v=146','./gym-icon-512.png?v=146',
-  './favicon-32.png?v=146','./apple-touch-icon-gym.png?v=146'
+  './','./index.html?v=147','./index.html','./shared.css?v=2','./app.css?v=147',
+  './shared.js?v=147','./data.js?v=147','./foods.js?v=120','./app.js?v=147',
+  './manifest.webmanifest?v=147','./gym-icon-192.png?v=147','./gym-icon-512.png?v=147',
+  './favicon-32.png?v=147','./apple-touch-icon-gym.png?v=147'
 ];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting()));
@@ -21,14 +21,14 @@ self.addEventListener('fetch',event=>{
   const url=new URL(req.url);
   if(url.origin!==self.location.origin)return;
   if(req.mode==='navigate'){
-    event.respondWith(fetch(req).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put('./index.html',copy));return res}).catch(()=>caches.match('./index.html').then(r=>r||caches.match('./index.html?v=146'))));
+    event.respondWith(fetch(req).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put('./index.html',copy));return res}).catch(()=>caches.match('./index.html').then(r=>r||caches.match('./index.html?v=147'))));
     return;
   }
   event.respondWith(caches.match(req,{ignoreSearch:true}).then(cached=>cached||fetch(req).then(res=>{if(res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy))}return res})));
 });
 self.addEventListener('notificationclick',event=>{
   event.notification.close();
-  const target=event.notification?.data?.url||'./index.html?v=146';
+  const target=event.notification?.data?.url||'./index.html?v=147';
   event.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(clients=>{
     for(const client of clients){if('focus' in client){client.navigate?.(target);return client.focus()}}
     return self.clients.openWindow?self.clients.openWindow(target):null;
@@ -37,5 +37,5 @@ self.addEventListener('notificationclick',event=>{
 self.addEventListener('push',event=>{
   let data={};try{data=event.data?.json?.()||{}}catch(e){data={body:event.data?.text?.()||''}}
   const title=data.title||'RecompApp';
-  event.waitUntil(self.registration.showNotification(title,{body:data.body||'Aggiornamento allenamento',icon:'gym-icon-192.png',badge:'favicon-32.png',data:{url:data.url||'./index.html?v=146'}}));
+  event.waitUntil(self.registration.showNotification(title,{body:data.body||'Aggiornamento allenamento',icon:'gym-icon-192.png',badge:'favicon-32.png',data:{url:data.url||'./index.html?v=147'}}));
 });
