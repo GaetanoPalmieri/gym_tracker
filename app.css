@@ -617,3 +617,33 @@ body:not([data-active-tab="workout"]) header.top #daybar{
   header.top .title-row h1{padding-right:150px!important;font-size:20px!important}
   .page-nav button{font-size:10.5px!important;padding-inline:1px!important}
 }
+
+
+/* 1.5.0 — restore workout start action outside the common aligned title row */
+.workout-start-row{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  min-height:0;
+  margin:0 0 10px;
+}
+.workout-start-row[hidden]{display:none!important}
+.workout-start-row .start-session{
+  min-width:148px;
+  height:44px!important;
+  min-height:44px!important;
+  max-height:44px!important;
+  margin:0!important;
+  padding:0 18px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:11px!important;
+  background:#e8a33d!important;
+  border-color:#e8a33d!important;
+  color:#241800!important;
+  font-size:15px!important;
+  font-weight:800!important;
+  box-sizing:border-box!important;
+}
+body:not([data-active-tab="workout"]) .workout-start-row{display:none!important}
