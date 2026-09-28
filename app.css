@@ -789,3 +789,32 @@ main{padding:10px 14px 0!important}
   .closed-summary-kpis{gap:5px}
   .closed-summary-kpis>div{padding-inline:4px}
 }
+
+
+/* 1.5.4 — completed-day active summary + denser expandable cards */
+.exercise-card{border-radius:13px!important}
+.exercise-card.exercise-compact{padding:9px 10px!important}
+.exercise-topline{margin-bottom:6px!important}
+.exercise-title-block h3{font-size:14px!important;line-height:1.18!important}
+.equipment-label{font-size:12px!important}
+.exercise-meta{font-size:12px!important;margin:5px 0 6px!important}
+.compact-progress{margin:5px 0 7px!important;font-size:11px!important}
+.compact-progress>i{height:4px!important}
+.compact-set,.compact-empty{min-height:24px!important;padding:3px 6px!important;border-radius:8px!important;font-size:10.5px!important}
+.exercise-expand-toggle{width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important;padding:0!important;display:grid!important;place-items:center!important;border-radius:9px!important;font-size:16px!important;line-height:1!important}
+.exercise-expand-toggle .chevron{display:block;transform:translateY(-1px)}
+.exercise-expanded-body{margin-top:8px!important;padding-top:8px!important}
+.previous-session{font-size:11px!important;line-height:1.35!important}
+.setsrow{gap:5px!important;margin-top:8px!important}
+.weightrow{gap:5px!important;margin-top:7px!important}
+.weightrow input{padding:6px 8px!important;font-size:13px!important;min-height:38px!important}
+.setbtn{padding:7px 0!important;font-size:12.5px!important;min-height:38px!important}
+.exercise-expanded-actions{gap:6px!important;margin-top:8px!important}
+.exercise-expanded-actions button{min-height:36px!important;padding:7px 10px!important;font-size:12px!important}
+.exercise-note{font-size:12px!important;line-height:1.4!important}
+.skip-exercise{padding:7px 10px!important;font-size:12px!important;min-height:38px!important}
+.active-complete-head .closed-session-actions{display:flex;gap:8px;flex-wrap:wrap}
+.active-complete-head .closed-session-actions button{min-height:40px}
+@media(max-width:420px){
+  .active-complete-head .closed-session-actions{display:grid;grid-template-columns:1fr}
+}
