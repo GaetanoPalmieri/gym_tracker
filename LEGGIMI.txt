@@ -23,3 +23,8 @@ La sottile Home Indicator di sistema di iPhone, se visibile, appartiene a iOS e 
 
 
 v1.4.4: suono recupero rinforzato; notifiche blocco schermo/Apple Watch tramite PWA quando abilitate; service worker notifiche.
+
+
+1.4.6
+- Aggiunta barra di navigazione comune sotto il titolo per passare tra Allenamento, Nutrizione, Statistiche e Altro senza usare lo swipe.
+- Lo swipe resta disponibile come navigazione alternativa.
