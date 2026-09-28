@@ -1,4 +1,5 @@
 const U={
+ cleanText:(s,max=4000)=>String(s??'').normalize('NFC').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g,'').slice(0,max),
  esc:s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
  uid:()=>Date.now().toString(36)+'-'+Math.random().toString(36).slice(2),
  clone:v=>JSON.parse(JSON.stringify(v)),

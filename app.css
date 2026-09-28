@@ -346,3 +346,16 @@ body.ios-standalone{
 html.ios-resume-repaint,html.ios-resume-repaint body,html.ios-resume-repaint #app{
   background:var(--bg)!important;
 }
+
+
+/* 1.4.5 — hardening, accessibility and quality-of-life */
+:root{--sub:#b7c5c0}
+button{min-height:44px}
+.exercise-quick-actions button,[data-info],[data-note],.icon-action{min-width:44px;min-height:44px}
+.meal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.meal-actions button{flex:1 1 150px}
+.meal-consumed.good{background:#214c3d;color:#a1ebc8;border-color:#315d50}
+.stats-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}
+.danger-zone{border-color:#714049;background:#2b1f24}
+#gym-storage{position:sticky;top:0;z-index:9999;color:#fff;background:#7a2f35;border-bottom:1px solid #b25b61;line-height:1.4}
+@media(max-width:380px){.stats-tabs button{font-size:11px;padding-inline:5px}}

@@ -180,7 +180,7 @@ const MEALS = {
   "d2": {
     "label": "Giorno 2 · Pull — Allenamento",
     "kcal": "≈ 2715 kcal",
-    "macros": "~189g proteine · 272g carbo · 91g grassi",
+    "macros": "~189g proteine · 263g carbo · 91g grassi",
     "items": [
       {
         "t": "08:00 · Colazione",
