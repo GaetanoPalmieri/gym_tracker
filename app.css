@@ -435,3 +435,74 @@ main>.workout-top-actions:first-of-type{
   line-height:1.2;
   padding:7px 6px!important;
 }
+
+/* 1.4.8 — exact header alignment + cleaner statistics segmented control */
+header.top .title-row{
+  height:44px!important;
+  min-height:44px!important;
+  max-height:44px!important;
+  margin-bottom:12px!important;
+  align-items:center!important;
+}
+header.top .title-row h1{
+  margin:0!important;
+  padding:0!important;
+  line-height:44px!important;
+}
+#header-session,
+.session-inline{
+  height:44px;
+  min-height:44px;
+  align-items:center;
+}
+.session-inline .start-session,
+.session-inline .session-control,
+.session-closed-chip{
+  height:44px!important;
+  min-height:44px!important;
+  max-height:44px!important;
+  box-sizing:border-box;
+}
+
+/* Statistics sub-navigation: one compact segmented control instead of 3 big buttons. */
+.stats-tabs{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:3px!important;
+  min-height:0!important;
+  margin:0 0 12px!important;
+  padding:4px!important;
+  border:1px solid #2b3942;
+  border-radius:13px;
+  background:#141d24;
+  box-sizing:border-box;
+}
+.stats-tabs button{
+  height:46px!important;
+  min-height:46px!important;
+  max-height:46px!important;
+  margin:0!important;
+  padding:7px 5px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:1px solid transparent!important;
+  border-radius:9px!important;
+  background:transparent!important;
+  color:#aebbb6!important;
+  box-shadow:none!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  line-height:1.15!important;
+  text-align:center;
+}
+.stats-tabs button.active{
+  background:#263b36!important;
+  border-color:#3b6759!important;
+  color:#f1f8f5!important;
+  box-shadow:0 1px 0 #0005!important;
+}
+.stats-tabs button:active{transform:scale(.98)}
+@media(max-width:380px){
+  .stats-tabs button{font-size:11px!important;padding-inline:3px!important}
+}
