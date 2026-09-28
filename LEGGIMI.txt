@@ -29,6 +29,6 @@ v1.4.4: suono recupero rinforzato; notifiche blocco schermo/Apple Watch tramite 
 - Aggiunta barra di navigazione comune sotto il titolo per passare tra Allenamento, Nutrizione, Statistiche e Altro senza usare lo swipe.
 - Lo swipe resta disponibile come navigazione alternativa.
 
-1.5.0
+1.5.1
 - Barra principale ridisegnata come selettore segmentato, coerente con Statistiche.
 - Header reso deterministico: i controlli sessione in Allenamento non modificano più la quota verticale della barra principale.
