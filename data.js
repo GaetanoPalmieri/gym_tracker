@@ -1,14 +1,32 @@
 /* ===================== DATI PROGRAMMA ===================== */
-const COMMON_CLOSING = [
-  {name:"Crunch a terra (o ai cavi)", sets:3, reps:"20", rest:45, move:"core",
-    note:"Addominali: contrai bene in alto, non tirare il collo con le mani, movimento lento e controllato."},
-  {name:"Sollevamento gambe da sdraiato (leg raise)", sets:3, reps:"15", rest:45, move:"core",
-    note:"Addominali bassi: schiena aderente al pavimento, gambe quasi tese, scendi senza toccare terra."},
+const COMMON_FINISH = [
   {name:"Tapis roulant — camminata in pendenza", sets:1, reps:"20-25 min", rest:0, move:"cardio",
-    note:"Cardio a ritmo moderato (zona 2: un po' affannoso ma riesci a parlare). Aiuta il deficit calorico per far uscire gli addominali — ricorda che il grasso sulla pancia si riduce con le calorie, gli addominali servono a rinforzare e definire, non esiste il dimagrimento localizzato."},
+    note:"Cardio a ritmo moderato (zona 2: un po' affannoso ma riesci a parlare). Aiuta il deficit calorico; gli addominali rinforzano il core ma non esiste il dimagrimento localizzato."},
   {name:"Esercizi di Kegel (pavimento pelvico)", sets:3, reps:"10 contrazioni (5\" tieni + 5\" rilascia)", rest:30, move:"kegel",
-    note:"Contrai i muscoli che usi per fermare il flusso di urina, tieni 5 secondi, rilascia 5 secondi. Rinforzano il controllo del pavimento pelvico e nel tempo possono aiutare a ritardare l'eiaculazione."},
+    note:"Contrai i muscoli del pavimento pelvico, tieni 5 secondi e rilascia 5 secondi. Evita di trattenere il respiro."},
 ];
+
+const ABS_ROUTINE = {
+  d1:[
+    {name:"Crunch ai cavi in ginocchio", sets:3, reps:"12-15", rest:45, move:"core",
+      note:"Fletti il busto portando le costole verso il bacino. Non tirare con le braccia e mantieni il bacino stabile."},
+    {name:"Pallof press ai cavi", sets:3, reps:"12 per lato", rest:45, move:"core",
+      note:"Anti-rotazione: spingi le mani davanti al petto senza lasciare ruotare il busto. Core e glutei attivi."},
+  ],
+  d2:[
+    {name:"Knee raise alla captain chair", sets:3, reps:"10-15", rest:60, move:"core",
+      note:"Porta le ginocchia verso il petto con controllo e chiudi leggermente il bacino in alto. Evita slanci."},
+    {name:"Dead bug controllato", sets:3, reps:"10 per lato", rest:45, move:"core",
+      note:"Zona lombare aderente al pavimento. Allunga lentamente braccio e gamba opposti senza perdere la posizione."},
+  ],
+  d3:[],
+  d4:[
+    {name:"Ab wheel rollout", sets:3, reps:"8-12", rest:60, move:"core",
+      note:"Parti in ginocchio, glutei e addome contratti. Allunga solo fin dove riesci a mantenere la zona lombare neutra."},
+    {name:"Side plank", sets:3, reps:"30-45 sec per lato", rest:45, move:"core",
+      note:"Corpo in linea, bacino alto e addome attivo. Mantieni senza ruotare il tronco."},
+  ],
+};
 
 const DAYS = [
   { key:"d1", name:"Push", short:"G1 · Push",
@@ -27,7 +45,8 @@ const DAYS = [
         note:"Gomiti fissi lungo il fianco: si muove solo l'avambraccio. Estensione completa in basso."},
       {name:"French press con manubrio", sets:3, reps:"10", rest:60, move:"vertical_press",
         note:"Gomiti stretti e fermi, scendi dietro la testa senza aprire i gomiti verso l'esterno."},
-      ...COMMON_CLOSING,
+      ...ABS_ROUTINE.d1,
+      ...COMMON_FINISH,
     ]},
   { key:"d2", name:"Pull", short:"G2 · Pull",
     exercises:[
@@ -45,7 +64,8 @@ const DAYS = [
         note:"Gomiti fermi lungo il fianco, nessuno slancio con la schiena. Contrai bene in alto."},
       {name:"Curl a martello con manubri", sets:3, reps:"12", rest:60, move:"curl",
         note:"Presa neutra (palmi rivolti verso il corpo): lavora anche il brachiale, utile per braccia più \"piene\"."},
-      ...COMMON_CLOSING,
+      ...ABS_ROUTINE.d2,
+      ...COMMON_FINISH,
     ]},
   { key:"d3", name:"Legs", short:"G3 · Legs",
     exercises:[
@@ -61,7 +81,8 @@ const DAYS = [
         note:"Mento verso il petto, spinta con i glutei, blocco di 1 secondo in massima contrazione in alto."},
       {name:"Calf raise in piedi", sets:4, reps:"15", rest:45, move:"leg_press",
         note:"Range di movimento completo, pausa di 1 secondo in massima estensione."},
-      ...COMMON_CLOSING,
+      ...ABS_ROUTINE.d3,
+      ...COMMON_FINISH,
     ]},
   { key:"d4", name:"Extra: Spalle & Braccia", short:"G4 · Extra",
     exercises:[
@@ -81,7 +102,8 @@ const DAYS = [
         note:"Punto debole - braccia: tensione continua per tutto il movimento, nessuno slancio con la schiena."},
       {name:"Curl 21 (bicipiti, manubri leggeri)", sets:2, reps:"21 (7+7+7)", rest:60, move:"curl",
         note:"Punto debole - braccia: 7 ripetizioni nella metà bassa del movimento + 7 nella metà alta + 7 complete. Usa un peso leggero: brucia molto ma dà grande volume alle braccia."},
-      ...COMMON_CLOSING,
+      ...ABS_ROUTINE.d4,
+      ...COMMON_FINISH,
     ]},
 ];
 

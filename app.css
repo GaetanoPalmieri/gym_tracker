@@ -862,3 +862,21 @@ body:not([data-active-tab="workout"]) .workout-top-actions{display:none!importan
 @media(max-width:360px){
   .start-session-inline,.skip-session-page{font-size:11.5px!important;padding-inline:6px!important}
 }
+
+/* 1.5.6 — active session controls */
+.pause-session-inline,.finish-session-inline{
+  width:100%!important;
+  min-height:42px!important;
+  height:42px!important;
+  padding:0 10px!important;
+  border-radius:11px!important;
+  font-size:13px!important;
+  font-weight:800!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  white-space:nowrap!important;
+}
+.pause-session-inline{background:#274b42!important;border-color:#3b6c5d!important;color:#baf2dc!important}
+.finish-session-inline{background:#482d31!important;border-color:#704349!important;color:#ffb0a8!important}
+@media(max-width:360px){.pause-session-inline,.finish-session-inline{font-size:11.5px!important;padding-inline:6px!important}}

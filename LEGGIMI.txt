@@ -22,7 +22,7 @@ Dopo il deploy, se l'app era già stata aggiunta alla Home, rimuovere la vecchia
 La sottile Home Indicator di sistema di iPhone, se visibile, appartiene a iOS e non può essere nascosta da una PWA web.
 
 
-v1.4.4: suono recupero rinforzato; notifiche blocco schermo/Apple Watch tramite PWA quando abilitate; service worker notifiche.
+v1.4.4 (storico): suono recupero rinforzato.
 
 
 1.4.6
@@ -32,3 +32,5 @@ v1.4.4: suono recupero rinforzato; notifiche blocco schermo/Apple Watch tramite 
 1.5.1
 - Barra principale ridisegnata come selettore segmentato, coerente con Statistiche.
 - Header reso deterministico: i controlli sessione in Allenamento non modificano più la quota verticale della barra principale.
+
+v1.5.6: routine addominale diversificata su 3 giorni; controlli Pausa/Termina visibili durante la sessione; sessione continua se l'app passa in background nella stessa istanza e viene riaperta in pausa dopo un avvio a freddo; rimosso il sistema notifiche/reminder.
