@@ -81,7 +81,7 @@ function saveLifecycleStamp(kind='heartbeat'){
 }
 function normalizeStateOnOpen(state){state.settings??={};state.settings.weightUnit=['kg','lb'].includes(state.settings.weightUnit)?state.settings.weightUnit:'kg';delete state.settings.reminderEnabled;delete state.settings.reminderTime;delete state.settings.lastReminderDate;state.bodyWeights=Array.isArray(state.bodyWeights)?state.bodyWeights:[];state.mealLogs=state.mealLogs&&typeof state.mealLogs==='object'?state.mealLogs:{};if(!state.settings.scheduleV137){Object.values(state.meals||{}).forEach(day=>day.items?.forEach((m,i)=>{if(MEAL_SCHEDULE[i])m.time=MEAL_SCHEDULE[i]}));state.settings.scheduleV137=true}migrateAbsRoutineV156(state);const open=(state.sessions||[]).filter(x=>!x.legacy&&!x.ended).sort((a,b)=>new Date(b.started||0)-new Date(a.started||0))[0];if(open){state.cycle=Number(open.cycle)||state.cycle||1;state.week=Math.min(8,Math.max(1,Number(open.week)||state.week||1));state.dayIdx=sessionDayIndex(open,state.program);return}const cycle=state.cycle||1,last=(state.sessions||[]).filter(x=>!x.legacy&&x.ended&&(x.cycle||1)===cycle).sort((a,b)=>new Date(b.ended||0)-new Date(a.ended||0))[0];if(last)advanceWorkoutPosition(state,Math.min(8,Math.max(1,Number(last.week)||state.week||1)),sessionDayIndex(last,state.program))}
 
-const APP_VERSION='1.6.2';
+const APP_VERSION='1.6.6';
 let gym=defaultGym(),storageError='',wakeWarned=false,month=U.local().slice(0,7),selectedDay='',selectedExercise='',metric='weight',chartPoints=[],wakeLock=null,statsView='exercises',expandedExerciseKeys=new Set();
 function isNum(n){return U.finite(n)&&n>=0}
 function validGym(d){try{return d.version===2&&Number.isInteger(d.cycle)&&d.cycle>0&&Number.isInteger(d.week)&&d.week>=1&&d.week<=8&&Number.isInteger(d.dayIdx)&&Array.isArray(d.program)&&d.program.length>0&&d.dayIdx>=0&&d.dayIdx<d.program.length&&d.program.every(p=>typeof p.key==='string'&&typeof p.short==='string'&&Array.isArray(p.exercises)&&p.exercises.every(e=>typeof e.id==='string'&&typeof e.name==='string'&&Number.isInteger(e.sets)&&e.sets>0&&e.sets<=30&&isNum(e.rest)&&typeof e.reps==='string'))&&Array.isArray(d.sessions)&&new Set(d.sessions.map(s=>s.id)).size===d.sessions.length&&d.sessions.every(s=>typeof s.id==='string'&&(s.started==null||U.validDate(s.started))&&(s.ended==null||U.validDate(s.ended))&&isNum(s.elapsed)&&(s.runningSince==null||isNum(s.runningSince))&&Array.isArray(s.exercises)&&s.exercises.every(e=>typeof e.id==='string'&&typeof e.name==='string'&&Array.isArray(e.rows)&&e.rows.every(r=>typeof r.done==='boolean'&&(r.weight==null||isNum(r.weight))&&(r.reps==null||isNum(r.reps))&&(r.speed==null||isNum(r.speed))&&(r.incline==null||isNum(r.incline)))))&&d.foods&&Object.values(d.foods).every(f=>typeof f.name==='string'&&['g','ml'].includes(f.unit)&&Array.isArray(f.v)&&f.v.length===4&&f.v.every(isNum))&&d.meals&&Object.values(d.meals).every(day=>typeof day.label==='string'&&Array.isArray(day.items)&&day.items.every(m=>typeof m.time==='string'&&Array.isArray(m.ingredients)&&m.ingredients.every(i=>Object.hasOwn(d.foods,i.food)&&isNum(i.qty))))&&(!d.rest||isNum(d.rest.end)&&typeof d.rest.name==='string')&&(!d.exerciseValues||typeof d.exerciseValues==='object'&&Object.values(d.exerciseValues).every(rows=>Array.isArray(rows)&&rows.every(r=>r==null||typeof r==='object'&&Object.values(r).every(v=>v==null||isNum(v)))))&&d.settings&&d.notes&&typeof d.notes==='object'&&(!d.bodyWeights||Array.isArray(d.bodyWeights)&&d.bodyWeights.every(x=>x&&typeof x.id==='string'&&U.validDate(x.date)&&isNum(x.kg)))&&(!d.mealLogs||typeof d.mealLogs==='object')}catch(e){return false}}
@@ -222,7 +222,7 @@ function watchServiceWorkerRegistration(reg){
 }
 function registerServiceWorker(){
   if(!('serviceWorker' in navigator))return Promise.resolve(null);
-  if(!swRegistrationPromise)swRegistrationPromise=navigator.serviceWorker.register('./sw.js?v=165',{scope:'./'}).then(reg=>{watchServiceWorkerRegistration(reg);return reg}).catch(()=>null);
+  if(!swRegistrationPromise)swRegistrationPromise=navigator.serviceWorker.register('./sw.js?v=166',{scope:'./'}).then(reg=>{watchServiceWorkerRegistration(reg);return reg}).catch(()=>null);
   return swRegistrationPromise;
 }
 function checkForAppUpdate(){registerServiceWorker().then(reg=>reg?.update?.().catch(()=>{}))}
@@ -321,7 +321,9 @@ function showStartupError(err){
   console.error('RecompApp startup error',err);
   const splash=document.getElementById('launch-screen');
   if(!splash)return;
-  splash.innerHTML='<div class="launch-logo" aria-hidden="true">RC</div><p class="launch-title">RecompApp</p><p class="launch-caption">Errore di avvio</p><p class="launch-caption" style="max-width:300px;text-align:center">Ricarica la pagina. Se il problema persiste, aggiorna l’app o cancella la cache del sito.</p>';
+  const msg=String(err?.message||err||'Errore sconosciuto');
+  splash.innerHTML='<div class="launch-logo" aria-hidden="true">RC</div><p class="launch-title">RecompApp</p><p class="launch-caption">Errore di avvio</p><p class="launch-caption" style="max-width:300px;text-align:center">Ricarica la pagina. Se il problema persiste, usa il messaggio tecnico qui sotto.</p>';
+  const detail=document.createElement('p');detail.className='launch-caption';detail.style.cssText='max-width:320px;text-align:center;font-size:12px;opacity:.75;word-break:break-word';detail.textContent=msg;splash.append(detail);
 }
 try{
   document.addEventListener('click',buttonFeedback,true);
