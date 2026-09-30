@@ -1,10 +1,10 @@
 'use strict';
-const CACHE='recompapp-v160';
+const CACHE='recompapp-v162';
 const APP_SHELL=[
-  './','./index.html?v=160','./index.html','./shared.css?v=2','./app.css?v=160',
-  './shared.js?v=160','./data.js?v=160','./foods.js?v=120','./app.js?v=160',
-  './manifest.webmanifest?v=160','./gym-icon-192.png?v=160','./gym-icon-512.png?v=160',
-  './favicon-32.png?v=160','./apple-touch-icon-gym.png?v=160'
+  './','./index.html?v=162','./index.html','./shared.css?v=2','./app.css?v=162',
+  './shared.js?v=162','./data.js?v=162','./foods.js?v=120','./app.js?v=162',
+  './manifest.webmanifest?v=162','./gym-icon-192.png?v=162','./gym-icon-512.png?v=162',
+  './favicon-32.png?v=162','./apple-touch-icon-gym.png?v=162'
 ];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(APP_SHELL)));
@@ -24,7 +24,7 @@ self.addEventListener('fetch',event=>{
   const url=new URL(req.url);
   if(url.origin!==self.location.origin)return;
   if(req.mode==='navigate'){
-    event.respondWith(fetch(req).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put('./index.html',copy));return res}).catch(()=>caches.match('./index.html').then(r=>r||caches.match('./index.html?v=160'))));
+    event.respondWith(fetch(req).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put('./index.html',copy));return res}).catch(()=>caches.match('./index.html').then(r=>r||caches.match('./index.html?v=162'))));
     return;
   }
   event.respondWith(caches.match(req,{ignoreSearch:true}).then(cached=>cached||fetch(req).then(res=>{if(res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy))}return res})));
