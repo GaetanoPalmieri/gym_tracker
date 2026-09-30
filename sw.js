@@ -1,5 +1,5 @@
 'use strict';
-const CACHE='recompapp-v166';
+const CACHE='recompapp-v167';
 const APP_SHELL=[
   './','./index.html?v=166','./index.html','./shared.css?v=2','./app.css?v=166',
   './shared.js?v=166','./data.js?v=166','./foods.js?v=120','./app.js?v=166',
@@ -30,7 +30,7 @@ self.addEventListener('fetch',event=>{
     }).catch(()=>caches.match('./index.html?v=166').then(r=>r||caches.match('./index.html'))));
     return;
   }
-  // Exact URL matching is intentional: never serve v165 JS/CSS to a v166 HTML page.
+  // Exact URL matching is intentional: never serve v165 JS/CSS to a v167 HTML page.
   event.respondWith(caches.match(req).then(cached=>cached||fetch(req).then(res=>{
     if(res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy));}
     return res;
