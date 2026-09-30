@@ -115,7 +115,15 @@ const PROGRESSION_TEXT = {
   5: "Settimana 5 (Blocco B): riparti dal carico della settimana 3 o poco superiore, stesse ripetizioni. Il deload ha lasciato margine per spingere di più.",
   6: "Settimana 6: aumenta ancora il carico del 2,5-5% dove hai margine.",
   7: "Settimana 7: nuovo aumento di carico. Lascia solo 1 ripetizione in riserva sui compound.",
-  8: "Settimana 8 — DELOAD FINALE: -10% carico, -1 serie sui compound. Fine dei 2 mesi: fai un check (peso, foto, misure) prima di ripartire con un nuovo ciclo.",
+  8: "Settimana 8 — DELOAD: -10% carico e -1 serie sui compound. Recupera e prepara il blocco successivo.",
+  9: "Settimana 9 (Blocco C): riparti dal carico della settimana 7 o poco sopra. Mantieni 2 ripetizioni in riserva e tecnica pulita.",
+  10: "Settimana 10: aumenta il carico del 2,5-5% dove hai completato tutte le serie con margine.",
+  11: "Settimana 11: nuovo piccolo aumento dove possibile. Sui compound resta a circa 1 ripetizione in riserva.",
+  12: "Settimana 12 — DELOAD: riduci il carico di circa il 10% e togli una serie ai compound.",
+  13: "Settimana 13 (Blocco D): riparti dal carico della settimana 11 o leggermente superiore, senza forzare le prime serie.",
+  14: "Settimana 14: aumenta del 2,5-5% solo sugli esercizi completati bene nella settimana precedente.",
+  15: "Settimana 15: ultimo incremento del ciclo. Mantieni esecuzione controllata e circa 1 ripetizione in riserva sui compound.",
+  16: "Settimana 16 — DELOAD FINALE: -10% carico e -1 serie sui compound. A fine settimana fai il check del ciclo prima di ripartire.",
 };
 
 const ANIM_SVG = {
