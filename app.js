@@ -215,12 +215,27 @@ function watchServiceWorkerRegistration(reg){
 }
 function registerServiceWorker(){
   if(!('serviceWorker' in navigator))return Promise.resolve(null);
-  if(!swRegistrationPromise)swRegistrationPromise=navigator.serviceWorker.register('./sw.js?v=157',{scope:'./'}).then(reg=>{watchServiceWorkerRegistration(reg);return reg}).catch(()=>null);
+  if(!swRegistrationPromise)swRegistrationPromise=navigator.serviceWorker.register('./sw.js?v=158',{scope:'./'}).then(reg=>{watchServiceWorkerRegistration(reg);return reg}).catch(()=>null);
   return swRegistrationPromise;
 }
 function checkForAppUpdate(){registerServiceWorker().then(reg=>reg?.update?.().catch(()=>{}))}
 navigator.serviceWorker?.addEventListener('controllerchange',()=>{if(swRefreshPending){swRefreshPending=false;location.reload()}});
 function nextWorkoutCue(session,exerciseIndex,rowIndex){if(!session)return'';const current=session.exercises[exerciseIndex];if(current&&!current.stopped){for(let j=rowIndex+1;j<current.rows.length;j++)if(!current.rows[j].done)return `Serie ${j+1} · ${current.name}`}for(let i=exerciseIndex+1;i<session.exercises.length;i++){const e=session.exercises[i];if(!e.stopped&&e.rows.some(r=>!r.done))return `Prossimo esercizio: ${e.name}`}return 'Ultima serie della sessione'}
+let wakeLockStatus='idle';
+async function requestWakeLock(){
+  if(!('wakeLock' in navigator)){wakeLockStatus='unsupported';return false}
+  if(wakeLock)return true;
+  try{
+    wakeLock=await navigator.wakeLock.request('screen');
+    wakeLockStatus='active';
+    wakeLock.addEventListener?.('release',()=>{wakeLock=null;if(wakeLockStatus!=='unsupported')wakeLockStatus='idle'});
+    return true;
+  }catch(e){
+    wakeLock=null;
+    wakeLockStatus='blocked';
+    return false;
+  }
+}
 async function releaseWakeLock(){try{await wakeLock?.release()}catch(e){}wakeLock=null;if(wakeLockStatus!=='unsupported')wakeLockStatus='idle'}
 function syncWakeLock(){if(document.visibilityState==='visible'&&active()?.runningSince)requestWakeLock();else releaseWakeLock()}
 
@@ -295,4 +310,23 @@ function repairAfterIOSResume(){
   checkForAppUpdate();
 }
 
-document.addEventListener('click',buttonFeedback,true);registerServiceWorker().then(()=>checkForAppUpdate());bindSwipeNavigation();setInterval(()=>{const c=document.getElementById('session-clock');if(c)c.textContent=U.duration(elapsed(active()));if(gym.rest)updateRest()},1000);setInterval(()=>{if(document.visibilityState==='visible')saveLifecycleStamp('heartbeat')},10000);setInterval(()=>{if(document.visibilityState==='visible')checkForAppUpdate()},300000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveLifecycleStamp('hidden');else repairAfterIOSResume();syncWakeLock()});window.addEventListener('pageshow',repairAfterIOSResume);window.addEventListener('focus',()=>{if(document.visibilityState==='visible')repairAfterIOSResume()});render();document.body.classList.remove('launching');requestAnimationFrame(()=>{const splash=document.getElementById('launch-screen');if(splash){splash.classList.add('leaving');setTimeout(()=>splash.remove(),400)}});
+function showStartupError(err){
+  console.error('RecompApp startup error',err);
+  const splash=document.getElementById('launch-screen');
+  if(!splash)return;
+  splash.innerHTML='<div class="launch-logo" aria-hidden="true">RC</div><p class="launch-title">RecompApp</p><p class="launch-caption">Errore di avvio</p><p class="launch-caption" style="max-width:300px;text-align:center">Ricarica la pagina. Se il problema persiste, aggiorna l’app o cancella la cache del sito.</p>';
+}
+try{
+  document.addEventListener('click',buttonFeedback,true);
+  registerServiceWorker().then(()=>checkForAppUpdate()).catch(()=>{});
+  bindSwipeNavigation();
+  setInterval(()=>{const c=document.getElementById('session-clock');if(c)c.textContent=U.duration(elapsed(active()));if(gym.rest)updateRest()},1000);
+  setInterval(()=>{if(document.visibilityState==='visible')saveLifecycleStamp('heartbeat')},10000);
+  setInterval(()=>{if(document.visibilityState==='visible')checkForAppUpdate()},300000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveLifecycleStamp('hidden');else repairAfterIOSResume();syncWakeLock()});
+  window.addEventListener('pageshow',repairAfterIOSResume);
+  window.addEventListener('focus',()=>{if(document.visibilityState==='visible')repairAfterIOSResume()});
+  render();
+  document.body.classList.remove('launching');
+  requestAnimationFrame(()=>{const splash=document.getElementById('launch-screen');if(splash){splash.classList.add('leaving');setTimeout(()=>splash.remove(),400)}});
+}catch(err){showStartupError(err)}
