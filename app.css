@@ -1162,3 +1162,19 @@ input[type=number]::placeholder{
 /* 1.6.4 — allow closing an incomplete session explicitly */
 .partial-finish-actions{display:grid;gap:8px;margin-top:14px}
 .partial-finish-actions button{width:100%;min-height:42px}
+
+/* 1.6.5 — archive partial sessions + dynamic series controls */
+.closed-session-complete-head.archived-incomplete{
+  border-color:#7a6137!important;
+  background:#2b261c!important;
+}
+.closed-session-complete-head.archived-incomplete strong{color:#ffd19b!important}
+.closed-session-actions.three-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.closed-session-actions.three-actions button{min-width:0;min-height:46px;padding:9px 8px}
+.archive-action{border-color:#8c613b!important;background:#3a2b1f!important;color:#ffd09b!important;font-weight:800!important}
+.series-count-actions{display:flex;justify-content:flex-end;gap:7px;margin:8px 0 2px}
+.series-count-actions button{min-height:36px;padding:6px 11px;font-size:12px;font-weight:750}
+@media(max-width:420px){
+  .closed-session-actions.three-actions{grid-template-columns:1fr}
+  .closed-session-actions.three-actions button{width:100%}
+}
