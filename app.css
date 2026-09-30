@@ -1280,3 +1280,45 @@ body[data-active-tab="more"] main .card button{
   .active-session-actions{grid-template-columns:minmax(88px,.84fr) minmax(0,1fr) minmax(0,1fr)!important}
   .inline-session-clock{font-size:15.5px!important;font-weight:500!important;padding-right:7px!important}
 }
+
+/* 1.7.2 — wider session timer + nutrition supplement schedule */
+.active-session-actions{
+  grid-template-columns:minmax(112px,1.05fr) minmax(0,1fr) minmax(0,1fr)!important;
+}
+.inline-session-clock{
+  justify-content:flex-end!important;
+  padding:0 12px 0 0!important;
+  font-size:18px!important;
+  font-weight:400!important;
+  letter-spacing:.7px!important;
+  font-variant-numeric:tabular-nums!important;
+  transform:scaleX(1.06);
+  transform-origin:right center;
+}
+.supplement-timing{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:48px;
+  padding:9px 11px;
+  margin:7px 0;
+  border:1px solid #33424c;
+  border-radius:12px;
+  background:#151f26;
+}
+.supplement-timing-icon{
+  width:30px;
+  height:30px;
+  flex:0 0 30px;
+  display:grid;
+  place-items:center;
+  border-radius:9px;
+  background:#202d34;
+  font-size:16px;
+}
+.supplement-timing b{display:block;font-size:12.5px;line-height:1.25}
+.supplement-timing small{display:block;margin-top:2px;color:var(--sub);font-size:11px;line-height:1.35}
+@media(max-width:380px){
+  .active-session-actions{grid-template-columns:minmax(102px,1fr) minmax(0,1fr) minmax(0,1fr)!important}
+  .inline-session-clock{font-size:16.5px!important;padding-right:9px!important;letter-spacing:.5px!important}
+}

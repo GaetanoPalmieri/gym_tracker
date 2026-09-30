@@ -478,9 +478,9 @@ const FOOD_TABS = [
 ];
 
 const SUPPLEMENTS = [
-  {icon:"⚡", title:"Creatina monoidrato", txt:"5 g al giorno, tutti i giorni (anche nei giorni di riposo), a qualsiasi orario. Non serve fase di carico. È l'integratore con più evidenze scientifiche per forza e massa muscolare."},
-  {icon:"🥤", title:"Proteine in polvere (whey o vegetali)", txt:"Utili per raggiungere più comodamente i ~190 g/die di proteine, soprattutto negli spuntini. Non sono obbligatorie se riesci a raggiungere la quota con il cibo."},
-  {icon:"💊", title:"Aminoacidi essenziali (EAA)", txt:"Opzionali: possono essere utili se ti alleni a digiuno o hai pasti molto distanziati dall'allenamento. Non indispensabili se la dieta è già ricca di proteine."},
-  {icon:"🐟", title:"Omega-3 e multivitaminico", txt:"Opzionali, di supporto generale alla salute (soprattutto in deficit/mantenimento calorico prolungato)."},
+  {icon:"⚡", title:"Creatina monoidrato", txt:"5 g a colazione ogni giorno, inclusi i giorni di riposo. Non serve una fase di carico."},
+  {icon:"💊", title:"BCAA", txt:"Inseriti nel pre workout nei giorni di allenamento. Con un apporto proteico già elevato restano opzionali."},
+  {icon:"🥤", title:"Maltodestrine", txt:"Inserite nel post workout nei giorni di allenamento. La quantità va definita in base al fabbisogno di carboidrati e alle calorie complessive."},
+  {icon:"🐟", title:"Omega-3", txt:"Inseriti nel pre nanna. La dose va letta in termini di EPA + DHA e adattata anche al consumo di pesce della dieta."},
 ];
 
