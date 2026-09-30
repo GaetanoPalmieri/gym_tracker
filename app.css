@@ -908,3 +908,44 @@ body:not([data-active-tab="workout"]) .workout-top-actions{display:none!importan
   .app-update-banner{align-items:stretch;flex-direction:column}
   .app-update-banner button{width:100%}
 }
+
+/* 1.5.9 — single active session guard + inline session timer */
+.active-session-actions{
+  grid-template-columns:minmax(74px,.72fr) minmax(0,1fr) minmax(0,1fr)!important;
+  align-items:stretch!important;
+}
+.inline-session-clock{
+  min-height:42px;
+  height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 8px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:var(--card2);
+  color:var(--text);
+  font-size:14px;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+  box-sizing:border-box;
+}
+.session-conflict-actions{display:grid;gap:8px;margin-top:14px}
+.session-conflict-actions button{width:100%;min-height:44px}
+@media(max-width:380px){
+  .active-session-actions{grid-template-columns:minmax(68px,.68fr) minmax(0,1fr) minmax(0,1fr)!important;gap:6px!important}
+  .inline-session-clock{font-size:12.5px;padding-inline:5px}
+  .pause-session-inline,.finish-session-inline{font-size:10.8px!important;padding-inline:5px!important}
+}
+
+/* 1.6.0 — stronger exercise actions + complete-all control */
+.exercise-expanded-actions .strong-icon-action{
+  border-width:2px!important;
+  font-weight:900!important;
+  min-width:38px!important;
+}
+.exercise-expanded-actions .complete-all-series{
+  border-width:2px!important;
+  font-weight:850!important;
+}
