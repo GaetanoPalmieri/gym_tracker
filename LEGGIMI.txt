@@ -34,3 +34,18 @@ v1.4.4 (storico): suono recupero rinforzato.
 - Header reso deterministico: i controlli sessione in Allenamento non modificano più la quota verticale della barra principale.
 
 v1.5.6: routine addominale diversificata su 3 giorni; controlli Pausa/Termina visibili durante la sessione; sessione continua se l'app passa in background nella stessa istanza e viene riaperta in pausa dopo un avvio a freddo; rimosso il sistema notifiche/reminder.
+
+1.7.3
+- Nutrizione: G1–G4 e Riposo A/B/C su un'unica griglia a 4 colonne allineata.
+- Macro arrotondate a numeri interi (niente più 197.79 g).
+- Freccia apri/chiudi esercizio sempre a destra del titolo.
+- Riepilogo serie bilanciato (4 serie = 2×2, 3 serie in fila).
+- "Salta esercizio" meno invadente; "✓ All" diventa "✓ Tutte".
+- Rimosso user-scalable=no. Cache v173.
+
+1.8.0
+- Nome unico: RecompApp (titolo pagina, schermata Altro, avviso aggiornamento).
+- Allenamento: la settimana è un selettore compatto "‹ Sett. 1/16 ›" accanto al titolo; tocca il centro per scegliere tra tutte le 16 settimane. Rimossa la riga Sett. 1–4.
+- Rimosso il chip "Conclusa/Saltata" dal titolo (lo stato è già mostrato nella pagina).
+- Conferme in-app (Annulla / Conferma) al posto dei popup del browser.
+- Cache v180.

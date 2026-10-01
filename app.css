@@ -1322,3 +1322,45 @@ body[data-active-tab="more"] main .card button{
   .active-session-actions{grid-template-columns:minmax(102px,1fr) minmax(0,1fr) minmax(0,1fr)!important}
   .inline-session-clock{font-size:16.5px!important;padding-right:9px!important;letter-spacing:.5px!important}
 }
+
+/* 1.7.3 — Review grafica */
+/* Nutrizione: griglia unica a 4 colonne, la riga Riposo è allineata alla riga G1–G4. */
+.foodtabs{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.foodtabs button,.foodtabs button:nth-child(n+5){grid-column:auto!important}
+.foodtabs-label{display:flex;align-items:center;justify-content:center;height:44px;font-size:12px;font-weight:700;color:var(--sub);letter-spacing:.3px;text-transform:uppercase}
+/* Freccia apri/chiudi sempre nella stessa posizione, a destra del titolo. */
+.exercise-name-line{justify-content:space-between}
+.exercise-name-line h3{flex:1 1 auto}
+.exercise-title-chevron{font-size:15px;padding-left:6px}
+/* Riepilogo serie: griglia bilanciata (4 serie = 2×2, 3 serie = 3 in fila). */
+.compact-series-summary{display:grid!important;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:6px!important}
+.compact-set{justify-content:center;min-width:0;white-space:nowrap;overflow:hidden}
+.compact-empty{grid-column:1/-1}
+/* "Salta esercizio": azione secondaria, meno invadente. */
+.exercise-header-row .skip-exercise{background:transparent!important;border-color:var(--line)!important;color:var(--sub)!important;font-size:12px!important;min-width:0!important;min-height:36px!important;padding:6px 10px!important}
+/* Messaggi "vuoto" più discreti. */
+.empty,.empty-state,.muted.center{font-size:14px}
+
+/* 1.8.0 — Controlli Allenamento compatti: settimana nel titolo, giorni su una riga. */
+.week-stepper{display:flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:2px}
+.week-stepper button{border:0;background:transparent;color:var(--text);min-height:40px;border-radius:10px;font-weight:700}
+.week-stepper .week-step{width:36px;font-size:22px;line-height:1;color:var(--sub);padding:0}
+.week-stepper .week-step:disabled{opacity:.3}
+.week-stepper .week-current{padding:0 8px;font-size:14px;min-width:76px}
+.week-stepper .week-current small{font-size:11px;color:var(--sub);font-weight:600;margin-left:1px}
+.week-stepper .week-current:active,.week-stepper .week-step:active{background:var(--card2)}
+body[data-active-tab="workout"] header.top #daybar{margin-top:0!important}
+header.top .title-row{margin-bottom:10px}
+/* Lo stato Conclusa/Saltata è già mostrato nella pagina: niente chip duplicato nel titolo. */
+#header-session .session-closed-chip{display:none!important}
+header.top .title-row h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:360px){.week-stepper .week-step{width:30px}.week-stepper .week-current{min-width:64px;padding:0 4px}}
+
+/* 1.8.0 — Dialogo di conferma in-app */
+.ask-dialog{border:1px solid var(--line);border-radius:18px;background:var(--card);color:var(--text);padding:22px 20px 16px;width:min(340px,calc(100vw - 40px));box-shadow:0 20px 50px #0008}
+.ask-dialog::backdrop{background:rgba(6,10,14,.6);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.ask-dialog .ask-msg{margin:0 0 18px;font-size:16px;line-height:1.45}
+.ask-dialog .ask-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ask-dialog button{min-height:46px;border-radius:12px;font-size:15px;font-weight:700;border:1px solid var(--line);background:var(--card2);color:var(--text)}
+.ask-dialog .ask-ok{background:var(--accent);border-color:var(--accent);color:#08201c}
+.ask-dialog .ask-ok.danger{background:var(--danger);border-color:var(--danger);color:#fff}
