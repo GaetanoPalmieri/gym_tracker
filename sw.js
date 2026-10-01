@@ -1,10 +1,10 @@
 'use strict';
-const CACHE='recompapp-v180';
+const CACHE='recompapp-v190';
 const APP_SHELL=[
-  './','./index.html?v=180','./index.html','./shared.css?v=2','./app.css?v=180',
-  './shared.js?v=180','./data.js?v=180','./foods.js?v=120','./app.js?v=180',
-  './manifest.webmanifest?v=180','./gym-icon-192.png?v=180','./gym-icon-512.png?v=180',
-  './favicon-32.png?v=180','./apple-touch-icon-gym.png?v=180'
+  './','./index.html?v=190','./index.html','./shared.css?v=2','./app.css?v=190',
+  './shared.js?v=190','./data.js?v=190','./foods.js?v=120','./app.js?v=190',
+  './manifest.webmanifest?v=190','./gym-icon-192.png?v=190','./gym-icon-512.png?v=190',
+  './favicon-32.png?v=190','./apple-touch-icon-gym.png?v=190'
 ];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(APP_SHELL)));
@@ -25,9 +25,9 @@ self.addEventListener('fetch',event=>{
   if(url.origin!==self.location.origin)return;
   if(req.mode==='navigate'){
     event.respondWith(fetch(req,{cache:'no-store'}).then(res=>{
-      if(res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put('./index.html?v=180',copy));}
+      if(res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put('./index.html?v=190',copy));}
       return res;
-    }).catch(()=>caches.match('./index.html?v=180').then(r=>r||caches.match('./index.html'))));
+    }).catch(()=>caches.match('./index.html?v=190').then(r=>r||caches.match('./index.html'))));
     return;
   }
   // Exact URL matching is intentional: never serve v165 JS/CSS to a v167 HTML page.

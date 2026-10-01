@@ -1364,3 +1364,37 @@ header.top .title-row h1{white-space:nowrap;overflow:hidden;text-overflow:ellips
 .ask-dialog button{min-height:46px;border-radius:12px;font-size:15px;font-weight:700;border:1px solid var(--line);background:var(--card2);color:var(--text)}
 .ask-dialog .ask-ok{background:var(--accent);border-color:var(--accent);color:#08201c}
 .ask-dialog .ask-ok.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+
+/* 1.9.0 — Barra di navigazione in basso (stile Bilancio) */
+.tabbar-bottom{
+  position:fixed;left:0;right:0;bottom:0;z-index:4000;
+  max-width:520px;margin:0 auto;
+  display:flex;gap:4px;
+  padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+  background:var(--card);border-top:1px solid var(--line);
+  box-shadow:0 -6px 18px #0006;
+}
+.tabbar-bottom .tab{
+  flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  min-height:52px;padding:6px 2px;border:1px solid transparent;border-radius:14px;
+  background:transparent;color:var(--sub);font:inherit;
+  -webkit-tap-highlight-color:transparent;
+}
+.tabbar-bottom .tab span{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tabbar-bottom .tab svg{display:block}
+.tabbar-bottom .tab.active{background:#25453e;border-color:#397662;color:#fff}
+.tabbar-bottom .tab:active{transform:scale(.96)}
+.tabbar-bottom .tab:focus-visible{outline:2px solid #85cdb2;outline-offset:2px}
+html body main,html body.ios-standalone main{padding-bottom:calc(92px + env(safe-area-inset-bottom))!important}
+@media (display-mode:standalone){html body main{padding-bottom:calc(92px + env(safe-area-inset-bottom))!important}}
+#rest-bar{bottom:calc(76px + env(safe-area-inset-bottom))!important}
+.app-toast{bottom:calc(84px + env(safe-area-inset-bottom))!important}
+
+/* Selettore settimana: riga dedicata sopra i giorni, sempre visibile anche da app installata. */
+header.top #weekbar.week-bar{margin:0 0 8px!important}
+#weekbar.week-bar .week-stepper{width:100%;justify-content:space-between}
+#weekbar.week-bar .week-step{width:48px}
+#weekbar.week-bar .week-current{flex:1;font-size:15px}
+#weekbar.week-bar .week-current small{font-size:13px;margin-left:3px}
+.week-caret{font-size:11px;color:var(--sub);margin-left:6px}
+header.top #daybar{margin-top:0!important}
