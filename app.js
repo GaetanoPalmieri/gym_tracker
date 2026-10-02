@@ -150,6 +150,8 @@ const defaultGym = () => ({
     loadV1121: true,
     massV1122: true,
     leanBulkV1123: true,
+    oneDairyV1124: true,
+    lessYogurtV1125: true,
     profile: { age: 30, heightCm: 186, startKg: 86, sex: 'M' },
     block: 1,
     blockStart: mondayISO(new Date()),
@@ -279,6 +281,8 @@ function migrateLoadV1121(state) {
   );
   state.settings.loadV1121 = true;
 }
+const BREAKFAST_ONE_DAIRY = {"d1": [[{"food": "yogurt", "qty": 250}, {"food": "oats", "qty": 80}, {"food": "milk", "qty": 200}, {"food": "banana", "qty": 120}, {"food": "pb", "qty": 15}], [{"food": "yogurt", "qty": 350}, {"food": "oats", "qty": 90}, {"food": "banana", "qty": 120}, {"food": "pb", "qty": 15}], "350g yogurt greco 0% + 90g fiocchi d'avena; 1 banana (circa 120g) + 15g burro d'arachidi. Mescola a freddo, senza cottura."], "d3": [[{"food": "milk", "qty": 250}, {"food": "oats", "qty": 100}, {"food": "yogurt", "qty": 250}, {"food": "pb", "qty": 15}], [{"food": "yogurt", "qty": 350}, {"food": "oats", "qty": 110}, {"food": "pb", "qty": 15}], "350g yogurt greco 0% + 110g fiocchi d'avena + 15g burro d'arachidi. Avena mescolata nello yogurt, anche la sera prima in frigorifero."], "r1": [[{"food": "yogurt", "qty": 250}, {"food": "oats", "qty": 80}, {"food": "milk", "qty": 200}, {"food": "pb", "qty": 20}], [{"food": "yogurt", "qty": 350}, {"food": "oats", "qty": 90}, {"food": "pb", "qty": 20}], "350g yogurt greco 0% + 90g fiocchi d'avena + 20g burro d'arachidi. Mescola a freddo o prepara la sera prima e conserva in frigorifero."], "r2": [[{"food": "yogurt", "qty": 250}, {"food": "oats", "qty": 60}, {"food": "milk", "qty": 200}, {"food": "pb", "qty": 20}], [{"food": "yogurt", "qty": 350}, {"food": "oats", "qty": 70}, {"food": "pb", "qty": 20}], "350g yogurt greco 0% + 70g fiocchi d'avena + 20g burro d'arachidi. Mescola a freddo o prepara la sera prima e conserva in frigorifero."], "r3": [[{"food": "bread", "qty": 80}, {"food": "pb", "qty": 20}, {"food": "yogurt", "qty": 250}, {"food": "milk", "qty": 150}], [{"food": "bread", "qty": 90}, {"food": "pb", "qty": 20}, {"food": "yogurt", "qty": 300}], "90g pane integrale con 20g burro d'arachidi; 300g yogurt greco 0%. Tutto pronto, senza cottura."]};
+const LESS_YOGURT_CHANGES = [["d1", 0, [{"food": "yogurt", "qty": 350}, {"food": "oats", "qty": 90}, {"food": "banana", "qty": 120}, {"food": "pb", "qty": 15}], [{"food": "yogurt", "qty": 250}, {"food": "oats", "qty": 90}, {"food": "banana", "qty": 120}, {"food": "pb", "qty": 15}], "250g yogurt greco 0% + 90g fiocchi d'avena; 1 banana (circa 120g) + 15g burro d'arachidi. Mescola a freddo, senza cottura."], ["d3", 0, [{"food": "yogurt", "qty": 350}, {"food": "oats", "qty": 110}, {"food": "pb", "qty": 15}], [{"food": "yogurt", "qty": 250}, {"food": "oats", "qty": 110}, {"food": "pb", "qty": 15}], "250g yogurt greco 0% + 110g fiocchi d'avena + 15g burro d'arachidi. Avena mescolata nello yogurt, anche la sera prima in frigorifero."], ["r1", 0, [{"food": "yogurt", "qty": 350}, {"food": "oats", "qty": 90}, {"food": "pb", "qty": 20}], [{"food": "yogurt", "qty": 250}, {"food": "oats", "qty": 90}, {"food": "pb", "qty": 20}], "250g yogurt greco 0% + 90g fiocchi d'avena + 20g burro d'arachidi. Mescola a freddo o prepara la sera prima e conserva in frigorifero."], ["r2", 0, [{"food": "yogurt", "qty": 350}, {"food": "oats", "qty": 70}, {"food": "pb", "qty": 20}], [{"food": "yogurt", "qty": 250}, {"food": "oats", "qty": 70}, {"food": "pb", "qty": 20}], "250g yogurt greco 0% + 70g fiocchi d'avena + 20g burro d'arachidi. Mescola a freddo o prepara la sera prima e conserva in frigorifero."], ["r3", 0, [{"food": "bread", "qty": 90}, {"food": "pb", "qty": 20}, {"food": "yogurt", "qty": 300}], [{"food": "bread", "qty": 90}, {"food": "pb", "qty": 20}, {"food": "yogurt", "qty": 250}], "90g pane integrale con 20g burro d'arachidi; 250g yogurt greco 0%. Tutto pronto, senza cottura."], ["d3", 1, [{"food": "yogurt", "qty": 200}, {"food": "banana", "qty": 120}, {"food": "almonds", "qty": 10}], [{"food": "cottage", "qty": 150}, {"food": "banana", "qty": 120}, {"food": "almonds", "qty": 10}], "150g fiocchi di latte magri (cottage) + 1 banana (circa 120g) + 10g mandorle. Pronti da consumare; tieni i fiocchi di latte al fresco."], ["d4", 1, [{"food": "yogurt", "qty": 200}, {"food": "banana", "qty": 120}, {"food": "almonds", "qty": 10}], [{"food": "cottage", "qty": 150}, {"food": "banana", "qty": 120}, {"food": "almonds", "qty": 10}], "150g fiocchi di latte magri (cottage) + 1 banana (circa 120g) + 10g mandorle. Nessun frullatore; tieni i fiocchi di latte al fresco."]];
 const LEAN_BULK_MEAL_CHANGES = [["d1", 2, "rice", 90, 110, "90g riso basmati", "110g riso basmati"], ["d1", 3, "cakes", 40, 50, "40g gallette di riso", "50g gallette di riso"], ["d2", 2, "pasta", 90, 120, "90g pasta integrale", "120g pasta integrale"], ["d2", 3, "cakes", 30, 40, "30g gallette di riso", "40g gallette di riso"], ["d2", 3, "honey", 15, 20, "15g miele", "20g miele"], ["d2", 4, "potato", 250, 300, "250g patate", "300g patate"], ["d4", 3, "cakes", 20, 40, "20g gallette di riso", "40g gallette di riso"], ["d4", 3, "honey", 10, 20, "10g miele", "20g miele"], ["r1", 0, "oats", 60, 80, "60g fiocchi d'avena", "80g fiocchi d'avena"], ["r1", 2, "rice", 70, 90, "70g riso basmati", "90g riso basmati"], ["r1", 3, "walnuts", 15, 20, "15g noci", "20g noci"], ["r1", 4, "potato", 200, 250, "200g patate", "250g patate"], ["r2", 2, "rice", 60, 80, "60g riso basmati", "80g riso basmati"], ["r2", 4, "potato", 200, 250, "200g patate", "250g patate"], ["r3", 2, "quinoa", 70, 80, "70g quinoa", "80g quinoa"], ["r3", 4, "potato", 200, 250, "200g patate", "250g patate"]];
 const LEGACY_AB_NAMES = new Set(['Crunch a terra (o ai cavi)', 'Sollevamento gambe da sdraiato (leg raise)']);
 function migrateAbsRoutineV156(state) {
@@ -368,6 +372,28 @@ function normalizeStateOnOpen(state) {
     });
     state.settings.leanBulkV1123 = true;
   }
+  if (!state.settings.oneDairyV1124) {
+    // 1.12.4 — colazione con un solo latticino: via il latte, più yogurt greco (più proteine, stesse calorie).
+    const key = (list) => JSON.stringify((list || []).map((x) => [x.food, x.qty]).sort());
+    Object.entries(BREAKFAST_ONE_DAIRY).forEach(([day, [from, to, text]]) => {
+      const item = state.meals?.[day]?.items?.[0];
+      if (!item || key(item.ingredients) !== key(from)) return; // colazione modificata a mano: non la tocco
+      item.ingredients = to.map((x) => ({ ...x }));
+      item.original = text;
+    });
+    state.settings.oneDairyV1124 = true;
+  }
+  if (!state.settings.lessYogurtV1125) {
+    // 1.12.5 — meno yogurt: colazioni a 250 g e, nei giorni 3 e 4, spuntino con fiocchi di latte al posto dello yogurt.
+    const key = (list) => JSON.stringify((list || []).map((x) => [x.food, x.qty]).sort());
+    LESS_YOGURT_CHANGES.forEach(([day, idx, from, to, text]) => {
+      const item = state.meals?.[day]?.items?.[idx];
+      if (!item || key(item.ingredients) !== key(from)) return;
+      item.ingredients = to.map((x) => ({ ...x }));
+      item.original = text;
+    });
+    state.settings.lessYogurtV1125 = true;
+  }
   if (!state.settings.massV1122) {
     // 1.12.2 — massa pulita: il richiamo aerobico scende a 25-30 minuti.
     (state.program || []).forEach((d) =>
@@ -404,7 +430,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.12.3';
+const APP_VERSION = '1.12.5';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,

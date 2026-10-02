@@ -194,8 +194,8 @@ const MEALS = {
       {
         "t": "08:00 · Colazione",
         "icon": "🥣",
-        "txt": "250g yogurt greco 0% + 80g fiocchi d'avena + 200ml latte parzialmente scremato; 1 banana (circa 120g) + 15g burro d'arachidi. Mescola a freddo, senza cottura.",
-        "m": "734 kcal · P48 · C96 · G18"
+        "txt": "250g yogurt greco 0% + 90g fiocchi d'avena; 1 banana (circa 120g) + 15g burro d'arachidi. Mescola a freddo, senza cottura.",
+        "m": "679 kcal · P43 · C92 · G15"
       },
       {
         "t": "11:30 · Spuntino",
@@ -280,14 +280,14 @@ const MEALS = {
       {
         "t": "08:00 · Colazione",
         "icon": "🥛",
-        "txt": "250ml latte parzialmente scremato + 100g fiocchi d'avena; 250g yogurt greco 0% + 15g burro d'arachidi. Avena a freddo o lasciata in ammollo in frigorifero dalla sera prima.",
-        "m": "724 kcal · P51 · C83 · G20"
+        "txt": "250g yogurt greco 0% + 110g fiocchi d'avena + 15g burro d'arachidi. Avena mescolata nello yogurt, anche la sera prima in frigorifero.",
+        "m": "646 kcal · P44 · C77 · G16"
       },
       {
         "t": "11:30 · Spuntino",
         "icon": "🥣",
-        "txt": "200g yogurt greco 0% in vasetto + 1 banana (circa 120g) + 10g mandorle. Pronti da consumare; tieni lo yogurt al fresco.",
-        "m": "286 kcal · P24 · C35 · G7"
+        "txt": "150g fiocchi di latte magri (cottage) + 1 banana (circa 120g) + 10g mandorle. Pronti da consumare; tieni i fiocchi di latte al fresco.",
+        "m": "288 kcal · P21 · C33 · G9"
       },
       {
         "t": "13:00 · Pranzo",
@@ -329,8 +329,8 @@ const MEALS = {
       {
         "t": "11:30 · Spuntino",
         "icon": "🥣",
-        "txt": "200g yogurt greco 0% in vasetto + 1 banana (circa 120g) + 10g mandorle. Nessun frullatore; tieni lo yogurt al fresco.",
-        "m": "286 kcal · P24 · C35 · G7"
+        "txt": "150g fiocchi di latte magri (cottage) + 1 banana (circa 120g) + 10g mandorle. Nessun frullatore; tieni i fiocchi di latte al fresco.",
+        "m": "288 kcal · P21 · C33 · G9"
       },
       {
         "t": "13:00 · Pranzo",
@@ -366,8 +366,8 @@ const MEALS = {
       {
         "t": "08:00 · Colazione",
         "icon": "🥣",
-        "txt": "250g yogurt greco 0% + 80g fiocchi d'avena + 200ml latte parzialmente scremato + 20g burro d'arachidi. Mescola a freddo o prepara la sera prima e conserva in frigorifero.",
-        "m": "658 kcal · P48 · C69 · G20"
+        "txt": "250g yogurt greco 0% + 90g fiocchi d'avena + 20g burro d'arachidi. Mescola a freddo o prepara la sera prima e conserva in frigorifero.",
+        "m": "602 kcal · P43 · C65 · G17"
       },
       {
         "t": "11:30 · Spuntino",
@@ -409,8 +409,8 @@ const MEALS = {
       {
         "t": "08:00 · Colazione",
         "icon": "🥣",
-        "txt": "250g yogurt greco 0% + 60g fiocchi d'avena + 200ml latte parzialmente scremato + 20g burro d'arachidi. Mescola a freddo o prepara la sera prima e conserva in frigorifero.",
-        "m": "584 kcal · P46 · C57 · G18"
+        "txt": "250g yogurt greco 0% + 70g fiocchi d'avena + 20g burro d'arachidi. Mescola a freddo o prepara la sera prima e conserva in frigorifero.",
+        "m": "528 kcal · P40 · C53 · G16"
       },
       {
         "t": "11:30 · Spuntino",
@@ -452,8 +452,8 @@ const MEALS = {
       {
         "t": "08:00 · Colazione",
         "icon": "🍞",
-        "txt": "80g pane integrale con 20g burro d'arachidi; 250g yogurt greco 0% + 150ml latte parzialmente scremato. Tutto pronto, senza cottura.",
-        "m": "538 kcal · P43 · C53 · G17"
+        "txt": "90g pane integrale con 20g burro d'arachidi; 250g yogurt greco 0%. Tutto pronto, senza cottura.",
+        "m": "494 kcal · P39 · C50 · G15"
       },
       {
         "t": "11:30 · Spuntino",
