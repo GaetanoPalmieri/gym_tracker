@@ -1,0 +1,8 @@
+RecompApp 1.11.0 — estetica moderna come Bilancio
+- Sfondo con bagliori colorati, card e pannelli in vetro smerigliato con trasparenze.
+- Barra di navigazione in basso fluttuante in vetro, scheda attiva con gradiente e alone.
+- Giorno attivo, "Avvia sessione" e pulsanti principali con gradiente ambra; selettori attivi con gradiente verde.
+- Esercizio corrente evidenziato con bagliore verde; campi senza bordo.
+- Intestazione: trasparente in cima (nessuno stacco dalla barra di stato), vetro quando si scorre.
+- Pannelli: si chiudono anche con swipe verso il basso o verso destra.
+Installazione: copiare i file sopra quelli esistenti (le icone restano quelle già presenti).
