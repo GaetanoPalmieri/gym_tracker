@@ -3810,3 +3810,48 @@ dialog::backdrop{background:rgba(5,10,16,.6)!important;-webkit-backdrop-filter:b
 /* In cima alla pagina l'intestazione è trasparente (nessuno stacco); diventa vetro quando si scorre. */
 html:not(.is-scrolled) header.top{background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
 header.top{transition:background-color .2s ease,border-color .2s ease;}
+
+/* 1.12.0 — Promemoria peso, blocco di 8 settimane, check fisico, istruzioni esercizi */
+.weigh-reminder{background:radial-gradient(120% 100% at 0% 0%,rgba(232,163,61,.2),transparent 62%),var(--glass-card)!important;border-color:rgba(232,163,61,.4)!important;display:grid;gap:10px;}
+.weigh-head{display:flex;gap:12px;align-items:flex-start;}
+.weigh-head b{font-size:16px;}
+.weigh-head p{margin:2px 0 0;}
+.weigh-icon{font-size:26px;line-height:1;}
+.weigh-form{display:flex;gap:8px;align-items:stretch;}
+.weigh-form input{flex:1 1 auto;min-width:0;}
+.weigh-form button{flex:0 0 auto;min-width:96px;}
+.weigh-skip{background:transparent!important;border:0!important;color:var(--sub,#b7c5c0)!important;justify-self:center;min-height:36px!important;padding:4px 12px!important;font-size:14px;text-decoration:underline;text-underline-offset:3px;box-shadow:none!important;}
+.block-card summary{display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;list-style:none;font-weight:700;}
+.block-card summary::-webkit-details-marker{display:none;}
+.block-card summary::after{content:"▾";color:var(--sub,#b7c5c0);margin-left:6px;transition:transform .2s ease;}
+.block-card[open] summary::after{transform:rotate(180deg);}
+.block-title{font-size:15px;}
+.block-dates{margin-left:auto;font-size:13px;font-weight:600;color:#e8a33d;white-space:nowrap;}
+.block-card p{margin:10px 0 0;line-height:1.5;}
+.block-card [data-open-check]{margin-top:12px;width:100%;}
+.optional-day-note{background:radial-gradient(120% 100% at 0% 0%,rgba(110,120,230,.18),transparent 62%),var(--glass-card)!important;border-color:rgba(130,140,240,.35)!important;}
+.optional-day-note p{margin:4px 0 0;}
+.block-done{text-align:center;background:radial-gradient(120% 100% at 50% 0%,rgba(58,166,132,.25),transparent 65%),var(--glass-card)!important;border-color:rgba(63,179,142,.45)!important;}
+.block-done h2{margin:6px 0 8px;}
+.block-done .eyebrow{color:#8fe0c4;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
+.block-done .actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.check-card .check-row{display:grid;gap:2px;padding:10px 0;border-top:1px solid var(--glass-edge);font-size:14px;}
+.check-card .check-row small.down{color:#7fe0b5;}
+.check-card .check-row small.up{color:#ffb38a;}
+.check-card [data-open-check]{margin-top:10px;width:100%;}
+.check-form{display:grid;gap:12px;}
+.check-form label{display:grid;gap:4px;font-weight:600;}
+.check-form small{font-weight:400;}
+.block-changes{padding-left:20px;line-height:1.5;}
+.week-picker-grid button{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.week-pick-date{font-size:11px;opacity:.75;font-weight:500;}
+.week-current small{white-space:nowrap;}
+.howto{margin-top:14px;}
+.howto-h{font-size:16px;margin:16px 0 6px;color:#e8a33d;}
+.howto h4{font-size:13px;margin:12px 0 4px;text-transform:uppercase;letter-spacing:.05em;color:#8fe0c4;}
+.howto ul,.howto ol{margin:0;padding-left:20px;line-height:1.55;}
+.howto li{margin:3px 0;}
+.howto p{margin:0;line-height:1.5;}
+#main button.weigh-skip{background:transparent!important;border-color:transparent!important;}
+.block-card p{font-size:14px;}
+.block-card p:not(.muted){font-size:15px;}

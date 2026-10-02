@@ -25,7 +25,8 @@ const MEAL_SCHEDULE = [
   '23:00 · Pre nanna',
 ];
 const TAB_ORDER = ['workout', 'food', 'stats', 'more'];
-const MAX_WEEKS = 16,
+const MAX_WEEKS = BLOCK_WEEKS,
+  LEGACY_MAX_WEEKS = 16,
   WEEK_WINDOW = 4;
 const EXERCISE_ALTERNATIVES = {
   'Panca piana con bilanciere': ['Distensioni su panca piana con manubri', 'Chest press machine'],
@@ -145,11 +146,18 @@ const defaultGym = () => ({
     scheduleV137: true,
     weightUnit: 'kg',
     absRoutineV156: true,
+    fullBodyV112: true,
+    loadV1121: true,
+    block: 1,
+    blockStart: mondayISO(new Date()),
+    blockDone: false,
+    weightSkips: {},
     lastHeartbeat: null,
     lastBackgroundAt: null,
   },
   notes: {},
   bodyWeights: [],
+  checks: [],
   mealLogs: {},
 });
 function sessionDayIndex(s, program = gym.program) {
@@ -164,12 +172,110 @@ function advanceWorkoutPosition(state, week = state.week, dayIdx = state.dayIdx)
     state.dayIdx = 0;
     if (week < MAX_WEEKS) state.week = week + 1;
     else {
-      state.week = 1;
-      state.cycle = (state.cycle || 1) + 1;
+      // Fine del blocco di 8 settimane: il successivo si genera solo dopo il check fisico.
+      state.week = MAX_WEEKS;
+      state.settings ??= {};
+      state.settings.blockDone = true;
     }
   } else state.week = week;
 }
 
+/* ---------- 1.12.0: date del blocco, migrazione alla scheda full body ---------- */
+function ymd(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function mondayISO(d) {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+  return ymd(x);
+}
+function nextMondayISO(d = new Date()) {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const add = (8 - x.getDay()) % 7 || 7;
+  if (x.getDay() !== 1) x.setDate(x.getDate() + add);
+  return ymd(x);
+}
+function localDay(iso) {
+  return ymd(new Date(iso));
+}
+function weekDates(week = gym.week) {
+  const start = new Date((gym.settings.blockStart || mondayISO(new Date())) + 'T00:00:00');
+  start.setDate(start.getDate() + (week - 1) * 7);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const f = (d, m) => d.toLocaleDateString('it-IT', m ? { day: 'numeric', month: 'short' } : { day: 'numeric' });
+  return start.getMonth() === end.getMonth() ? `${f(start)}–${f(end, true)}` : `${f(start, true)} – ${f(end, true)}`;
+}
+const OLD_D4_PORTIONS = '[{"food":"beef","qty":200},{"food":"couscous","qty":90},{"food":"veg","qty":200},{"food":"oil","qty":10}]';
+function migrateFullBodyV112(state) {
+  state.settings ??= {};
+  if (state.settings.fullBodyV112) return;
+  const now = Date.now();
+  // Chiude le sessioni lasciate aperte della vecchia scheda conservando serie, pesi e durata.
+  (state.sessions || []).forEach((x) => {
+    if (x.legacy || x.ended) return;
+    if (x.runningSince) x.elapsed = (x.elapsed || 0) + Math.max(0, now - x.runningSince);
+    x.runningSince = null;
+    const end = x.started ? new Date(x.started).getTime() + (x.elapsed || 0) : now;
+    x.ended = new Date(Math.min(end, now)).toISOString();
+    if ((x.exercises || []).some((e) => !e.stopped && e.rows?.some((r) => !r.done))) x.archivedIncomplete = true;
+  });
+  state.rest = null;
+  // Nuova scheda: stessi nomi = stesso id, quindi pesi, note personali e storico restano collegati.
+  const oldNotes = new Map();
+  (state.program || []).forEach((d) => d.exercises?.forEach((e) => e.note && oldNotes.set(e.id, e.note)));
+  state.program = defaultProgram().map((d) => ({
+    ...d,
+    exercises: d.exercises.map((e) => ({ ...e, note: oldNotes.get(e.id) || e.note })),
+  }));
+  state.cycle = (Number(state.cycle) || 1) + 1;
+  state.week = 1;
+  state.dayIdx = 0;
+  state.settings.block = 1;
+  state.settings.blockStart = nextMondayISO(new Date());
+  state.settings.blockDone = false;
+  // Nutrizione: nuove etichette dei giorni; il giorno 4 (richiamo) ha meno carboidrati se non modificato.
+  const labels = {
+    d1: 'Giorno 1 · Full body A — Allenamento',
+    d2: 'Giorno 2 · Full body B — Allenamento',
+    d3: 'Giorno 3 · Full body C — Allenamento',
+    d4: 'Giorno 4 · Richiamo/aerobico (opzionale)',
+  };
+  Object.entries(labels).forEach(([k, l]) => state.meals?.[k] && (state.meals[k].label = l));
+  const d4 = state.meals?.d4?.items;
+  if (d4 && JSON.stringify(d4[2]?.ingredients) === OLD_D4_PORTIONS) {
+    const set = (i, food, qty) => {
+      const ing = d4[i]?.ingredients?.find((x) => x.food === food);
+      if (ing) ing.qty = qty;
+    };
+    set(2, 'couscous', 60);
+    set(3, 'cakes', 20);
+    set(3, 'honey', 10);
+    set(4, 'potato', 250);
+    if (d4[2]) d4[2].original = String(d4[2].original || '').replace('90g couscous', '60g couscous');
+    if (d4[3]) d4[3].original = '20g gallette di riso con 10g miele + 1 mela';
+    if (d4[4]) d4[4].original = String(d4[4].original || '').replace('300g patate', '250g patate');
+  }
+  state.settings.fullBodyV112 = true;
+}
+// 1.12.1 — recuperi, serie e range di ripetizioni rivisti per un livello intermedio.
+function migrateLoadV1121(state) {
+  if (state.settings.loadV1121) return;
+  const defs = new Map(defaultProgram().map((d) => [d.key, new Map(d.exercises.map((e) => [e.id, e]))]));
+  (state.program || []).forEach((d) =>
+    d.exercises?.forEach((e) => {
+      const def = defs.get(d.key)?.get(e.id);
+      if (!def) return;
+      e.sets = def.sets;
+      e.reps = def.reps;
+      e.rest = def.rest;
+      e.compound = !!def.compound;
+      delete e.baseReps;
+      delete e.baseRest;
+    }),
+  );
+  state.settings.loadV1121 = true;
+}
 const LEGACY_AB_NAMES = new Set(['Crunch a terra (o ai cavi)', 'Sollevamento gambe da sdraiato (leg raise)']);
 function migrateAbsRoutineV156(state) {
   state.settings ??= {};
@@ -242,6 +348,14 @@ function normalizeStateOnOpen(state) {
     state.settings.scheduleV137 = true;
   }
   migrateAbsRoutineV156(state);
+  migrateFullBodyV112(state);
+  migrateLoadV1121(state);
+  state.checks = Array.isArray(state.checks) ? state.checks : [];
+  state.settings.weightSkips =
+    state.settings.weightSkips && typeof state.settings.weightSkips === 'object' ? state.settings.weightSkips : {};
+  state.settings.block = Number(state.settings.block) || 1;
+  state.settings.blockStart = U.validDate(state.settings.blockStart) ? state.settings.blockStart : mondayISO(new Date());
+  if (state.week > MAX_WEEKS) state.week = MAX_WEEKS;
   const open = (state.sessions || [])
     .filter((x) => !x.legacy && !x.ended)
     .sort((a, b) => new Date(b.started || 0) - new Date(a.started || 0))[0];
@@ -263,7 +377,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.11.0';
+const APP_VERSION = '1.12.1';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -286,7 +400,7 @@ function validGym(d) {
       d.cycle > 0 &&
       Number.isInteger(d.week) &&
       d.week >= 1 &&
-      d.week <= MAX_WEEKS &&
+      d.week <= LEGACY_MAX_WEEKS &&
       Number.isInteger(d.dayIdx) &&
       Array.isArray(d.program) &&
       d.program.length > 0 &&
@@ -499,7 +613,15 @@ function mutate(fn) {
   return commit(n);
 }
 function effectiveSets(e, w = gym.week) {
-  return e.sets - (w % 4 === 0 && e.compound && e.sets > 1 ? 1 : 0);
+  // Livello intermedio: un solo scarico, nella settimana 8 del blocco (con il check fisico).
+  return e.sets - (w === MAX_WEEKS && e.compound && e.sets > 1 ? 1 : 0);
+}
+function fmtRest(sec) {
+  const v = Math.max(0, Math.round(Number(sec) || 0));
+  if (v < 60) return `${v}s`;
+  const m = Math.floor(v / 60),
+    r = v % 60;
+  return r ? `${m}:${String(r).padStart(2, '0')} min` : `${m} min`;
 }
 function context() {
   return `${gym.week}_${gym.program[gym.dayIdx].key}`;
@@ -992,11 +1114,11 @@ function selectWeek(week) {
 function showWeekPicker() {
   const d = U.modal(
     U.head('Seleziona settimana') +
-      `<p class="muted week-picker-help">Scegli una delle ${MAX_WEEKS} settimane del programma.</p><div class="week-picker-grid">${Array.from(
+      `<p class="muted week-picker-help">Blocco ${gym.settings.block || 1}: scegli una delle ${MAX_WEEKS} settimane (2 mesi).</p><div class="week-picker-grid">${Array.from(
         { length: MAX_WEEKS },
         (_, i) => {
           const w = i + 1;
-          return `<button type="button" data-pick-week="${w}" class="${gym.week === w ? 'active' : ''}">Sett. ${w}</button>`;
+          return `<button type="button" data-pick-week="${w}" class="${gym.week === w ? 'active' : ''}">Sett. ${w}<small class="week-pick-date">${U.esc(weekDates(w))}</small></button>`;
         },
       ).join('')}</div>`,
   );
@@ -1093,7 +1215,7 @@ function header() {
     windowStart = weekWindowStart();
   wb.style.display = gym.tab === 'workout' ? 'block' : 'none';
   wb.className = 'week-bar';
-  wb.innerHTML = `<div class="week-stepper" role="group" aria-label="Settimana"><button type="button" class="week-step" data-week-step="-1" aria-label="Settimana precedente" ${gym.week <= 1 ? 'disabled' : ''}>‹</button><button type="button" class="week-current" id="week-current" aria-label="Settimana ${gym.week} di ${MAX_WEEKS}. Tocca per scegliere">Settimana ${gym.week} <small>di ${MAX_WEEKS}</small><span class="week-caret" aria-hidden="true">▾</span></button><button type="button" class="week-step" data-week-step="1" aria-label="Settimana successiva" ${gym.week >= MAX_WEEKS ? 'disabled' : ''}>›</button></div>`;
+  wb.innerHTML = `<div class="week-stepper" role="group" aria-label="Settimana"><button type="button" class="week-step" data-week-step="-1" aria-label="Settimana precedente" ${gym.week <= 1 ? 'disabled' : ''}>‹</button><button type="button" class="week-current" id="week-current" aria-label="Settimana ${gym.week} di ${MAX_WEEKS}. Tocca per scegliere">Settimana ${gym.week} <small>di ${MAX_WEEKS} · ${U.esc(weekDates(gym.week))}</small><span class="week-caret" aria-hidden="true">▾</span></button><button type="button" class="week-step" data-week-step="1" aria-label="Settimana successiva" ${gym.week >= MAX_WEEKS ? 'disabled' : ''}>›</button></div>`;
   day.style.display = gym.tab === 'workout' ? 'grid' : 'none';
   day.innerHTML = gym.program
     .map(
@@ -1187,7 +1309,7 @@ function exerciseCard(e, i, s, next) {
     key = exerciseExpandKey(e, i),
     expanded = expandedExerciseKeys.has(key),
     progress = totals(e).done;
-  return `<div class="card exercise-card ${done ? 'exercise-complete' : next ? 'exercise-next' : ''} ${expanded ? 'exercise-expanded' : 'exercise-compact'}"><div class="exercise-header-row"><div class="exercise-title-block exercise-title-toggle" data-exercise-toggle="${i}" role="button" tabindex="0" aria-expanded="${expanded}" aria-label="${expanded ? 'Riduci' : 'Apri'} ${U.esc(e.name)}"><div class="exercise-name-line"><h3>${U.esc(e.name)}</h3><span class="exercise-title-chevron" aria-hidden="true">${expanded ? '▴' : '▾'}</span></div><p class="equipment-label">${U.esc(equipment(e))}</p><p class="exercise-meta muted">${e.rows.length} serie · Obiettivo ${U.esc(e.target)} · Recupero ${e.rest}s</p></div>${status !== 'Completato' ? `<button data-skip="${i}" class="skip-exercise">${e.stopped ? 'Ripristina' : 'Salta esercizio'}</button>` : ''}</div><div class="compact-progress"><span>${progress}/${e.rows.length} serie</span><i><b style="width:${e.rows.length ? Math.round((progress / e.rows.length) * 100) : 0}%"></b></i></div><div class="compact-series-summary" style="--cols:${e.rows.length === 4 ? 2 : Math.max(1, Math.min(e.rows.length, 3))}">${compactExerciseSummary(e)}</div>${
+  return `<div class="card exercise-card ${done ? 'exercise-complete' : next ? 'exercise-next' : ''} ${expanded ? 'exercise-expanded' : 'exercise-compact'}"><div class="exercise-header-row"><div class="exercise-title-block exercise-title-toggle" data-exercise-toggle="${i}" role="button" tabindex="0" aria-expanded="${expanded}" aria-label="${expanded ? 'Riduci' : 'Apri'} ${U.esc(e.name)}"><div class="exercise-name-line"><h3>${U.esc(e.name)}</h3><span class="exercise-title-chevron" aria-hidden="true">${expanded ? '▴' : '▾'}</span></div><p class="equipment-label">${U.esc(equipment(e))}</p><p class="exercise-meta muted">${e.rows.length} serie · Obiettivo ${U.esc(e.target)} · Recupero ${fmtRest(e.rest)}</p></div>${status !== 'Completato' ? `<button data-skip="${i}" class="skip-exercise">${e.stopped ? 'Ripristina' : 'Salta esercizio'}</button>` : ''}</div><div class="compact-progress"><span>${progress}/${e.rows.length} serie</span><i><b style="width:${e.rows.length ? Math.round((progress / e.rows.length) * 100) : 0}%"></b></i></div><div class="compact-series-summary" style="--cols:${e.rows.length === 4 ? 2 : Math.max(1, Math.min(e.rows.length, 3))}">${compactExerciseSummary(e)}</div>${
     expanded
       ? `<div class="exercise-expanded-body">${
           prev
@@ -1400,11 +1522,42 @@ function editClosedSession(id, allowCompletion = false) {
     }
   };
 }
+function weightReminder() {
+  const today = ymd(new Date());
+  if ((gym.bodyWeights || []).some((x) => localDay(x.date) === today)) return '';
+  if (gym.settings.weightSkips?.[today]) return '';
+  return `<div class="card weigh-reminder" role="region" aria-label="Peso di oggi"><div class="weigh-head"><span class="weigh-icon" aria-hidden="true">⚖️</span><div><b>Pesati stamattina</b><p class="muted">Oggi non hai ancora registrato il peso. Al mattino, a digiuno e dopo il bagno.</p></div></div><form id="weigh-today-form" class="weigh-form"><input name="weight" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Peso (${weightLabel()})" aria-label="Peso di oggi in ${weightLabel()}" required><button class="primary">Salva</button></form><button type="button" id="weigh-skip" class="weigh-skip">Salta oggi</button></div>`;
+}
+function blockCard() {
+  const day = gym.program[gym.dayIdx],
+    w = gym.week;
+  const checkCta =
+    w === MAX_WEEKS
+      ? `<button type="button" class="primary" data-open-check>Fai il check fisico</button>`
+      : '';
+  return `<details class="card block-card"><summary><span class="block-title">Blocco ${gym.settings.block || 1} · Settimana ${w} di ${MAX_WEEKS}</span><span class="block-dates">${U.esc(weekDates(w))}</span></summary><p>${U.esc(PROGRESSION_TEXT[w] || '')}</p><p class="muted">Ogni giorno: cardio di riscaldamento → Kegel → addominali → pesi. Tre giorni completi a settimana; il quarto è un richiamo opzionale.</p><p class="muted">Recuperi: multiarticolari pesanti 2:30 min, multiarticolari secondari 1:30-2 min, complementari 1-1:15 min, addominali 45-75 s. Negli esercizi a un lato il recupero parte dopo aver fatto entrambi i lati.</p><p class="muted">Vita sedentaria: fuori dalla palestra punta a 8.000-10.000 passi al giorno, aiuta la ricomposizione più di altro cardio.</p>${checkCta}</details>${
+    day?.optional
+      ? `<div class="card optional-day-note"><b>Giorno opzionale</b><p class="muted">Richiamo leggero e aerobico. Se questa settimana non riesci, tocca “Salta sessione”: non cambia nulla per il programma.</p></div>`
+      : ''
+  }`;
+}
+function blockDonePanel() {
+  const lastCheck = (gym.checks || []).at(-1),
+    recent = lastCheck && Date.now() - new Date(lastCheck.date).getTime() < 14 * 864e5;
+  return `<div class="card block-done"><span class="eyebrow">Blocco ${gym.settings.block || 1} completato</span><h2>🎯 Hai chiuso le 8 settimane</h2><p>Per generare i prossimi 2 mesi serve il check fisico: peso, misure e come ti senti. In base ai dati l'app prepara il nuovo blocco.</p>${
+    recent
+      ? `<p class="muted">Ultimo check: ${U.date(lastCheck.date)}.</p><div class="actions"><button type="button" class="primary" data-generate-block>Genera i prossimi 2 mesi</button><button type="button" data-open-check>Nuovo check</button></div>`
+      : `<button type="button" class="primary" data-open-check>Fai il check fisico</button>`
+  }</div>`;
+}
 function workout() {
   const s = active(),
     closed = !s ? closedCurrent() : null;
+  const top = `${weightReminder()}${s ? '' : blockCard()}`;
+  if (!s && gym.settings.blockDone)
+    return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div>${weightReminder()}${blockDonePanel()}`;
   if (closed)
-    return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div>${closedSessionPanel(closed)}`;
+    return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div>${top}${closedSessionPanel(closed)}`;
   if (s && sessionAllDone(s))
     return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div><section class="closed-session-complete-head active-complete-head"><div><span class="eyebrow">Giornata completata</span><strong>✓ Tutto completato</strong><p>Hai completato tutti gli esercizi. Controlla il riepilogo e salva la sessione.</p></div><div class="closed-session-actions active-complete-actions"><button id="finish-active-complete" class="primary">■ Termina e salva</button></div></section>${closedSessionSummary(s)}`;
   const ex = s ? s.exercises : freshExercises(),
@@ -1420,7 +1573,7 @@ function workout() {
   const topActions = !s
     ? `<div class="workout-top-actions session-action-row"><button id="start-session-inline" class="start-session-inline">▶ Avvia sessione</button><button id="skip-session" class="skip-session-page">↷ Salta sessione</button></div>`
     : `<div class="workout-top-actions session-action-row active-session-actions"><span id="session-clock" class="inline-session-clock" aria-label="Tempo totale sessione">${U.duration(elapsed(s))}</span><button id="pause-session-inline" class="pause-session-inline">${s.runningSince ? 'Ⅱ Pausa' : '▶ Riprendi'}</button><button id="finish-session-inline" class="finish-session-inline">■ Termina</button></div>`;
-  return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div>${topActions}${current.join('')}${completed.length ? `<details class="card completed-section" open><summary>✓ Completati · ${completed.length}</summary>${completed.join('')}</details>` : ''}${skipped.length ? `<details class="card skipped-section" open><summary>↷ Saltati / interrotti · ${skipped.length}</summary>${skipped.join('')}</details>` : ''}${!ex.length ? '<div class="card empty">Scheda vuota: aggiungi un esercizio dalla modifica scheda.</div>' : ''}`;
+  return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div>${top}${topActions}${current.join('')}${completed.length ? `<details class="card completed-section" open><summary>✓ Completati · ${completed.length}</summary>${completed.join('')}</details>` : ''}${skipped.length ? `<details class="card skipped-section" open><summary>↷ Saltati / interrotti · ${skipped.length}</summary>${skipped.join('')}</details>` : ''}${!ex.length ? '<div class="card empty">Scheda vuota: aggiungi un esercizio dalla modifica scheda.</div>' : ''}`;
 }
 function bindWorkout() {
   main.querySelectorAll('[data-exercise-toggle]').forEach((b) => {
@@ -1656,7 +1809,7 @@ function updateRest() {
   const paused = r.remaining != null,
     remain = Math.max(0, Math.ceil((paused ? r.remaining : r.end - Date.now()) / 1000));
   bar.hidden = false;
-  bar.innerHTML = `<div class="row"><span><b>${paused ? 'In pausa · ' : ''}${remain ? remain + 's' : 'Recupero terminato'}</b><small style="display:block">${U.esc(r.name)}</small></span><div class="actions"><button data-rest-adjust="-15">−15s</button><button data-rest-adjust="15">+15s</button><button id="rest-close">${remain ? 'Salta' : 'Chiudi'}</button></div></div>`;
+  bar.innerHTML = `<div class="row"><span><b>${paused ? 'In pausa · ' : ''}${remain ? (remain >= 60 ? `${Math.floor(remain / 60)}:${String(remain % 60).padStart(2, '0')}` : remain + 's') : 'Recupero terminato'}</b><small style="display:block">${U.esc(r.name)}</small></span><div class="actions"><button data-rest-adjust="-15">−15s</button><button data-rest-adjust="15">+15s</button><button id="rest-close">${remain ? 'Salta' : 'Chiudi'}</button></div></div>`;
   bar.querySelectorAll('[data-rest-adjust]').forEach(
     (b) =>
       (b.onclick = () =>
@@ -1816,7 +1969,7 @@ function programEditor() {
         : { id: U.uid(), name: '', sets: 3, reps: '10', rest: 60, unit: 'reps', move: '', note: '' };
     const d = U.modal(
       U.head(replace ? 'Sostituisci esercizio' : 'Esercizio') +
-        `<form><label>Nome</label><input name="name" required maxlength="160" value="${U.esc(e.name)}"><div class="grid"><div><label>Serie</label><input name="sets" type="number" min="1" max="30" required value="${e.sets}"></div><div><label>Obiettivo ripetizioni / minuti</label><input name="reps" required value="${U.esc(e.reps)}"></div></div><label>Misura</label><select name="unit"><option value="reps">Ripetizioni</option><option value="min" ${e.unit === 'min' ? 'selected' : ''}>Minuti</option></select><label>Recupero (secondi)</label><input name="rest" type="number" min="0" max="1800" required value="${e.rest}"><label>Riduzione di una serie ogni 4 settimane (4, 8, 12 e 16)</label><select name="compound"><option value="false">No</option><option value="true" ${e.compound ? 'selected' : ''}>Sì</option></select><label>Attrezzatura / impugnatura</label><input name="equipment" value="${U.esc(equipment(e))}"><label>Istruzioni</label><textarea name="note">${U.esc(e.note || '')}</textarea><div class="actions"><button class="primary">Conferma</button><button type="button" id="cancel-ex">Indietro</button></div></form>`,
+        `<form><label>Nome</label><input name="name" required maxlength="160" value="${U.esc(e.name)}"><div class="grid"><div><label>Serie</label><input name="sets" type="number" min="1" max="30" required value="${e.sets}"></div><div><label>Obiettivo ripetizioni / minuti</label><input name="reps" required value="${U.esc(e.reps)}"></div></div><label>Misura</label><select name="unit"><option value="reps">Ripetizioni</option><option value="min" ${e.unit === 'min' ? 'selected' : ''}>Minuti</option></select><label>Recupero (secondi)</label><input name="rest" type="number" min="0" max="1800" required value="${e.rest}"><label>Una serie in meno nella settimana di scarico (settimana 8)</label><select name="compound"><option value="false">No</option><option value="true" ${e.compound ? 'selected' : ''}>Sì</option></select><label>Attrezzatura / impugnatura</label><input name="equipment" value="${U.esc(equipment(e))}"><label>Istruzioni</label><textarea name="note">${U.esc(e.note || '')}</textarea><div class="actions"><button class="primary">Conferma</button><button type="button" id="cancel-ex">Indietro</button></div></form>`,
     );
     d.querySelector('#cancel-ex').onclick = draw;
     d.querySelector('form').onsubmit = (event) => {
@@ -1989,7 +2142,7 @@ function nutrition() {
     d = gym.meals[key],
     sum = d.items.reduce((n, m) => n.map((v, j) => v + mealValues(m)[j]), [0, 0, 0, 0]),
     trainingDay = /^d[1-4]$/.test(key);
-  return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div><div class="daytabs foodtabs">${Object.entries(
+  return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div>${weightReminder()}<div class="daytabs foodtabs">${Object.entries(
     gym.meals,
   )
     .map(([k, v], idx, all) => {
@@ -2227,8 +2380,129 @@ function shopping() {
   d.querySelectorAll('[data-shop]').forEach((c) => (c.onchange = update));
   update();
 }
+/* ---------- 1.12.0: check fisico e generazione del blocco successivo ---------- */
+const CHECK_FIELDS = [
+  ['kg', 'Peso', 'kg', 'A digiuno, al mattino'],
+  ['waist', 'Vita', 'cm', "All'altezza dell'ombelico, a fine espirazione"],
+  ['hips', 'Fianchi', 'cm', 'Nel punto più largo dei glutei'],
+  ['chest', 'Petto', 'cm', "All'altezza dei capezzoli, braccia rilassate"],
+  ['arm', 'Braccio', 'cm', 'Destro, rilassato, a metà tra spalla e gomito'],
+  ['thigh', 'Coscia', 'cm', 'Destra, a metà tra anca e ginocchio'],
+];
+function checksCard() {
+  const list = (gym.checks || []).slice().reverse();
+  const row = (c, prev) =>
+    `<div class="check-row"><b>${U.date(c.date)}</b><span>${CHECK_FIELDS.filter(([k]) => c[k] != null)
+      .map(([k, l, u]) => {
+        const d = prev && prev[k] != null ? U.round(c[k] - prev[k]) : null;
+        return `${l} ${String(U.round(c[k])).replace('.', ',')} ${u}${d ? ` <small class="${d > 0 ? 'up' : 'down'}">${d > 0 ? '+' : ''}${String(d).replace('.', ',')}</small>` : ''}`;
+      })
+      .join(' · ')}</span></div>`;
+  return `<div class="card check-card"><h2>Check fisico</h2><p class="muted">Blocco ${gym.settings.block || 1} · iniziato il ${new Date(gym.settings.blockStart + 'T00:00:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}. Alla fine delle 8 settimane il check fisico sblocca i 2 mesi successivi.</p>${list.map((c, i) => row(c, list[i + 1])).join('') || '<p class="muted">Nessun check registrato.</p>'}<button type="button" data-open-check>Nuovo check fisico</button></div>`;
+}
+function openCheckForm() {
+  const today = ymd(new Date()),
+    w = (gym.bodyWeights || []).find((x) => localDay(x.date) === today);
+  const d = U.modal(
+    U.head('Check fisico') +
+      `<p class="muted">Misura sempre nello stesso modo: al mattino, a digiuno, metro aderente ma non stretto. Scatta anche 3 foto (fronte, lato, schiena) con la stessa luce.</p><form id="check-form" class="check-form">${CHECK_FIELDS.map(
+        ([k, l, u, h]) =>
+          `<label>${l} (${u})<input name="${k}" type="number" min="0" step="0.1" inputmode="decimal" ${k === 'kg' && w ? `value="${U.round(w.kg)}"` : ''} ${k === 'kg' ? 'required' : ''}><small class="muted">${U.esc(h)}</small></label>`,
+      ).join(
+        '',
+      )}<label>Energia in allenamento<select name="energy"><option value="3">Normale</option><option value="5">Ottima</option><option value="4">Buona</option><option value="2">Bassa</option><option value="1">Molto bassa</option></select></label><label>Ginocchio<select name="knee"><option value="ok">Nessun fastidio</option><option value="lieve">Lieve fastidio</option><option value="dolore">Dolore</option></select></label><label>Note<textarea name="notes" rows="3" placeholder="Sonno, fame, esercizi che non ti trovi bene…"></textarea></label><button class="primary">Salva check</button></form>`,
+  );
+  d.querySelector('#check-form').onsubmit = (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target),
+      c = { id: U.uid(), date: new Date().toISOString(), block: gym.settings.block || 1 };
+    for (const [k] of CHECK_FIELDS) {
+      const v = parseGymNumber(fd.get(k));
+      if (v != null && !Number.isNaN(v) && v > 0) c[k] = k === 'kg' ? weightFromDisplay(v) : v;
+    }
+    if (c.kg == null) {
+      U.toast('Inserisci almeno il peso.');
+      return;
+    }
+    c.energy = Number(fd.get('energy')) || 3;
+    c.knee = String(fd.get('knee') || 'ok');
+    c.notes = U.cleanText(fd.get('notes') || '', 1000);
+    const done = gym.settings.blockDone;
+    if (
+      mutate((n) => {
+        n.checks ??= [];
+        n.checks.push(c);
+        n.bodyWeights ??= [];
+        if (!n.bodyWeights.some((x) => localDay(x.date) === ymd(new Date())))
+          n.bodyWeights.push({ id: U.uid(), date: c.date, kg: c.kg });
+      })
+    ) {
+      d.close();
+      render();
+      if (done) generateNextBlock();
+      else U.toast('Check salvato. A fine settimana 8 potrai generare il nuovo blocco.');
+    }
+  };
+}
+function generateNextBlock() {
+  const checks = gym.checks || [],
+    last = checks.at(-1),
+    prev = checks.at(-2);
+  if (!last) {
+    openCheckForm();
+    return;
+  }
+  const nextBlock = (gym.settings.block || 1) + 1,
+    strength = nextBlock % 2 === 0,
+    changes = [];
+  // Peso fermo o in salita rispetto al check precedente: più cardio. Ginocchio dolente: gambe più prudenti.
+  const lostWeight = prev && last.kg != null && prev.kg != null ? last.kg - prev.kg : null,
+    moreCardio = lostWeight != null && lostWeight > -0.5,
+    knee = last.knee || 'ok';
+  changes.push(
+    strength
+      ? 'Multiarticolari a 5-7 ripetizioni (fase forza): carichi più alti e 30 secondi di recupero in più.'
+      : 'Multiarticolari di nuovo ai range di ipertrofia del primo blocco, con i recuperi originali.',
+  );
+  if (moreCardio) changes.push('Cardio di riscaldamento portato a 20 minuti: il peso è sceso meno di mezzo chilo.');
+  if (knee !== 'ok') changes.push('Ginocchio: affondi bulgari sostituiti da leg press a piedi alti e leg extension più leggera.');
+  if (
+    !mutate((n) => {
+      n.settings.block = nextBlock;
+      n.settings.blockStart = nextMondayISO(new Date());
+      n.settings.blockDone = false;
+      n.cycle = (n.cycle || 1) + 1;
+      n.week = 1;
+      n.dayIdx = 0;
+      n.program.forEach((d) =>
+        d.exercises.forEach((e) => {
+          e.baseReps ??= e.reps;
+          e.baseRest ??= e.rest;
+          if (e.compound) {
+            e.reps = strength ? BLOCK_REP_SCHEMES.strength.compound : e.baseReps;
+            e.rest = strength ? e.baseRest + 30 : e.baseRest;
+          }
+          if (isCardio(e) && !d.optional && moreCardio) e.reps = '20 min';
+          if (knee !== 'ok' && /affondi bulgari/i.test(e.name)) {
+            e.name = 'Leg press a piedi alti';
+            e.id = catalogId(e.name);
+            e.reps = '12';
+            e.note = 'Variante prudente per il ginocchio: piedi alti sulla pedana, scendi solo fin dove non senti fastidio.';
+          }
+          if (knee === 'dolore' && /leg extension/i.test(e.name)) e.reps = '15 (carico leggero)';
+        }),
+      );
+    })
+  )
+    return;
+  render();
+  U.modal(
+    U.head(`Blocco ${nextBlock} pronto`) +
+      `<p>Inizia lunedì ${new Date(gym.settings.blockStart + 'T00:00:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })} e dura 8 settimane.</p><ul class="block-changes">${changes.map((c) => `<li>${U.esc(c)}</li>`).join('')}</ul><p class="muted">Per una revisione completa della scheda esporta il backup e condividilo.</p>`,
+  );
+}
 function more() {
-  return `<div class="card app-version-card"><h2>Versione app</h2><p class="muted">RecompApp ${APP_VERSION} · gli aggiornamenti vengono controllati automaticamente.</p><button id="check-app-update">Controlla aggiornamenti</button></div><div class="card"><h2>Le tue sessioni</h2><p class="muted">Durata, serie completate ed esercizi saltati.</p><button id="open-sessions">Riepilogo sessioni</button></div><div class="card"><h2>Backup e ripristino</h2><p class="muted">Dati salvati solo in questo browser. Ultima esportazione richiesta: ${gym.settings.lastExport ? U.date(gym.settings.lastExport) : 'mai'}.</p><div class="actions"><button id="export-gym">Esporta JSON</button><button id="import-gym">Importa backup</button></div><input type="file" accept=".json,application/json" hidden id="import-file"></div><div class="card"><h2>Unità di misura</h2><label for="weight-unit">Carichi e peso corporeo</label><select id="weight-unit"><option value="kg" ${weightUnit() === 'kg' ? 'selected' : ''}>kg</option><option value="lb" ${weightUnit() === 'lb' ? 'selected' : ''}>lb</option></select></div><div class="card"><h2>Storage locale</h2><p class="muted">${storageError ? U.esc(storageError) : 'Salvataggio locale disponibile. Le modifiche vengono confermate solo dopo la scrittura riuscita.'}</p></div><div class="card danger-zone"><h2>Reset dati</h2><p class="muted">Cancella allenamenti, note, peso e modifiche al piano da questo dispositivo.</p><button id="reset-data" class="danger">Azzera tutti i dati</button></div><div class="card"><h2>Ciclo di allenamento ${gym.cycle}</h2><p>Inizia un nuovo ciclo di sedici settimane conservando schede e storico.</p><button id="new-cycle">Nuovo ciclo</button></div><div class="card"><h2>Integrazione</h2><details><summary>Indicazioni presenti nel piano</summary>${SUPPLEMENTS.map((s) => `<h3>${U.esc(s.title)}</h3><p class="muted">${U.esc(s.txt)}</p>`).join('')}</details></div><div class="card"><h2>Sessioni aperte</h2>${
+  return `<div class="card app-version-card"><h2>Versione app</h2><p class="muted">RecompApp ${APP_VERSION} · gli aggiornamenti vengono controllati automaticamente.</p><button id="check-app-update">Controlla aggiornamenti</button></div>${checksCard()}<div class="card"><h2>Le tue sessioni</h2><p class="muted">Durata, serie completate ed esercizi saltati.</p><button id="open-sessions">Riepilogo sessioni</button></div><div class="card"><h2>Backup e ripristino</h2><p class="muted">Dati salvati solo in questo browser. Ultima esportazione richiesta: ${gym.settings.lastExport ? U.date(gym.settings.lastExport) : 'mai'}.</p><div class="actions"><button id="export-gym">Esporta JSON</button><button id="import-gym">Importa backup</button></div><input type="file" accept=".json,application/json" hidden id="import-file"></div><div class="card"><h2>Unità di misura</h2><label for="weight-unit">Carichi e peso corporeo</label><select id="weight-unit"><option value="kg" ${weightUnit() === 'kg' ? 'selected' : ''}>kg</option><option value="lb" ${weightUnit() === 'lb' ? 'selected' : ''}>lb</option></select></div><div class="card"><h2>Storage locale</h2><p class="muted">${storageError ? U.esc(storageError) : 'Salvataggio locale disponibile. Le modifiche vengono confermate solo dopo la scrittura riuscita.'}</p></div><div class="card danger-zone"><h2>Reset dati</h2><p class="muted">Cancella allenamenti, note, peso e modifiche al piano da questo dispositivo.</p><button id="reset-data" class="danger">Azzera tutti i dati</button></div><div class="card"><h2>Integrazione</h2><details><summary>Indicazioni presenti nel piano</summary>${SUPPLEMENTS.map((s) => `<h3>${U.esc(s.title)}</h3><p class="muted">${U.esc(s.txt)}</p>`).join('')}</details></div><div class="card"><h2>Sessioni aperte</h2>${
     gym.sessions
       .filter((s) => !s.legacy && !s.ended)
       .map(
@@ -2304,6 +2578,41 @@ function render() {
           ? stats()
           : more();
   if (gym.tab === 'workout') bindWorkout();
+  document.getElementById('weigh-today-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const val = parseGymNumber(new FormData(e.target).get('weight'));
+    if (val == null || Number.isNaN(val) || val <= 0) {
+      U.toast('Inserisci un peso valido.');
+      return;
+    }
+    const kg = weightFromDisplay(val);
+    if (
+      mutate((n) => {
+        n.bodyWeights ??= [];
+        n.bodyWeights.push({ id: U.uid(), date: new Date().toISOString(), kg });
+      })
+    ) {
+      render();
+      U.toast('Peso di oggi salvato.');
+    }
+  });
+  document.getElementById('weigh-skip')?.addEventListener('click', () => {
+    const today = ymd(new Date());
+    if (
+      mutate((n) => {
+        n.settings.weightSkips ??= {};
+        n.settings.weightSkips[today] = true;
+        // Conserva solo gli ultimi 60 giorni saltati.
+        const keys = Object.keys(n.settings.weightSkips).sort();
+        keys.slice(0, Math.max(0, keys.length - 60)).forEach((k) => delete n.settings.weightSkips[k]);
+      })
+    ) {
+      render();
+      U.toast('Ok, oggi niente peso.');
+    }
+  });
+  main.querySelectorAll('[data-open-check]').forEach((b) => (b.onclick = openCheckForm));
+  main.querySelectorAll('[data-generate-block]').forEach((b) => (b.onclick = generateNextBlock));
   document.querySelectorAll('[data-stats-view]').forEach(
     (b) =>
       (b.onclick = () => {
@@ -2482,10 +2791,23 @@ function equipment(e) {
     return /tapis/.test(n)
       ? 'Tapis roulant · velocità e pendenza regolabili'
       : 'Corsa / camminata · velocità e pendenza';
+  if (/crunch ai cavi/.test(n)) return 'Cavo alto · corda a due estremità';
+  if (/crunch inverso/.test(n)) return 'Panca piana';
+  if (/plank/.test(n)) return 'Tappetino · corpo libero';
+  if (/ab wheel/.test(n)) return 'Ruota per addominali · tappetino';
+  if (/dead bug/.test(n)) return 'Tappetino · corpo libero';
+  if (/captain/.test(n)) return 'Captain chair (sedia per addominali)';
+  if (/pallof/.test(n)) return 'Cavo all’altezza del petto · maniglia singola';
   if (/crunch/.test(n)) return 'Tappetino · alternativa: cavo alto con corda';
   if (/gambe da sdraiato/.test(n)) return 'Tappetino · corpo libero';
   if (/kegel/.test(n)) return 'Nessuna attrezzatura';
   return 'Attrezzatura da specificare nella scheda';
+}
+function howToHtml(name) {
+  const h = HOWTO[name];
+  if (!h) return '';
+  const list = (a, tag = 'ul') => `<${tag}>${a.map((x) => `<li>${U.esc(x)}</li>`).join('')}</${tag}>`;
+  return `<div class="howto"><h3 class="howto-h">Come si esegue</h3><h4>Posizione di partenza</h4>${list(h.p)}<h4>Esecuzione</h4>${list(h.s, 'ol')}${h.r ? `<h4>Respirazione</h4><p>${U.esc(h.r)}</p>` : ''}${h.e?.length ? `<h4>Errori da evitare</h4>${list(h.e)}` : ''}</div>`;
 }
 function showExerciseInfo(e) {
   const template = gym.program.flatMap((d) => d.exercises).find((x) => x.id === e.id);
@@ -2498,7 +2820,7 @@ function showExerciseInfo(e) {
   const svg = ANIM_SVG[move] || '';
   const d = U.modal(
     U.head(e.name) +
-      `<p class="equipment-label">${U.esc(equipment(template || e))}</p>${svg ? `<div class="anim-box">${svg}</div><p class="anim-caption">Schema del movimento · segui le istruzioni per la variante indicata</p><button id="animation-toggle">Ⅱ Pausa animazione</button>` : '<p class="muted">Animazione non disponibile per questo esercizio personalizzato.</p>'}<p class="exercise-instructions">${U.esc(instructions)}</p>`,
+      `<p class="equipment-label">${U.esc(equipment(template || e))}</p>${svg ? `<div class="anim-box">${svg}</div><p class="anim-caption">Schema del movimento · segui le istruzioni per la variante indicata</p><button id="animation-toggle">Ⅱ Pausa animazione</button>` : '<p class="muted">Animazione non disponibile per questo esercizio personalizzato.</p>'}${howToHtml(e.name)}<h3 class="howto-h">Indicazioni per te</h3><p class="exercise-instructions">${U.esc(instructions)}</p>`,
   );
   if (svg) animateExercise(d);
 }

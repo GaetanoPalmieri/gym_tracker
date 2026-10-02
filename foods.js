@@ -62,9 +62,9 @@ const FOOD_PORTIONS = {
   d4: [
     { bread: 100, pb: 25, jam: 20, yogurt: 250 },
     { yogurt: 200, banana: 120, almonds: 10 },
-    { beef: 200, couscous: 90, veg: 200, oil: 10 },
-    { cakes: 40, honey: 20, apple: 150 },
-    { egg: 100, chicken: 120, potato: 300, veg: 200, oil: 10 },
+    { beef: 200, couscous: 60, veg: 200, oil: 10 },
+    { cakes: 20, honey: 10, apple: 150 },
+    { egg: 100, chicken: 120, potato: 250, veg: 200, oil: 10 },
     { yogurt: 250, chocolate: 20 },
   ],
   r1: [
