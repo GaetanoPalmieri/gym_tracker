@@ -110,7 +110,7 @@ const DAYS = [
     ]},
   { key:"d4", name:"Richiamo · Aerobico (opzionale)", short:"G4 · Richiamo", optional:true,
     exercises:[
-      CARDIO_START("35-40 min"),
+      CARDIO_START("25-30 min"),
       KEGEL_START,
       {name:"Plank frontale", sets:3, reps:"30-45 sec", rest:45, move:"core",
         note:"Gomiti sotto le spalle, corpo in linea da testa a talloni. Glutei e addome contratti, respira senza far cedere la zona lombare."},
@@ -206,14 +206,14 @@ const MEALS = {
       {
         "t": "13:00 · Pranzo",
         "icon": "🍗",
-        "txt": "200g petto di pollo alla griglia; 90g riso basmati (a crudo); verdure con 10g olio EVO",
-        "m": "740 kcal · P68 · C70 · G17"
+        "txt": "200g petto di pollo alla griglia; 110g riso basmati (a crudo); verdure con 10g olio EVO",
+        "m": "752 kcal · P58 · C94 · G15"
       },
       {
         "t": "16:30 · Spuntino",
         "icon": "🍌",
-        "txt": "1 banana + 40g gallette di riso con miele",
-        "m": "250 kcal · P3 · C55 · G1"
+        "txt": "1 banana + 50g gallette di riso con miele",
+        "m": "346 kcal · P5 · C80 · G2"
       },
       {
         "t": "21:00 · Cena",
@@ -249,20 +249,20 @@ const MEALS = {
       {
         "t": "13:00 · Pranzo",
         "icon": "🦃",
-        "txt": "220g petto di tacchino alla griglia; 90g pasta integrale (a crudo); verdure con 10g olio EVO",
-        "m": "760 kcal · P66 · C72 · G18"
+        "txt": "220g petto di tacchino alla griglia; 120g pasta integrale (a crudo); verdure con 10g olio EVO",
+        "m": "795 kcal · P71 · C88 · G16"
       },
       {
         "t": "16:30 · Spuntino",
         "icon": "🍌",
-        "txt": "1 banana + 30g gallette di riso con 15g miele",
-        "m": "230 kcal · P3 · C50 · G1"
+        "txt": "1 banana + 40g gallette di riso con 20g miele",
+        "m": "322 kcal · P5 · C76 · G2"
       },
       {
         "t": "21:00 · Cena",
         "icon": "🐟",
-        "txt": "200g salmone al forno; 250g patate; insalata con 10g olio EVO",
-        "m": "640 kcal · P46 · C48 · G28"
+        "txt": "200g salmone al forno; 300g patate; insalata con 10g olio EVO",
+        "m": "787 kcal · P49 · C59 · G37"
       },
       {
         "t": "23:00 · Pre nanna",
@@ -341,8 +341,8 @@ const MEALS = {
       {
         "t": "16:30 · Spuntino",
         "icon": "🍎",
-        "txt": "20g gallette di riso con 10g miele + 1 mela",
-        "m": "186 kcal · P2 · C45 · G1"
+        "txt": "40g gallette di riso con 20g miele + 1 mela",
+        "m": "294 kcal · P4 · C70 · G2"
       },
       {
         "t": "21:00 · Cena",
@@ -366,8 +366,8 @@ const MEALS = {
       {
         "t": "08:00 · Colazione",
         "icon": "🥣",
-        "txt": "250g yogurt greco 0% + 60g fiocchi d'avena + 200ml latte parzialmente scremato + 20g burro d'arachidi. Mescola a freddo o prepara la sera prima e conserva in frigorifero.",
-        "m": "584 kcal · P46 · C57 · G18"
+        "txt": "250g yogurt greco 0% + 80g fiocchi d'avena + 200ml latte parzialmente scremato + 20g burro d'arachidi. Mescola a freddo o prepara la sera prima e conserva in frigorifero.",
+        "m": "658 kcal · P48 · C69 · G20"
       },
       {
         "t": "11:30 · Spuntino",
@@ -378,20 +378,20 @@ const MEALS = {
       {
         "t": "13:00 · Pranzo",
         "icon": "🦃",
-        "txt": "200g petto di tacchino alla griglia; 70g riso basmati (a crudo); verdure con 10g olio EVO",
-        "m": "650 kcal · P62 · C55 · G17"
+        "txt": "200g petto di tacchino alla griglia; 90g riso basmati (a crudo); verdure con 10g olio EVO",
+        "m": "674 kcal · P58 · C78 · G14"
       },
       {
         "t": "16:30 · Spuntino",
         "icon": "🥣",
-        "txt": "200g yogurt greco 0% + 15g noci",
-        "m": "250 kcal · P23 · C8 · G13"
+        "txt": "200g yogurt greco 0% + 20g noci",
+        "m": "249 kcal · P24 · C10 · G14"
       },
       {
         "t": "21:00 · Cena",
         "icon": "🐟",
-        "txt": "200g merluzzo o platessa al forno; 200g patate al forno; insalata con 10g olio EVO",
-        "m": "480 kcal · P44 · C45 · G16"
+        "txt": "200g merluzzo o platessa al forno; 250g patate al forno; insalata con 10g olio EVO",
+        "m": "497 kcal · P44 · C51 · G12"
       },
       {
         "t": "23:00 · Pre nanna",
@@ -421,8 +421,8 @@ const MEALS = {
       {
         "t": "13:00 · Pranzo",
         "icon": "🧆",
-        "txt": "220g ceci cotti (scolati); 60g riso basmati (a crudo); verdure con 10g olio EVO",
-        "m": "600 kcal · P26 · C90 · G14"
+        "txt": "220g ceci cotti (scolati); 80g riso basmati (a crudo); verdure con 10g olio EVO",
+        "m": "786 kcal · P29 · C130 · G17"
       },
       {
         "t": "16:30 · Spuntino",
@@ -433,8 +433,8 @@ const MEALS = {
       {
         "t": "21:00 · Cena",
         "icon": "🐟",
-        "txt": "200g tonno al naturale (o pesce spada); 200g patate al forno; insalata con 10g olio EVO",
-        "m": "460 kcal · P46 · C42 · G14"
+        "txt": "200g tonno al naturale (o pesce spada); 250g patate al forno; insalata con 10g olio EVO",
+        "m": "565 kcal · P60 · C51 · G13"
       },
       {
         "t": "23:00 · Pre nanna",
@@ -464,8 +464,8 @@ const MEALS = {
       {
         "t": "13:00 · Pranzo",
         "icon": "🐟",
-        "txt": "200g salmone al forno; 70g quinoa (a crudo); verdure con 10g olio EVO",
-        "m": "640 kcal · P44 · C55 · G28"
+        "txt": "200g salmone al forno; 80g quinoa (a crudo); verdure con 10g olio EVO",
+        "m": "850 kcal · P54 · C59 · G41"
       },
       {
         "t": "16:30 · Spuntino",
@@ -476,7 +476,7 @@ const MEALS = {
       {
         "t": "21:00 · Cena",
         "icon": "🍳",
-        "txt": "2 uova intere ben cotte + 120g petto di pollo alla piastra; 200g patate al forno; 200g insalata con 10g olio EVO. Le uova sostituiscono parte del pollo.",
+        "txt": "2 uova intere ben cotte + 120g petto di pollo alla piastra; 250g patate al forno; 200g insalata con 10g olio EVO. Le uova sostituiscono parte del pollo.",
         "m": "569 kcal · P47 · C43 · G22"
       },
       {

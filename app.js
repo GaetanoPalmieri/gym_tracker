@@ -148,6 +148,9 @@ const defaultGym = () => ({
     absRoutineV156: true,
     fullBodyV112: true,
     loadV1121: true,
+    massV1122: true,
+    leanBulkV1123: true,
+    profile: { age: 30, heightCm: 186, startKg: 86, sex: 'M' },
     block: 1,
     blockStart: mondayISO(new Date()),
     blockDone: false,
@@ -276,6 +279,7 @@ function migrateLoadV1121(state) {
   );
   state.settings.loadV1121 = true;
 }
+const LEAN_BULK_MEAL_CHANGES = [["d1", 2, "rice", 90, 110, "90g riso basmati", "110g riso basmati"], ["d1", 3, "cakes", 40, 50, "40g gallette di riso", "50g gallette di riso"], ["d2", 2, "pasta", 90, 120, "90g pasta integrale", "120g pasta integrale"], ["d2", 3, "cakes", 30, 40, "30g gallette di riso", "40g gallette di riso"], ["d2", 3, "honey", 15, 20, "15g miele", "20g miele"], ["d2", 4, "potato", 250, 300, "250g patate", "300g patate"], ["d4", 3, "cakes", 20, 40, "20g gallette di riso", "40g gallette di riso"], ["d4", 3, "honey", 10, 20, "10g miele", "20g miele"], ["r1", 0, "oats", 60, 80, "60g fiocchi d'avena", "80g fiocchi d'avena"], ["r1", 2, "rice", 70, 90, "70g riso basmati", "90g riso basmati"], ["r1", 3, "walnuts", 15, 20, "15g noci", "20g noci"], ["r1", 4, "potato", 200, 250, "200g patate", "250g patate"], ["r2", 2, "rice", 60, 80, "60g riso basmati", "80g riso basmati"], ["r2", 4, "potato", 200, 250, "200g patate", "250g patate"], ["r3", 2, "quinoa", 70, 80, "70g quinoa", "80g quinoa"], ["r3", 4, "potato", 200, 250, "200g patate", "250g patate"]];
 const LEGACY_AB_NAMES = new Set(['Crunch a terra (o ai cavi)', 'Sollevamento gambe da sdraiato (leg raise)']);
 function migrateAbsRoutineV156(state) {
   state.settings ??= {};
@@ -350,6 +354,29 @@ function normalizeStateOnOpen(state) {
   migrateAbsRoutineV156(state);
   migrateFullBodyV112(state);
   migrateLoadV1121(state);
+  if (!state.settings.leanBulkV1123) {
+    // 1.12.3 — profilo (30 anni, 186 cm, 86 kg) e calorie per la massa pulita:
+    // media settimanale ~2.750 kcal (fabbisogno stimato ~2.650-2.700), proteine invariate (~2,1-2,4 g/kg).
+    state.settings.profile = { age: 30, heightCm: 186, startKg: 86, sex: 'M', ...(state.settings.profile || {}) };
+    const changes = LEAN_BULK_MEAL_CHANGES;
+    changes.forEach(([day, idx, food, from, to, textFrom, textTo]) => {
+      const item = state.meals?.[day]?.items?.[idx];
+      const ing = item?.ingredients?.find((x) => x.food === food);
+      if (!ing || ing.qty !== from) return; // pasto modificato a mano: non lo tocco
+      ing.qty = to;
+      if (typeof item.original === 'string') item.original = item.original.replace(textFrom, textTo);
+    });
+    state.settings.leanBulkV1123 = true;
+  }
+  if (!state.settings.massV1122) {
+    // 1.12.2 — massa pulita: il richiamo aerobico scende a 25-30 minuti.
+    (state.program || []).forEach((d) =>
+      d.exercises?.forEach((e) => {
+        if (d.optional && isCardio(e) && /35-40/.test(e.reps)) e.reps = '25-30 min';
+      }),
+    );
+    state.settings.massV1122 = true;
+  }
   state.checks = Array.isArray(state.checks) ? state.checks : [];
   state.settings.weightSkips =
     state.settings.weightSkips && typeof state.settings.weightSkips === 'object' ? state.settings.weightSkips : {};
@@ -377,7 +404,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.12.1';
+const APP_VERSION = '1.12.3';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -1522,11 +1549,133 @@ function editClosedSession(id, allowCompletion = false) {
     }
   };
 }
+function weightOn(day) {
+  return (gym.bodyWeights || []).find((x) => localDay(x.date) === day) || null;
+}
+function missingWeightDays(n = 7) {
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const day = ymd(d);
+    if (!weightOn(day)) out.push(day);
+  }
+  return out;
+}
+function dayLabel(day) {
+  const today = ymd(new Date()),
+    y = new Date();
+  y.setDate(y.getDate() - 1);
+  if (day === today) return 'Oggi';
+  if (day === ymd(y)) return 'Ieri';
+  return new Date(day + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+function saveWeightForDay(n, day, kg) {
+  n.bodyWeights ??= [];
+  const existing = n.bodyWeights.find((x) => localDay(x.date) === day);
+  if (existing) existing.kg = kg;
+  else {
+    const isToday = day === ymd(new Date());
+    n.bodyWeights.push({ id: U.uid(), date: isToday ? new Date().toISOString() : new Date(day + 'T08:00:00').toISOString(), kg });
+  }
+  if (n.settings.weightSkips) delete n.settings.weightSkips[day];
+}
+function openWeightEntry(day = ymd(new Date())) {
+  const today = ymd(new Date()),
+    cur = weightOn(day);
+  const d = U.modal(
+    U.head('Registra peso') +
+      `<form id="weight-entry-form" class="check-form"><label>Giorno<input name="day" type="date" max="${today}" value="${day}" required></label><label>Peso (${weightLabel()})<input name="weight" type="number" min="0" step="0.1" inputmode="decimal" value="${cur ? U.round(weightToDisplay(cur.kg)) : ''}" required></label><p class="muted">Se quel giorno hai già un peso registrato, viene sostituito.</p><button class="primary">Salva peso</button></form>`,
+  );
+  d.querySelector('#weight-entry-form').onsubmit = (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target),
+      dd = String(fd.get('day') || ''),
+      val = parseGymNumber(fd.get('weight'));
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dd) || dd > today) {
+      U.toast('Scegli un giorno valido.');
+      return;
+    }
+    if (val == null || Number.isNaN(val) || val <= 0) {
+      U.toast('Inserisci un peso valido.');
+      return;
+    }
+    if (mutate((n) => saveWeightForDay(n, dd, weightFromDisplay(val)))) {
+      d.close();
+      render();
+      U.toast(`Peso di ${dayLabel(dd).toLowerCase()} salvato.`);
+    }
+  };
+}
 function weightReminder() {
   const today = ymd(new Date());
-  if ((gym.bodyWeights || []).some((x) => localDay(x.date) === today)) return '';
+  if (weightOn(today)) return '';
   if (gym.settings.weightSkips?.[today]) return '';
-  return `<div class="card weigh-reminder" role="region" aria-label="Peso di oggi"><div class="weigh-head"><span class="weigh-icon" aria-hidden="true">⚖️</span><div><b>Pesati stamattina</b><p class="muted">Oggi non hai ancora registrato il peso. Al mattino, a digiuno e dopo il bagno.</p></div></div><form id="weigh-today-form" class="weigh-form"><input name="weight" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Peso (${weightLabel()})" aria-label="Peso di oggi in ${weightLabel()}" required><button class="primary">Salva</button></form><button type="button" id="weigh-skip" class="weigh-skip">Salta oggi</button></div>`;
+  return `<div class="card weigh-reminder" role="region" aria-label="Peso di oggi"><span class="weigh-icon" aria-hidden="true">⚖️</span><form id="weigh-today-form" class="weigh-form"><input name="weight" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Peso di oggi (${weightLabel()})" aria-label="Peso di oggi in ${weightLabel()}" required><button class="primary">Salva</button></form><button type="button" id="weigh-skip" class="weigh-skip" aria-label="Salta il peso di oggi, potrai registrarlo dopo">Dopo</button></div>`;
+}
+function weekWeightAvg(offsetWeeks = 0) {
+  const end = new Date();
+  end.setDate(end.getDate() - offsetWeeks * 7);
+  const start = new Date(end);
+  start.setDate(start.getDate() - 6);
+  const a = ymd(start),
+    b = ymd(end);
+  const v = (gym.bodyWeights || []).filter((x) => {
+    const d = localDay(x.date);
+    return d >= a && d <= b;
+  });
+  return v.length ? v.reduce((t, x) => t + x.kg, 0) / v.length : null;
+}
+function nutritionTargets() {
+  const pr = gym.settings.profile || { age: 30, heightCm: 186, startKg: 86, sex: 'M' },
+    last = (gym.bodyWeights || []).slice().sort((a, b) => new Date(b.date) - new Date(a.date))[0],
+    kg = last?.kg || pr.startKg || 86;
+  // Mifflin-St Jeor × 1,4 (lavoro sedentario + 3-4 allenamenti + passi).
+  const bmr = 10 * kg + 6.25 * pr.heightCm - 5 * pr.age + (pr.sex === 'F' ? -161 : 5),
+    tdee = Math.round((bmr * 1.4) / 10) * 10,
+    target = tdee + 150,
+    goalLo = U.round(kg + 0.25),
+    goalHi = U.round(kg + 0.5);
+  const f = (n) => n.toLocaleString('it-IT');
+  return `<p class="muted">Massa pulita: fabbisogno stimato ~${f(tdee)} kcal, obiettivo ~${f(target)} kcal di media (circa 3.000 nei giorni pieni, 2.700 nel richiamo, 2.450-2.550 a riposo). Proteine ${Math.round(kg * 1.8)}-${Math.round(kg * 2.2)} g. Fra un mese il peso dovrebbe essere ${String(goalLo).replace('.', ',')}-${String(goalHi).replace('.', ',')} ${weightLabel()} con la vita stabile.</p>`;
+}
+function planTab() {
+  const w = gym.week,
+    day = gym.program[gym.dayIdx],
+    missing = missingWeightDays(7).filter((d) => d !== ymd(new Date()) || gym.settings.weightSkips?.[d]),
+    dot = w === MAX_WEEKS || day?.optional || missing.length;
+  return `<button type="button" class="plan-tab" id="plan-tab" aria-label="Piano della settimana: blocco ${gym.settings.block || 1}, settimana ${w}"><span class="plan-tab-icon" aria-hidden="true">ⓘ</span><span class="plan-tab-week">S${w}</span>${dot ? '<i class="plan-tab-dot" aria-hidden="true"></i>' : ''}</button>`;
+}
+function openPlanPanel() {
+  const w = gym.week,
+    day = gym.program[gym.dayIdx],
+    missing = missingWeightDays(7).filter((d) => d !== ymd(new Date()) || gym.settings.weightSkips?.[d]);
+  const avg = weekWeightAvg(0),
+    prevAvg = weekWeightAvg(1),
+    dAvg = avg != null && prevAvg != null ? avg - prevAvg : null;
+  const d = U.modal(
+    U.head(`Blocco ${gym.settings.block || 1} · Settimana ${w}`) +
+      `<p class="plan-dates">${U.esc(weekDates(w))} · ${MAX_WEEKS - w} ${MAX_WEEKS - w === 1 ? 'settimana' : 'settimane'} al check</p>${
+        day?.optional
+          ? `<div class="plan-box plan-optional"><b>${U.esc(day.short)} è opzionale</b><p>Richiamo leggero e aerobico. Se questa settimana non riesci, tocca “Salta sessione”: il programma non cambia.</p></div>`
+          : ''
+      }<div class="plan-box"><b>Questa settimana</b><p>${U.esc(PROGRESSION_TEXT[w] || '')}</p>${w === MAX_WEEKS ? '<button type="button" class="primary" data-plan-check>Fai il check fisico</button>' : ''}</div><div class="plan-box"><b>Peso</b><p>Media ultimi 7 giorni: ${avg != null ? `${String(U.round(weightToDisplay(avg))).replace('.', ',')} ${weightLabel()}` : '—'}${dAvg != null ? ` (${dAvg > 0 ? '+' : ''}${String(U.round(weightToDisplay(dAvg))).replace('.', ',')} sulla settimana prima)` : ''}.</p>${nutritionTargets()}${
+        missing.length
+          ? `<div class="plan-missing">${missing.map((x) => `<button type="button" data-weigh-day="${x}">＋ ${U.esc(dayLabel(x))}</button>`).join('')}</div>`
+          : '<p class="muted">Nessun giorno mancante negli ultimi 7.</p>'
+      }<button type="button" data-weigh-day="">Registra un altro giorno</button></div><details class="plan-box"><summary><b>Come funziona la scheda</b></summary><p>Ogni giorno: cardio di riscaldamento → Kegel → addominali → pesi. Tre giorni completi a settimana, il quarto è un richiamo opzionale.</p><p>Recuperi: multiarticolari pesanti 2:30 min, secondari 1:30-2 min, complementari 1-1:15 min, addominali 45-75 s. Negli esercizi a un lato il recupero parte dopo entrambi i lati.</p><p>Fuori dalla palestra punta a 8.000-10.000 passi al giorno.</p></details>`,
+  );
+  d.querySelectorAll('[data-weigh-day]').forEach(
+    (b) =>
+      (b.onclick = () => {
+        d.close();
+        openWeightEntry(b.dataset.weighDay || ymd(new Date()));
+      }),
+  );
+  d.querySelector('[data-plan-check]')?.addEventListener('click', () => {
+    d.close();
+    openCheckForm();
+  });
 }
 function blockCard() {
   const day = gym.program[gym.dayIdx],
@@ -1550,10 +1699,25 @@ function blockDonePanel() {
       : `<button type="button" class="primary" data-open-check>Fai il check fisico</button>`
   }</div>`;
 }
+const closedGroups = new Set();
+const GROUP_ICONS = { Addominali: '🔥', Spalle: '🏋️', Braccia: '💪', Gambe: '🦵', Petto: '🫁', Schiena: '🔙', Glutei: '🍑', Cardio: '🏃' };
+function muscleGroup(e) {
+  const n = (e?.name || '').toLowerCase();
+  if (e?.move === 'kegel') return '';
+  if (e?.move === 'core') return 'Addominali';
+  if (isCardio(e)) return 'Cardio';
+  if (/alzate|lento|arnold|military|face pull/.test(n)) return 'Spalle';
+  if (/curl(?! sdraiato)|push down|french|tricipiti|bicipiti|dip/.test(n) && !/leg curl/.test(n)) return 'Braccia';
+  if (/leg press|affondi|leg extension|leg curl|squat|calf/.test(n)) return 'Gambe';
+  if (/hip thrust|stacco/.test(n)) return 'Glutei';
+  if (/panca|croci|chest/.test(n)) return 'Petto';
+  if (/lat machine|rematore|pulley|trazioni/.test(n)) return 'Schiena';
+  return '';
+}
 function workout() {
   const s = active(),
     closed = !s ? closedCurrent() : null;
-  const top = `${weightReminder()}${s ? '' : blockCard()}`;
+  const top = `${weightReminder()}`;
   if (!s && gym.settings.blockDone)
     return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div>${weightReminder()}${blockDonePanel()}`;
   if (closed)
@@ -1565,11 +1729,29 @@ function workout() {
     current = [],
     completed = [],
     skipped = [];
-  ex.forEach((e, i) =>
-    (exStatus(e) === 'Completato' ? completed : e.stopped ? skipped : current).push(
-      exerciseCard(e, i, s, i === next),
-    ),
-  );
+  const currentItems = [];
+  ex.forEach((e, i) => {
+    if (exStatus(e) === 'Completato') completed.push(exerciseCard(e, i, s, i === next));
+    else if (e.stopped) skipped.push(exerciseCard(e, i, s, i === next));
+    else currentItems.push({ i, e, html: exerciseCard(e, i, s, i === next) });
+  });
+  // Esercizi consecutivi dello stesso gruppo muscolare (es. due di addominali) in un unico pannello richiudibile.
+  for (let k = 0; k < currentItems.length; ) {
+    const g = muscleGroup(currentItems[k].e);
+    let j = k + 1;
+    while (j < currentItems.length && g && muscleGroup(currentItems[j].e) === g && currentItems[j].i === currentItems[j - 1].i + 1) j++;
+    if (g && j - k >= 2) {
+      const items = currentItems.slice(k, j),
+        key = `${context()}|${items[0].i}`,
+        doneSets = items.reduce((t, x) => t + totals(x.e).done, 0),
+        allSets = items.reduce((t, x) => t + x.e.rows.length, 0),
+        open = !closedGroups.has(key);
+      current.push(
+        `<details class="card ex-group" data-group-key="${U.esc(key)}" ${open ? 'open' : ''}><summary><span class="ex-group-icon" aria-hidden="true">${GROUP_ICONS[g] || '•'}</span><span class="ex-group-title"><b>${U.esc(g)}</b><small>${items.length} esercizi · ${doneSets}/${allSets} serie</small></span><span class="ex-group-chev" aria-hidden="true">▾</span></summary><div class="ex-group-body">${items.map((x) => x.html).join('')}</div></details>`,
+      );
+    } else current.push(...currentItems.slice(k, j).map((x) => x.html));
+    k = j;
+  }
   const topActions = !s
     ? `<div class="workout-top-actions session-action-row"><button id="start-session-inline" class="start-session-inline">▶ Avvia sessione</button><button id="skip-session" class="skip-session-page">↷ Salta sessione</button></div>`
     : `<div class="workout-top-actions session-action-row active-session-actions"><span id="session-clock" class="inline-session-clock" aria-label="Tempo totale sessione">${U.duration(elapsed(s))}</span><button id="pause-session-inline" class="pause-session-inline">${s.runningSince ? 'Ⅱ Pausa' : '▶ Riprendi'}</button><button id="finish-session-inline" class="finish-session-inline">■ Termina</button></div>`;
@@ -2022,7 +2204,7 @@ function bodyWeightPage() {
   const first = chartPoints[0]?.value,
     last = chartPoints.at(-1)?.value,
     delta = first != null && last != null ? last - first : null;
-  return `${statsTabs()}<div class="card body-weight-entry"><h2>Peso</h2><form id="body-weight-form"><label>Peso (${weightLabel()})</label><input name="weight" type="number" min="0" step="0.1" inputmode="decimal" required><button class="primary weight-save">Salva peso</button></form></div><div class="card weight-chart-card"><div class="stats-section-head"><h2>Evoluzione del peso</h2>${delta != null && chartPoints.length > 1 ? `<span class="weight-delta ${delta > 0 ? 'up' : delta < 0 ? 'down' : ''}">${delta > 0 ? '+' : ''}${U.round(delta)} ${weightLabel()}</span>` : ''}</div>${trendChart(chartPoints, 'Peso nel tempo', weightLabel())}</div>${
+  return `${statsTabs()}<div class="card body-weight-entry"><h2>Peso</h2><form id="body-weight-form"><label>Giorno</label><input name="day" type="date" max="${ymd(new Date())}" value="${ymd(new Date())}" required><label>Peso (${weightLabel()})</label><input name="weight" type="number" min="0" step="0.1" inputmode="decimal" required><button class="primary weight-save">Salva peso</button></form></div><div class="card weight-chart-card"><div class="stats-section-head"><h2>Evoluzione del peso</h2>${delta != null && chartPoints.length > 1 ? `<span class="weight-delta ${delta > 0 ? 'up' : delta < 0 ? 'down' : ''}">${delta > 0 ? '+' : ''}${U.round(delta)} ${weightLabel()}</span>` : ''}</div>${trendChart(chartPoints, 'Peso nel tempo', weightLabel())}</div>${
     rows
       .slice()
       .reverse()
@@ -2455,16 +2637,30 @@ function generateNextBlock() {
   const nextBlock = (gym.settings.block || 1) + 1,
     strength = nextBlock % 2 === 0,
     changes = [];
-  // Peso fermo o in salita rispetto al check precedente: più cardio. Ginocchio dolente: gambe più prudenti.
-  const lostWeight = prev && last.kg != null && prev.kg != null ? last.kg - prev.kg : null,
-    moreCardio = lostWeight != null && lostWeight > -0.5,
+  // Obiettivo massa pulita: peso +0,25-0,5 kg al mese con la vita stabile.
+  // Peso e vita in salita insieme = troppo surplus; peso fermo o in calo con vita stabile = serve più cibo.
+  const months = prev ? Math.max(0.5, (new Date(last.date) - new Date(prev.date)) / (30.4 * 864e5)) : null,
+    kgMonth = prev && last.kg != null && prev.kg != null ? (last.kg - prev.kg) / months : null,
+    waistDelta = prev && last.waist != null && prev.waist != null ? last.waist - prev.waist : null,
+    tooFast = kgMonth != null && (kgMonth > 0.8 || (waistDelta != null && waistDelta > 1.5)),
+    tooSlow = kgMonth != null && kgMonth < 0.2 && !(waistDelta != null && waistDelta > 1),
+    moreCardio = tooFast,
     knee = last.knee || 'ok';
   changes.push(
     strength
       ? 'Multiarticolari a 5-7 ripetizioni (fase forza): carichi più alti e 30 secondi di recupero in più.'
       : 'Multiarticolari di nuovo ai range di ipertrofia del primo blocco, con i recuperi originali.',
   );
-  if (moreCardio) changes.push('Cardio di riscaldamento portato a 20 minuti: il peso è sceso meno di mezzo chilo.');
+  if (kgMonth == null) changes.push('Primo check: servirà il prossimo per confrontare peso e vita. Intanto dieta invariata.');
+  else if (tooFast)
+    changes.push(
+      `Peso ${kgMonth > 0 ? '+' : ''}${String(U.round(kgMonth)).replace('.', ',')} kg/mese${waistDelta != null ? ` e vita ${waistDelta > 0 ? '+' : ''}${String(U.round(waistDelta)).replace('.', ',')} cm` : ''}: troppo surplus. Cardio di riscaldamento a 20 minuti e circa 150 kcal in meno nei giorni di riposo (togli 20 g di pane o gallette e 10 g di frutta secca).`,
+    );
+  else if (tooSlow)
+    changes.push(
+      `Peso ${kgMonth > 0 ? '+' : ''}${String(U.round(kgMonth)).replace('.', ',')} kg/mese con vita stabile: per mettere massa pulita aggiungi circa 150-200 kcal nei giorni di allenamento (+30 g di riso o pasta a pranzo e +1 banana nello spuntino).`,
+    );
+  else changes.push(`Peso ${kgMonth > 0 ? '+' : ''}${String(U.round(kgMonth)).replace('.', ',')} kg/mese: ritmo giusto per la massa pulita, dieta invariata.`);
   if (knee !== 'ok') changes.push('Ginocchio: affondi bulgari sostituiti da leg press a piedi alti e leg extension più leggera.');
   if (
     !mutate((n) => {
@@ -2482,7 +2678,7 @@ function generateNextBlock() {
             e.reps = strength ? BLOCK_REP_SCHEMES.strength.compound : e.baseReps;
             e.rest = strength ? e.baseRest + 30 : e.baseRest;
           }
-          if (isCardio(e) && !d.optional && moreCardio) e.reps = '20 min';
+          if (isCardio(e) && !d.optional) e.reps = moreCardio ? '20 min' : '15 min';
           if (knee !== 'ok' && /affondi bulgari/i.test(e.name)) {
             e.name = 'Leg press a piedi alti';
             e.id = catalogId(e.name);
@@ -2587,10 +2783,7 @@ function render() {
     }
     const kg = weightFromDisplay(val);
     if (
-      mutate((n) => {
-        n.bodyWeights ??= [];
-        n.bodyWeights.push({ id: U.uid(), date: new Date().toISOString(), kg });
-      })
+      mutate((n) => saveWeightForDay(n, ymd(new Date()), kg))
     ) {
       render();
       U.toast('Peso di oggi salvato.');
@@ -2608,10 +2801,22 @@ function render() {
       })
     ) {
       render();
-      U.toast('Ok, oggi niente peso.');
+      U.toast('Ok: potrai registrarlo dopo da ⓘ o da Statistiche → Peso.');
     }
   });
   main.querySelectorAll('[data-open-check]').forEach((b) => (b.onclick = openCheckForm));
+  // Linguetta del piano fissata al bordo destro (fuori da main, così resta sempre ferma).
+  document.getElementById('plan-tab')?.remove();
+  if (gym.tab === 'workout') {
+    document.body.insertAdjacentHTML('beforeend', planTab());
+    document.getElementById('plan-tab')?.addEventListener('click', openPlanPanel);
+  }
+  main.querySelectorAll('details.ex-group').forEach((g) =>
+    g.addEventListener('toggle', () => {
+      if (g.open) closedGroups.delete(g.dataset.groupKey);
+      else closedGroups.add(g.dataset.groupKey);
+    }),
+  );
   main.querySelectorAll('[data-generate-block]').forEach((b) => (b.onclick = generateNextBlock));
   document.querySelectorAll('[data-stats-view]').forEach(
     (b) =>
@@ -2677,19 +2882,17 @@ function render() {
   });
   document.getElementById('body-weight-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
-    const val = parseGymNumber(new FormData(e.target).get('weight'));
-    if (val == null || Number.isNaN(val) || val <= 0) {
-      U.toast('Inserisci un peso valido.');
+    const fd = new FormData(e.target),
+      val = parseGymNumber(fd.get('weight')),
+      day = String(fd.get('day') || ymd(new Date()));
+    if (val == null || Number.isNaN(val) || val <= 0 || day > ymd(new Date())) {
+      U.toast('Inserisci un peso e un giorno validi.');
       return;
     }
-    const kg = weightFromDisplay(val);
-    if (
-      mutate((n) => {
-        n.bodyWeights ??= [];
-        n.bodyWeights.push({ id: U.uid(), date: new Date().toISOString(), kg });
-      })
-    )
+    if (mutate((n) => saveWeightForDay(n, day, weightFromDisplay(val)))) {
       render();
+      U.toast('Peso salvato.');
+    }
   });
   main.querySelectorAll('[data-weight-delete]').forEach(
     (b) =>
