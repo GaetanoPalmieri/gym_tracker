@@ -3903,3 +3903,27 @@ header.top{transition:background-color .2s ease,border-color .2s ease;}
 .ex-group[open] .ex-group-chev{transform:rotate(180deg);}
 .ex-group-body{padding:0 8px 8px;display:grid;gap:8px;}
 .ex-group-body > .card{margin:0!important;box-shadow:none!important;background-color:rgba(255,255,255,.04)!important;}
+
+/* 1.13.0 — Lista della spesa settimanale */
+#editor .shop-tabs{display:grid;grid-template-columns:1fr 1fr!important;gap:4px;padding:4px;border-radius:16px;margin:4px 0 10px;}
+#editor .shop-tabs button{min-height:40px;border:0!important;background:transparent!important;border-radius:12px;font-weight:700;font-size:14px;}
+#editor .shop-tabs button.active{background:var(--teal-grad)!important;color:#fff!important;box-shadow:0 6px 16px -6px rgba(58,166,132,.75),inset 0 1px 0 rgba(255,255,255,.22)!important;}
+.shop-intro{margin:0 0 10px!important;}
+.shop-days{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;}
+.shop-days[hidden]{display:none;}
+.shop-days .shop-day{min-height:36px;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:700;background:rgba(255,255,255,.06);border:1px solid var(--glass-edge,#2b3640);}
+.shop-days .shop-day.active{background:var(--teal-grad)!important;border-color:transparent!important;color:#fff!important;}
+.shop-summary{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:10px 2px 8px;border-top:1px solid var(--glass-edge,#2b3640);}
+.shop-summary b{font-size:16px;}
+.shop-summary span{font-size:12px;opacity:.75;}
+.shop-list{display:grid;gap:6px;}
+.shop-item{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;min-height:46px;padding:9px 12px!important;border-radius:14px!important;text-align:left;background:rgba(255,255,255,.05)!important;border:1px solid var(--glass-edge,#2b3640)!important;}
+.shop-check{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;border:2px solid rgba(255,255,255,.28);font-size:13px;font-weight:900;color:#fff;}
+.shop-item.done .shop-check{background:#3fb38e;border-color:#3fb38e;}
+.shop-item.done .shop-name{text-decoration:line-through;opacity:.55;}
+.shop-item.done .shop-qty{opacity:.5;}
+.shop-name{font-size:15px;overflow:hidden;text-overflow:ellipsis;}
+.shop-qty{font-variant-numeric:tabular-nums;white-space:nowrap;}
+.shop-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+.shop-noidue{width:100%;margin-top:12px;min-height:46px;font-weight:800;background:var(--amber-grad)!important;color:#241800!important;border:0!important;box-shadow:0 8px 20px -8px rgba(232,147,44,.75),inset 0 1px 0 rgba(255,255,255,.3)!important;}
+.shop-noidue.done{background:var(--teal-grad)!important;color:#fff!important;font-size:13px;}

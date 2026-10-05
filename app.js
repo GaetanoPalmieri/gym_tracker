@@ -430,7 +430,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.12.5';
+const APP_VERSION = '1.15.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -644,9 +644,11 @@ function commit(n, { restore = false } = {}) {
   }
   try {
     if (!validGym(n)) throw Error('Invalid');
+    n.updatedAt = new Date().toISOString();
     localStorage.setItem(GKEY, JSON.stringify(n));
     gym = n;
     storageError = '';
+    if (window.syncGym) syncGym.changed();
     return true;
   } catch (e) {
     storageError =
@@ -2556,36 +2558,142 @@ function foodForm(id) {
     }
   };
 }
+/* 1.13.0 — Lista della spesa: "Settimana intera" somma da sola tutte le giornate del piano
+   (G1–G4 e Riposo A/B/C = 7 giorni); "Scegli i giorni" resta per liste parziali.
+   Le spunte restano salvate fino alla settimana successiva. */
+function shopWeekKey(d = new Date()) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return `${t.getUTCFullYear()}-W${String(Math.ceil(((t - y) / 86400000 + 1) / 7)).padStart(2, '0')}`;
+}
+function shopQty(q, unit) {
+  const u = String(unit || '').trim();
+  if ((u === 'g' || u === 'ml') && q >= 1000) {
+    const v = Math.round(q / 100) / 10;
+    return `${String(v).replace('.', ',')} ${u === 'g' ? 'kg' : 'l'}`;
+  }
+  return `${fmtQty(q)} ${u}`;
+}
 function shopping() {
+  const keys = Object.keys(gym.meals);
+  const short = (k) => FOOD_TABS.find((t) => t.key === k)?.short || gym.meals[k].label.split(' · ')[0];
+  const st = gym.shopping && gym.shopping.week === shopWeekKey() ? gym.shopping : { week: shopWeekKey(), mode: gym.shopping?.mode || 'week', days: gym.shopping?.days || [gym.foodTab], done: {} };
+  let mode = st.mode === 'days' ? 'days' : 'week';
+  let days = new Set((st.days || []).filter((k) => keys.includes(k)));
+  if (!days.size) days.add(keys.includes(gym.foodTab) ? gym.foodTab : keys[0]);
+  let done = { ...(st.done || {}) };
+  const save = () => mutate((n) => (n.shopping = { week: shopWeekKey(), mode, days: [...days], done }));
   const d = U.modal(
     U.head('Lista della spesa') +
-      `<p class="muted">Seleziona le giornate da sommare. Ogni giornata selezionata conta una volta.</p>${Object.entries(
-        gym.meals,
-      )
-        .map(
-          ([k, m]) =>
-            `<label class="row"><span>${U.esc(m.label)}</span><input style="width:auto" type="checkbox" data-shop="${k}" ${k === gym.foodTab ? 'checked' : ''}></label>`,
-        )
-        .join('')}<div id="shopping-list"></div>`,
+      `<div class="stats-tabs shop-tabs" role="tablist"><button type="button" data-shop-mode="week">Settimana intera</button><button type="button" data-shop-mode="days">Scegli i giorni</button></div>
+      <p class="muted shop-intro"></p>
+      <div class="shop-days"></div>
+      <div class="shop-summary"></div>
+      <div id="shopping-list" class="shop-list"></div>
+      <button type="button" id="shop-noidue" class="shop-noidue">🛒 Manda alla lista di Noi Due</button><div class="shop-actions"><button type="button" id="shop-copy">📋 Copia lista</button><button type="button" id="shop-reset">↺ Togli spunte</button></div>`,
   );
-  const update = () => {
+  const sumFor = () => {
     const sum = {};
-    d.querySelectorAll('[data-shop]:checked').forEach((c) =>
-      gym.meals[c.dataset.shop].items.forEach((m) =>
-        m.ingredients.forEach((i) => (sum[i.food] = (sum[i.food] || 0) + i.qty)),
-      ),
-    );
-    d.querySelector('#shopping-list').innerHTML =
-      '<hr>' +
-      Object.entries(sum)
-        .sort((a, b) => gym.foods[a[0]].name.localeCompare(gym.foods[b[0]].name))
-        .map(
-          ([k, q]) =>
-            `<label class="row"><span>${U.esc(gym.foods[k].name)} · ${fmtQty(q)} ${gym.foods[k].unit}</span><input type="checkbox" style="width:auto" aria-label="Acquistato"></label>`,
-        )
-        .join('');
+    const sel = mode === 'week' ? keys : keys.filter((k) => days.has(k));
+    sel.forEach((k) => gym.meals[k].items.forEach((m) => m.ingredients.forEach((i) => (sum[i.food] = (sum[i.food] || 0) + i.qty))));
+    return Object.entries(sum)
+      .filter(([k, q]) => gym.foods[k] && q > 0)
+      .sort((a, b) => gym.foods[a[0]].name.localeCompare(gym.foods[b[0]].name, 'it'));
   };
-  d.querySelectorAll('[data-shop]').forEach((c) => (c.onchange = update));
+  const update = () => {
+    d.querySelectorAll('[data-shop-mode]').forEach((b) => b.classList.toggle('active', b.dataset.shopMode === mode));
+    d.querySelector('.shop-intro').textContent =
+      mode === 'week'
+        ? `Totale della settimana: le ${keys.length} giornate del piano (${keys.map(short).join(', ')}), ognuna una volta.`
+        : 'Tocca le giornate da sommare. Ogni giornata selezionata conta una volta.';
+    const dbox = d.querySelector('.shop-days');
+    dbox.hidden = mode !== 'days';
+    dbox.innerHTML = keys
+      .map((k) => `<button type="button" class="shop-day${days.has(k) ? ' active' : ''}" data-shop-day="${k}">${U.esc(short(k))}</button>`)
+      .join('');
+    dbox.querySelectorAll('[data-shop-day]').forEach(
+      (b) =>
+        (b.onclick = () => {
+          const k = b.dataset.shopDay;
+          if (days.has(k)) {
+            if (days.size > 1) days.delete(k);
+          } else days.add(k);
+          save();
+          update();
+        }),
+    );
+    const rows = sumFor();
+    const left = rows.filter(([k]) => !done[k]).length;
+    d.querySelector('.shop-summary').innerHTML = `<b>${left ? `${left} da comprare` : 'Tutto preso ✓'}</b><span>${rows.length} prodotti${rows.length - left ? ` · ${rows.length - left} presi` : ''}</span>`;
+    d.querySelector('#shopping-list').innerHTML = rows
+      .map(
+        ([k, q]) =>
+          `<button type="button" class="shop-item${done[k] ? ' done' : ''}" data-shop-item="${U.esc(k)}" aria-pressed="${!!done[k]}"><span class="shop-check" aria-hidden="true">${done[k] ? '✓' : ''}</span><span class="shop-name">${U.esc(gym.foods[k].name)}</span><b class="shop-qty">${U.esc(shopQty(q, gym.foods[k].unit))}</b></button>`,
+      )
+      .join('') || '<p class="muted">Nessun alimento nelle giornate scelte.</p>';
+    d.querySelectorAll('[data-shop-item]').forEach(
+      (b) =>
+        (b.onclick = () => {
+          const k = b.dataset.shopItem;
+          if (done[k]) delete done[k];
+          else done[k] = true;
+          save();
+          update();
+        }),
+    );
+  };
+  d.querySelectorAll('[data-shop-mode]').forEach(
+    (b) =>
+      (b.onclick = () => {
+        mode = b.dataset.shopMode;
+        save();
+        update();
+      }),
+  );
+  d.querySelector('#shop-reset').onclick = () => {
+    done = {};
+    save();
+    update();
+  };
+  /* 1.14.0 — Verso Noi Due. Sull'iPhone ogni app aggiunta alla Home ha il suo spazio dati separato,
+     quindi il passaggio avviene con gli appunti: Noi Due › lista › 📋 Incolla legge la lista da solo. */
+  const flash = (msg) => {
+    // il pannello è sopra agli avvisi: il messaggio compare sul pulsante stesso
+    const btn = d.querySelector('#shop-noidue');
+    btn.textContent = msg;
+    btn.classList.add('done');
+    clearTimeout(btn._t);
+    btn._t = setTimeout(() => {
+      btn.textContent = '🛒 Manda alla lista di Noi Due';
+      btn.classList.remove('done');
+    }, 4500);
+  };
+  d.querySelector('#shop-noidue').onclick = async () => {
+    const rows = sumFor().filter(([k]) => !done[k]);
+    if (!rows.length) return flash('Niente da mandare: è già tutto preso');
+    const text = rows.map(([k, q]) => `${gym.foods[k].name.split(',')[0].trim()} (${shopQty(q, gym.foods[k].unit)})`).join('\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      flash(`✓ ${rows.length} prodotti copiati · in Noi Due: lista Spesa › 📋 Incolla`);
+    } catch (e) {
+      flash('Copia non riuscita: usa "Copia lista"');
+    }
+  };
+  d.querySelector('#shop-copy').onclick = async () => {
+    const rows = sumFor().filter(([k]) => !done[k]);
+    const text = `Lista della spesa${mode === 'week' ? ' · settimana' : ''}\n` + rows.map(([k, q]) => `• ${gym.foods[k].name} — ${shopQty(q, gym.foods[k].unit)}`).join('\n');
+    try {
+      if (navigator.share && /iPhone|iPad|Android/i.test(navigator.userAgent)) await navigator.share({ text });
+      else {
+        await navigator.clipboard.writeText(text);
+        U.toast('Lista copiata');
+      }
+    } catch (e) {
+      /* condivisione annullata */
+    }
+  };
   update();
 }
 /* ---------- 1.12.0: check fisico e generazione del blocco successivo ---------- */
@@ -2724,7 +2832,7 @@ function generateNextBlock() {
   );
 }
 function more() {
-  return `<div class="card app-version-card"><h2>Versione app</h2><p class="muted">RecompApp ${APP_VERSION} · gli aggiornamenti vengono controllati automaticamente.</p><button id="check-app-update">Controlla aggiornamenti</button></div>${checksCard()}<div class="card"><h2>Le tue sessioni</h2><p class="muted">Durata, serie completate ed esercizi saltati.</p><button id="open-sessions">Riepilogo sessioni</button></div><div class="card"><h2>Backup e ripristino</h2><p class="muted">Dati salvati solo in questo browser. Ultima esportazione richiesta: ${gym.settings.lastExport ? U.date(gym.settings.lastExport) : 'mai'}.</p><div class="actions"><button id="export-gym">Esporta JSON</button><button id="import-gym">Importa backup</button></div><input type="file" accept=".json,application/json" hidden id="import-file"></div><div class="card"><h2>Unità di misura</h2><label for="weight-unit">Carichi e peso corporeo</label><select id="weight-unit"><option value="kg" ${weightUnit() === 'kg' ? 'selected' : ''}>kg</option><option value="lb" ${weightUnit() === 'lb' ? 'selected' : ''}>lb</option></select></div><div class="card"><h2>Storage locale</h2><p class="muted">${storageError ? U.esc(storageError) : 'Salvataggio locale disponibile. Le modifiche vengono confermate solo dopo la scrittura riuscita.'}</p></div><div class="card danger-zone"><h2>Reset dati</h2><p class="muted">Cancella allenamenti, note, peso e modifiche al piano da questo dispositivo.</p><button id="reset-data" class="danger">Azzera tutti i dati</button></div><div class="card"><h2>Integrazione</h2><details><summary>Indicazioni presenti nel piano</summary>${SUPPLEMENTS.map((s) => `<h3>${U.esc(s.title)}</h3><p class="muted">${U.esc(s.txt)}</p>`).join('')}</details></div><div class="card"><h2>Sessioni aperte</h2>${
+  return `${window.SuiteTheme ? SuiteTheme.card() : ''}${window.SuiteSync ? SuiteSync.cardHtml('recomp') : ''}<div class="card app-version-card"><h2>Versione app</h2><p class="muted">RecompApp ${APP_VERSION} · gli aggiornamenti vengono controllati automaticamente.</p><button id="check-app-update">Controlla aggiornamenti</button></div>${checksCard()}<div class="card"><h2>Le tue sessioni</h2><p class="muted">Durata, serie completate ed esercizi saltati.</p><button id="open-sessions">Riepilogo sessioni</button></div><div class="card"><h2>Backup e ripristino</h2><p class="muted">Dati salvati solo in questo browser. Ultima esportazione richiesta: ${gym.settings.lastExport ? U.date(gym.settings.lastExport) : 'mai'}.</p><div class="actions"><button id="export-gym">Esporta JSON</button><button id="import-gym">Importa backup</button></div><input type="file" accept=".json,application/json" hidden id="import-file"></div><div class="card"><h2>Unità di misura</h2><label for="weight-unit">Carichi e peso corporeo</label><select id="weight-unit"><option value="kg" ${weightUnit() === 'kg' ? 'selected' : ''}>kg</option><option value="lb" ${weightUnit() === 'lb' ? 'selected' : ''}>lb</option></select></div><div class="card"><h2>Storage locale</h2><p class="muted">${storageError ? U.esc(storageError) : 'Salvataggio locale disponibile. Le modifiche vengono confermate solo dopo la scrittura riuscita.'}</p></div><div class="card danger-zone"><h2>Reset dati</h2><p class="muted">Cancella allenamenti, note, peso e modifiche al piano da questo dispositivo.</p><button id="reset-data" class="danger">Azzera tutti i dati</button></div><div class="card"><h2>Integrazione</h2><details><summary>Indicazioni presenti nel piano</summary>${SUPPLEMENTS.map((s) => `<h3>${U.esc(s.title)}</h3><p class="muted">${U.esc(s.txt)}</p>`).join('')}</details></div><div class="card"><h2>Sessioni aperte</h2>${
     gym.sessions
       .filter((s) => !s.legacy && !s.ended)
       .map(
@@ -3185,24 +3293,16 @@ function sessionsPage() {
 let swRegistrationPromise = null,
   swRefreshPending = false;
 function showUpdateBanner(reg) {
-  let bar = document.getElementById('app-update-banner');
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.id = 'app-update-banner';
-    bar.className = 'app-update-banner';
-    bar.innerHTML = `<div><strong>Nuova versione disponibile</strong><small>È disponibile un aggiornamento di RecompApp.</small></div><button type="button" id="apply-app-update">Aggiorna ora</button>`;
-    document.body.append(bar);
-  }
-  bar.hidden = false;
-  bar.querySelector('#apply-app-update').onclick = () => {
+  // 1.13.0: stesso popup centrale di Bilancio e Noi Due.
+  const apply = () => {
     const waiting = reg?.waiting;
     if (waiting) {
       swRefreshPending = true;
       waiting.postMessage({ type: 'SKIP_WAITING' });
-    } else {
-      location.reload();
-    }
+    } else location.reload();
   };
+  if (window.SuiteUpdate) SuiteUpdate.show('RecompApp', apply);
+  else apply();
 }
 function watchServiceWorkerRegistration(reg) {
   if (!reg) return reg;
@@ -3587,3 +3687,32 @@ try {
   document.addEventListener('scroll', upd, { passive: true, capture: true });
   upd();
 })();
+
+/* 1.14.0 — Promemoria backup comune alle 4 app (30 giorni, al massimo una volta a settimana). */
+setTimeout(() => {
+  if (window.SuiteBackup)
+    SuiteBackup.maybe({ app: 'RecompApp', key: 'recomp', last: gym.settings.lastExport, hasData: (gym.sessions || []).some((s) => !s.legacy) || (gym.bodyWeights || []).length > 0, onExport: exportGym });
+}, 3000);
+
+/* 1.15.0 — Sincronizzazione online (Supabase), tabella app_data, app "recomp".
+   Scheda aperta, giornata della dieta e spunte della spesa restano quelle di questo telefono. */
+var syncGym = window.SuiteSync
+  ? SuiteSync.register({
+      app: 'recomp',
+      name: 'RecompApp',
+      scope: 'personal',
+      getLocal: () => gym,
+      hasLocalData: () => (gym.sessions || []).some((s) => !s.legacy) || (gym.bodyWeights || []).length > 0 || (gym.checks || []).length > 0,
+      localUpdatedAt: () => gym.updatedAt || null,
+      setLocal: (data) => {
+        const n = JSON.parse(JSON.stringify(data));
+        n.tab = gym.tab;
+        n.foodTab = gym.foodTab;
+        if (gym.shopping) n.shopping = gym.shopping;
+        if (!validGym(n)) throw Error('Dati online non validi');
+        localStorage.setItem(GKEY, JSON.stringify(n));
+        gym = n;
+        render();
+      },
+    })
+  : null;

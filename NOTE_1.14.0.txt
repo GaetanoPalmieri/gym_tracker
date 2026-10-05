@@ -1,0 +1,5 @@
+RecompApp 1.14.0
+- Lista della spesa: "Manda alla lista di Noi Due" copia i prodotti ancora da prendere (nome e quantità);
+  in Noi Due apri la lista Spesa › 📋 Incolla e si aggiungono tutti. Sull'iPhone le app sulla Home hanno
+  dati separati, quindi il passaggio avviene con gli appunti.
+- Promemoria backup comune alle 4 app: dopo 30 giorni senza esportazione compare un popup con "Esporta".
