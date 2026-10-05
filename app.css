@@ -1728,21 +1728,23 @@ main {
 }
 .closed-summary-icon {
   width: 38px;
-  height: 38px;
+  min-height: 38px;
   flex: 0 0 38px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  overflow: visible;
+  font-size: 24px;
   font-weight: 800;
-  background: #214c3d;
+  background: none;
   color: #a1ebc8;
-  border: 1px solid #315d50;
+  border: 0;
 }
 .closed-session-summary.has-missing .closed-summary-icon {
-  background: #473923;
+  background: none;
   color: #ffd19b;
-  border-color: #71583a;
 }
 .closed-summary-hero h2 {
   margin: 2px 0 2px;
@@ -2780,10 +2782,9 @@ header.top #daybar {
   text-wrap: balance;
 }
 .nutrition-actions .icon-action, .nutrition-actions .icon-action.primary {
-  background: var(--card2) !important;
-  border: 1px solid var(--line) !important;
+  background: none !important;
+  border: 0 !important;
   color: var(--text) !important;
-  border-radius: 12px !important;
 }
 /* 1.10.0 — Statistiche: riquadri leggibili, periodo indicato una sola volta. */
 .stats-overview {
