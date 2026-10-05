@@ -430,7 +430,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.15.0';
+const APP_VERSION = '1.16.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -806,10 +806,6 @@ function weightFromDisplay(v) {
 function weightLabel() {
   return weightUnit() === 'lb' ? 'lb' : 'kg';
 }
-function mealLogKey(dayKey, index, date = U.local().slice(0, 10)) {
-  return `${date}|${dayKey}|${index}`;
-}
-
 function parseGymNumber(value) {
   if (value == null || value === '') return null;
   const normalized = String(value).trim().replace(',', '.');
@@ -1705,19 +1701,6 @@ function openPlanPanel() {
     openCheckForm();
   });
 }
-function blockCard() {
-  const day = gym.program[gym.dayIdx],
-    w = gym.week;
-  const checkCta =
-    w === MAX_WEEKS
-      ? `<button type="button" class="primary" data-open-check>Fai il check fisico</button>`
-      : '';
-  return `<details class="card block-card"><summary><span class="block-title">Blocco ${gym.settings.block || 1} · Settimana ${w} di ${MAX_WEEKS}</span><span class="block-dates">${U.esc(weekDates(w))}</span></summary><p>${U.esc(PROGRESSION_TEXT[w] || '')}</p><p class="muted">Ogni giorno: cardio di riscaldamento → Kegel → addominali → pesi. Tre giorni completi a settimana; il quarto è un richiamo opzionale.</p><p class="muted">Recuperi: multiarticolari pesanti 2:30 min, multiarticolari secondari 1:30-2 min, complementari 1-1:15 min, addominali 45-75 s. Negli esercizi a un lato il recupero parte dopo aver fatto entrambi i lati.</p><p class="muted">Vita sedentaria: fuori dalla palestra punta a 8.000-10.000 passi al giorno, aiuta la ricomposizione più di altro cardio.</p>${checkCta}</details>${
-    day?.optional
-      ? `<div class="card optional-day-note"><b>Giorno opzionale</b><p class="muted">Richiamo leggero e aerobico. Se questa settimana non riesci, tocca “Salta sessione”: non cambia nulla per il programma.</p></div>`
-      : ''
-  }`;
-}
 function blockDonePanel() {
   const lastCheck = (gym.checks || []).at(-1),
     recent = lastCheck && Date.now() - new Date(lastCheck.date).getTime() < 14 * 864e5;
@@ -2484,80 +2467,6 @@ function foodOptions(value) {
     )
     .join('');
 }
-function mealEditor(index) {
-  const key = gym.foodTab,
-    original = gym.meals[key].items[index],
-    row = (v) =>
-      `<div class="ingredient"><select class="ingredient-food">${foodOptions(v.food)}</select><div class="row"><input class="ingredient-qty" aria-label="Quantità in grammi o millilitri" type="number" min="0" step="0.1" required value="${v.qty}"><button type="button" class="danger" data-remove-ingredient>✕</button></div></div>`;
-  const d = U.modal(
-    U.head('Modifica pasto') +
-      `<form><label>Orario / nome pasto</label><input name="time" required value="${U.esc(original.time)}"><label>Ingredienti e quantità (g / ml)</label><div id="ingredients">${original.ingredients.map(row).join('')}</div><button type="button" id="add-ingredient">＋ Ingrediente</button><p id="meal-preview" class="muted"></p><div class="save-center"><button class="primary">Salva pasto</button></div></form>`,
-  );
-  const read = () =>
-    [...d.querySelectorAll('.ingredient')].map((c) => ({
-      food: c.querySelector('.ingredient-food').value,
-      qty: Number(c.querySelector('.ingredient-qty').value),
-    }));
-  const bind = () => {
-    d.querySelectorAll('[data-remove-ingredient]').forEach(
-      (b) =>
-        (b.onclick = () => {
-          b.closest('.ingredient').remove();
-          bind();
-        }),
-    );
-    d.querySelector('#meal-preview').textContent = formatMacros(mealValues({ ingredients: read() }));
-  };
-  d.querySelector('#add-ingredient').onclick = () => {
-    d.querySelector('#ingredients').insertAdjacentHTML(
-      'beforeend',
-      row({ food: Object.keys(gym.foods)[0], qty: 100 }),
-    );
-    bind();
-  };
-  d.querySelector('form').oninput = bind;
-  bind();
-  d.querySelector('form').onsubmit = (e) => {
-    e.preventDefault();
-    const next = { ...original, time: new FormData(e.target).get('time'), ingredients: read() };
-    if (mutate((n) => (n.meals[key].items[index] = next))) {
-      d.close();
-      render();
-    }
-  };
-}
-function catalogEditor() {
-  const d = U.modal(
-    U.head('Alimenti e valori') +
-      `<p class="muted">Valori per 100 g o 100 ml. Modificandoli aggiorni tutti i pasti che usano questo alimento.</p><select id="food-select">${foodOptions('')}</select><div class="actions"><button id="food-edit">Modifica valori</button><button id="food-add">Nuovo alimento</button></div>`,
-  );
-  d.querySelector('#food-edit').onclick = () => foodForm(d.querySelector('#food-select').value);
-  d.querySelector('#food-add').onclick = () => foodForm(null);
-}
-function foodForm(id) {
-  const food = gym.foods[id] || { name: '', unit: 'g', v: [0, 0, 0, 0] },
-    d = U.modal(
-      U.head(id ? 'Modifica alimento' : 'Nuovo alimento') +
-        `<form><label>Nome</label><input name="name" required value="${U.esc(food.name)}"><label>Unità quantità</label><select name="unit"><option value="g">Grammi</option><option value="ml" ${food.unit === 'ml' ? 'selected' : ''}>Millilitri</option></select>${['kcal', 'Proteine', 'Carboidrati', 'Grassi'].map((x, i) => `<label>${x} per 100 g / ml</label><input name="v${i}" type="number" min="0" step="0.1" required value="${food.v[i]}">`).join('')}<div class="save-center"><button class="primary">Salva alimento</button></div></form>`,
-    );
-  d.querySelector('form').onsubmit = (e) => {
-    e.preventDefault();
-    const f = new FormData(e.target);
-    if (
-      mutate(
-        (n) =>
-          (n.foods[id || U.uid()] = {
-            name: f.get('name'),
-            unit: f.get('unit'),
-            v: [0, 1, 2, 3].map((i) => Number(f.get('v' + i))),
-          }),
-      )
-    ) {
-      d.close();
-      render();
-    }
-  };
-}
 /* 1.13.0 — Lista della spesa: "Settimana intera" somma da sola tutte le giornate del piano
    (G1–G4 e Riposo A/B/C = 7 giorni); "Scegli i giorni" resta per liste parziali.
    Le spunte restano salvate fino alla settimana successiva. */
@@ -2673,7 +2582,19 @@ function shopping() {
   d.querySelector('#shop-noidue').onclick = async () => {
     const rows = sumFor().filter(([k]) => !done[k]);
     if (!rows.length) return flash('Niente da mandare: è già tutto preso');
-    const text = rows.map(([k, q]) => `${gym.foods[k].name.split(',')[0].trim()} (${shopQty(q, gym.foods[k].unit)})`).join('\n');
+    const lines = rows.map(([k, q]) => `${gym.foods[k].name.split(',')[0].trim()} (${shopQty(q, gym.foods[k].unit)})`);
+    const text = lines.join('\n');
+    // 1.16.0: con la sincronizzazione attiva i prodotti vanno direttamente nella lista Spesa di Noi Due.
+    if (window.SuiteSync && SuiteSync.signedIn && navigator.onLine) {
+      flash('Invio a Noi Due…');
+      try {
+        const r = await sendToNoiDue(lines);
+        flash(r.added ? `✓ ${r.added} prodotti aggiunti a ${r.list} in Noi Due` : `✓ Erano già tutti in ${r.list}`);
+        return;
+      } catch (e) {
+        if (!/nocouple|vuoto/.test(e.message)) console.warn('Noi Due', e);
+      }
+    }
     try {
       await navigator.clipboard.writeText(text);
       flash(`✓ ${rows.length} prodotti copiati · in Noi Due: lista Spesa › 📋 Incolla`);
@@ -3337,19 +3258,6 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
     location.reload();
   }
 });
-function nextWorkoutCue(session, exerciseIndex, rowIndex) {
-  if (!session) return '';
-  const current = session.exercises[exerciseIndex];
-  if (current && !current.stopped) {
-    for (let j = rowIndex + 1; j < current.rows.length; j++)
-      if (!current.rows[j].done) return `Serie ${j + 1} · ${current.name}`;
-  }
-  for (let i = exerciseIndex + 1; i < session.exercises.length; i++) {
-    const e = session.exercises[i];
-    if (!e.stopped && e.rows.some((r) => !r.done)) return `Prossimo esercizio: ${e.name}`;
-  }
-  return 'Ultima serie della sessione';
-}
 let wakeLockStatus = 'idle';
 async function requestWakeLock() {
   if (!('wakeLock' in navigator)) {
@@ -3716,3 +3624,36 @@ var syncGym = window.SuiteSync
       },
     })
   : null;
+
+/* 1.16.0 — Scrive direttamente nella lista della spesa di Noi Due (stesso account della coppia). */
+async function sendToNoiDue(lines) {
+  const api = SuiteSync.api;
+  const mem = await api('/rest/v1/couple_members?select=couple_id&user_id=eq.' + encodeURIComponent(SuiteSync.userId));
+  if (!mem.length) throw new Error('nocouple');
+  const cid = mem[0].couple_id;
+  const norm = (t) => String(t || '').toLowerCase().replace(/\s*\(.*\)\s*$/, '').trim();
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const rows = await api('/rest/v1/noidue_data?select=data,updated_at&couple_id=eq.' + encodeURIComponent(cid));
+    if (!rows.length || !Array.isArray(rows[0].data?.lists) || !rows[0].data.lists.length) throw new Error('vuoto');
+    const data = rows[0].data;
+    const list = data.lists.find((l) => /spesa|supermercat/i.test(l.name)) || data.lists[0];
+    list.items = Array.isArray(list.items) ? list.items : [];
+    const have = new Set(list.items.filter((i) => !i.done).map((i) => norm(i.text)));
+    let added = 0;
+    lines.forEach((t) => {
+      if (have.has(norm(t))) return;
+      have.add(norm(t));
+      list.items.push({ id: 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), text: t.slice(0, 120), qty: 1, price: null, done: false, code: '', image: '', url: '', photo: '', aisle: '', forWhom: 'both', addedBy: '', via: 'RecompApp' });
+      added++;
+    });
+    if (!added) return { added: 0, list: list.name };
+    data.updatedAt = new Date().toISOString();
+    const res = await api('/rest/v1/noidue_data?couple_id=eq.' + encodeURIComponent(cid) + '&updated_at=eq.' + encodeURIComponent(rows[0].updated_at), {
+      method: 'PATCH',
+      json: { data, updated_at: new Date().toISOString() },
+      headers: { Prefer: 'return=representation' },
+    });
+    if (res.length) return { added, list: list.name };
+  }
+  throw new Error('conflitto');
+}
