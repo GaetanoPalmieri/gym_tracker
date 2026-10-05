@@ -2496,13 +2496,13 @@ body[data-active-tab='more'] main .card button {
 }
 .supplement-timing-icon {
   width: 30px;
-  height: 30px;
+  min-height: 30px;
   flex: 0 0 30px;
   display: grid;
   place-items: center;
   border-radius: 9px;
-  background: #202d34;
-  font-size: 16px;
+  background: none;
+  font-size: 19px;
 }
 .supplement-timing b {
   display: block;

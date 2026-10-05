@@ -277,7 +277,7 @@ html:where([data-theme="light"]).ios-resume-repaint,html:where([data-theme="ligh
 :where(:root[data-theme="light"]) .week-picker-grid button{border:1px solid var(--line);background:var(--card2);color:var(--sub)}
 :where(:root[data-theme="light"]) .week-picker-grid button.active{background:var(--accent);border-color:var(--accent);color:#08201c}
 :where(:root[data-theme="light"]) .supplement-timing{border:1px solid #bfc6ca;background:#ebf0f3}
-:where(:root[data-theme="light"]) .supplement-timing-icon{background:#e3e9ed}
+:where(:root[data-theme="light"]) .supplement-timing-icon{background:none}
 :where(:root[data-theme="light"]) .supplement-timing small{color:var(--sub)}
 :where(:root[data-theme="light"]) .foodtabs-label{color:var(--sub)}
 :where(:root[data-theme="light"]) .exercise-header-row .skip-exercise{background:transparent !important;border-color:var(--line) !important;color:var(--sub) !important}
