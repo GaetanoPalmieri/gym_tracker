@@ -3528,3 +3528,273 @@ header.top {
   color: #fff!important;
   font-size: 13px;
 }
+
+/* =====================================================================
+   v1.16.8 — Popup moderni + effetto trasparenza su tutta l'app.
+   Questo blocco sta in fondo al file per vincere sulle regole
+   precedenti che impostavano sfondi pieni.
+   ===================================================================== */
+
+/* ---------- Popup: struttura moderna ---------- */
+#editor, dialog#editor {
+  border-radius: 24px!important;
+  padding: 16px 16px calc(18px + env(safe-area-inset-bottom))!important;
+}
+#editor .editor-head, dialog .editor-head {
+  display: flex!important;
+  align-items: center!important;
+  justify-content: space-between!important;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  margin: -4px -4px 14px!important;
+  padding: 6px 4px 10px!important;
+  background: transparent!important;
+  border-bottom: 1px solid var(--glass-edge)!important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+  backdrop-filter: blur(18px) saturate(1.6);
+}
+#editor .editor-head h2, dialog .editor-head h2 {
+  margin: 0!important;
+  font-size: 17px!important;
+  font-weight: 800!important;
+  letter-spacing: -.01em;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* X di chiusura: tonda, grigio chiaro, nessun riquadro rosso */
+#editor .editor-head button[data-close],
+dialog .editor-head button[data-close],
+button[data-close], button.close {
+  flex: 0 0 auto;
+  width: 34px!important;
+  min-width: 34px!important;
+  height: 34px!important;
+  min-height: 34px!important;
+  padding: 0!important;
+  display: grid!important;
+  place-items: center!important;
+  border-radius: 50%!important;
+  font-size: 15px!important;
+  font-weight: 700!important;
+  color: #9aa5ad!important;
+  background: color-mix(in srgb, var(--card2) 55%, transparent)!important;
+  border: 1px solid var(--glass-edge)!important;
+  box-shadow: none!important;
+}
+
+/* ---------- Pulsanti nei popup: pill moderne ---------- */
+.ask-dialog .ask-actions button,
+.pause-actions button,
+.partial-finish-actions button,
+#editor .actions button,
+.closed-session-actions button {
+  border-radius: 14px!important;
+  font-weight: 800!important;
+  letter-spacing: -.01em;
+  border: 1px solid var(--glass-edge)!important;
+  background: color-mix(in srgb, var(--card2) 55%, transparent)!important;
+  color: var(--text)!important;
+  box-shadow: none!important;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.pause-actions button {
+  min-height: 48px!important;
+  font-size: 14.5px!important;
+}
+.partial-finish-actions button {
+  min-height: 44px!important;
+  font-size: 13.5px!important;
+}
+.ask-dialog .ask-actions button {
+  min-height: 46px!important;
+  font-size: 14.5px!important;
+}
+/* Azione principale: gradiente ambra come nel resto dell'app */
+.ask-dialog .ask-ok:not(.danger),
+.pause-actions button.primary,
+.partial-finish-actions button.primary {
+  background: var(--amber-grad)!important;
+  border-color: transparent!important;
+  color: #241800!important;
+  box-shadow: 0 8px 20px -8px rgba(232,147,44,.6)!important;
+}
+/* Azione distruttiva: rosso tenue, non invadente */
+.ask-dialog .ask-ok.danger,
+.pause-actions button.danger,
+.partial-finish-actions button.danger {
+  background: color-mix(in srgb, var(--danger) 22%, transparent)!important;
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent)!important;
+  color: var(--danger)!important;
+}
+.ask-dialog .ask-msg {
+  font-size: 14.5px!important;
+  line-height: 1.5!important;
+}
+
+/* ---------- Riquadro informativo nei popup ---------- */
+.info-box {
+  background: color-mix(in srgb, var(--card2) 48%, transparent)!important;
+  border: 1px solid var(--glass-edge)!important;
+  border-radius: 14px!important;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  font-size: 13px!important;
+  line-height: 1.5!important;
+}
+
+/* ---------- Trasparenza: superfici dentro i popup ---------- */
+dialog {
+  background: color-mix(in srgb, var(--card) 56%, transparent)!important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.8)!important;
+  backdrop-filter: blur(24px) saturate(1.8)!important;
+}
+dialog::backdrop {
+  background: rgba(8, 11, 13, .42)!important;
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+:root:where([data-theme="light"]) dialog::backdrop {
+  background: rgba(20, 24, 26, .26)!important;
+}
+.ask-dialog {
+  background: color-mix(in srgb, var(--card) 56%, transparent)!important;
+  border-radius: 20px!important;
+}
+/* Elementi interni che erano pieni (--card2) */
+dialog :is(.anim-box, .notearea, .exercise-note, .weightrow input, .setbtn:not(.done), .shop-tabs button:not(.active), textarea, select, input[type='text'], input[type='number'], input[type='date']) {
+  background: color-mix(in srgb, var(--card2) 48%, transparent)!important;
+  border-color: var(--glass-edge)!important;
+}
+
+/* ---------- Trasparenza: sezioni principali e pannelli ---------- */
+#main :is(.exercise-note, .anim-box, .notearea, .plan-box, .howto, .deload) {
+  background: color-mix(in srgb, var(--card2) 44%, transparent)!important;
+  border-color: var(--glass-edge)!important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  backdrop-filter: blur(14px) saturate(1.6);
+}
+#main :is(.series-row input, .weightrow input, select, textarea) {
+  background: color-mix(in srgb, var(--card2) 42%, transparent)!important;
+  border-color: var(--glass-edge)!important;
+}
+#main :is(.setbtn:not(.done), .shop-tabs button:not(.active), .stats-tabs button:not(.active)) {
+  background: color-mix(in srgb, var(--card2) 46%, transparent)!important;
+  border-color: var(--glass-edge)!important;
+}
+/* Pannello di pausa e riepilogo */
+.pause-panel, .closed-summary, .closed-session-banner {
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  backdrop-filter: blur(16px) saturate(1.6);
+}
+/* Timer di recupero e barra in basso */
+.timer-bg {
+  background: color-mix(in srgb, var(--bg) 62%, transparent)!important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.7);
+  backdrop-filter: blur(22px) saturate(1.7);
+}
+.timer-actions button {
+  background: color-mix(in srgb, var(--card2) 50%, transparent)!important;
+  border: 1px solid var(--glass-edge)!important;
+  border-radius: 14px!important;
+}
+.timer-actions button.skip {
+  background: var(--amber-grad)!important;
+  border-color: transparent!important;
+  color: #241800!important;
+}
+
+/* =====================================================================
+   v1.17.0 — Coerenza di stile con Bilancio e Noi Due.
+   Stessi token tipografici, stessi bagliori di sfondo, stesse tinte
+   degli accenti e stessa scala dei raggi delle altre app della suite.
+   ===================================================================== */
+:root {
+  /* Tipografia: come Bilancio e Noi Due (Display per titoli e numeri) */
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, sans-serif;
+  /* Scala dei raggi condivisa */
+  --radius-xl: 18px;
+  --radius-lg: 14px;
+  --radius-card: 16px;
+  --radius-chip: 10px;
+  /* Bagliori d'ambiente con gli stessi valori delle altre app */
+  --glow-a: rgba(58,166,132,.24);
+  --glow-b: rgba(138,107,214,.20);
+  --glow-c: rgba(232,163,61,.12);
+  /* Tinte per sezione, come la barra di Bilancio e Noi Due */
+  --tab-workout: #3aa684;
+  --tab-food: #e0bc63;
+  --tab-stats: #8b92e8;
+  --tab-more: #4fc8e0;
+}
+:root:where([data-theme="light"]) {
+  --glow-a: rgba(58,166,132,.16);
+  --glow-b: rgba(138,107,214,.13);
+  --glow-c: rgba(232,163,61,.13);
+  --tab-workout: #1f5d4c;
+  --tab-food: #b98900;
+  --tab-stats: #5b63c4;
+  --tab-more: #2e8fa6;
+}
+/* Accento in tema scuro: stessa tonalità di verde delle altre app */
+:root:not([data-theme="light"]) {
+  --accent: #55c3a7;
+}
+
+/* ---------- Sfondo d'ambiente identico alle altre app ---------- */
+body::before {
+  background: radial-gradient(42% 32% at 12% 6%,var(--glow-a),transparent 70%),
+    radial-gradient(38% 30% at 96% 30%,var(--glow-b),transparent 70%),
+    radial-gradient(46% 34% at 30% 88%,var(--glow-c),transparent 72%),
+    var(--bg)!important;
+}
+
+/* ---------- Tipografia: Display sui titoli ---------- */
+body, input, textarea, select, button {
+  font-family: var(--font-body);
+}
+header.top .title-row h1,
+h1, h2, h3,
+.card h2, .card h3,
+.sectiontitle,
+.editor-head h2 {
+  font-family: var(--font-display)!important;
+  letter-spacing: -.015em;
+}
+/* ---------- Tipografia: Display e cifre tabulari sui numeri grandi ---------- */
+.session-clock,
+.inline-session-clock,
+.timer-num,
+.stats-kpi b,
+.closed-summary-kpis b,
+.weigh-value,
+.series-row input,
+.weightrow input {
+  font-family: var(--font-display)!important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Barra in basso: tinta per sezione come nelle altre app ---------- */
+.tabbar-bottom .tab[data-page-tab="workout"].active {
+  box-shadow: 0 8px 20px -8px var(--tab-workout)!important;
+}
+.tabbar-bottom .tab[data-page-tab="food"].active {
+  box-shadow: 0 8px 20px -8px var(--tab-food)!important;
+}
+.tabbar-bottom .tab[data-page-tab="stats"].active {
+  box-shadow: 0 8px 20px -8px var(--tab-stats)!important;
+}
+.tabbar-bottom .tab[data-page-tab="more"].active {
+  box-shadow: 0 8px 20px -8px var(--tab-more)!important;
+}
+
+/* ---------- Raggi coerenti con la scala condivisa ---------- */
+.card, details.meal-smart, .stats-kpi, .week-stepper, .supplement-timing, .stats-tabs {
+  border-radius: var(--radius-xl)!important;
+}
+.compact-set, .closed-summary-kpis > div, .closed-summary-exercise, .info-box {
+  border-radius: var(--radius-lg)!important;
+}
