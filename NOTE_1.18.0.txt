@@ -1,0 +1,16 @@
+VERSIONE 1.18.0 — Restyling unificato della suite
+
+- Nuovo file suite-tokens.css, identico nelle quattro app (Bilancio, Noi Due,
+  RecompApp, Style Wishlist): stessi colori, vetro, raggi e tipografia.
+  Una modifica grafica ora si fa una volta sola e si copia nelle altre.
+- Tema chiaro unificato: crema caldo con card bianche in tutte le app.
+- Titoli e numeri in SF Pro Display, con cifre allineate negli importi.
+- Service worker: suite-tokens.css precaricato, cache rinnovata.
+- Note esercizio: pulsante nota giallo e ben visibile anche in tema scuro.
+- Card ridotta: niente testo della nota, solo il pulsante nota giallo (si tocca e apre la nota).
+- Corretta la causa per cui il colore della nota non si applicava: una regola generica
+  dei pulsanti con molti :not() vinceva su tutto. Ora esclude i pulsanti con nota.
+- shared.css e shared.js uniti in app.css e data.js (2 file in meno da scaricare).
+- Testo di nuovo selezionabile (user-select limitato ai pulsanti dei giorni).
+- suite.js ora identico nelle 4 app (versione master in _condivisi/).
+- Note di versione vecchie spostate in note_versioni/.

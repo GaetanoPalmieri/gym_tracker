@@ -458,7 +458,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.17.0';
+const APP_VERSION = '1.18.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -1396,7 +1396,7 @@ function exerciseCard(e, i, s, next) {
     key = exerciseExpandKey(e, i),
     expanded = expandedExerciseKeys.has(key),
     progress = totals(e).done;
-  return `<div class="card exercise-card ${done ? 'exercise-complete' : next ? 'exercise-next' : ''} ${expanded ? 'exercise-expanded' : 'exercise-compact'}"><div class="exercise-header-row"><div class="exercise-title-block exercise-title-toggle" data-exercise-toggle="${i}" role="button" tabindex="0" aria-expanded="${expanded}" aria-label="${expanded ? 'Riduci' : 'Apri'} ${U.esc(e.name)}"><div class="exercise-name-line"><h3>${U.esc(e.name)}</h3><span class="exercise-title-chevron" aria-hidden="true">${expanded ? '▴' : '▾'}</span></div><div class="equipment-labels">${equipmentLabels(e)}</div><p class="exercise-meta muted">${e.rows.length} serie · Obiettivo ${U.esc(e.target)} · Recupero ${fmtRest(e.rest)}</p></div>${status !== 'Completato' ? `<button data-skip="${i}" class="skip-exercise">${e.stopped ? 'Ripristina' : 'Salta esercizio'}</button>` : ''}</div><div class="compact-progress"><span>${progress}/${e.rows.length} serie</span><i><b style="width:${e.rows.length ? Math.round((progress / e.rows.length) * 100) : 0}%"></b></i></div><div class="compact-series-summary" style="--cols:${e.rows.length === 4 ? 2 : Math.max(1, Math.min(e.rows.length, 3))}">${compactExerciseSummary(e)}</div>${
+  return `<div class="card exercise-card ${done ? 'exercise-complete' : next ? 'exercise-next' : ''} ${expanded ? 'exercise-expanded' : 'exercise-compact'}"><div class="exercise-header-row"><div class="exercise-title-block exercise-title-toggle" data-exercise-toggle="${i}" role="button" tabindex="0" aria-expanded="${expanded}" aria-label="${expanded ? 'Riduci' : 'Apri'} ${U.esc(e.name)}"><div class="exercise-name-line"><h3>${U.esc(e.name)}</h3><span class="exercise-title-chevron" aria-hidden="true">${expanded ? '▴' : '▾'}</span></div><div class="equipment-labels">${equipmentLabels(e)}</div><p class="exercise-meta muted">${e.rows.length} serie · Obiettivo ${U.esc(e.target)} · Recupero ${fmtRest(e.rest)}</p></div>${e.note && !expanded ? `<button data-note="${i}" class="strong-icon-action has-note compact-note-btn" aria-label="Nota presente: apri la nota di ${U.esc(e.name)}">✎︎</button>` : ''}${status !== 'Completato' ? `<button data-skip="${i}" class="skip-exercise">${e.stopped ? 'Ripristina' : 'Salta esercizio'}</button>` : ''}</div><div class="compact-progress"><span>${progress}/${e.rows.length} serie</span><i><b style="width:${e.rows.length ? Math.round((progress / e.rows.length) * 100) : 0}%"></b></i></div><div class="compact-series-summary" style="--cols:${e.rows.length === 4 ? 2 : Math.max(1, Math.min(e.rows.length, 3))}">${compactExerciseSummary(e)}</div>${
     expanded
       ? `<div class="exercise-expanded-body">${
           prev
@@ -1406,7 +1406,7 @@ function exerciseCard(e, i, s, next) {
                 .join(' · ')}</p>`
             : ''
         }${seriesInputs(e, i)}<div class="exercise-expanded-actions">${alts.length ? `<button data-alt="${i}" class="alt-exercise" aria-label="Versioni alternative per ${U.esc(e.name)}">↔ Variante</button>` : ''}<button data-info="${i}" class="strong-icon-action" aria-label="Informazioni esercizio">ⓘ</button><button data-note="${i}" class="strong-icon-action ${e.note ? 'has-note' : ''}" aria-label="Modifica note esercizio">✎︎</button></div>${e.note ? `<p class="exercise-note">${U.esc(e.note)}</p>` : ''}</div>`
-      : `${e.note ? `<p class="exercise-note compact-note">${U.esc(e.note)}</p>` : ''}`
+      : ''
   }</div>`;
 }
 function closedExerciseSummary(e) {
