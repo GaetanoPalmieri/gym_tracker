@@ -1081,11 +1081,19 @@ function finishSession(id) {
     d.querySelector('#fix-session').onclick = () => editSession(id);
     return;
   }
+  if (sessionCounts(s).sets === 0) {
+    if (mutate((n) => { n.sessions = n.sessions.filter((x) => x.id !== id); })) {
+      reopenIds.delete(id);
+      render();
+      U.toast('Nessuna serie completata: la sessione non è stata salvata.');
+    }
+    return;
+  }
   if (sessionHasIncomplete(s)) {
     const c = sessionCounts(s),
       d = U.modal(
         U.head('Sessione non completa') +
-          `<p>Hai completato <b>${c.sets}/${c.total} serie</b>. Puoi modificare i risultati, continuare la sessione oppure chiuderla comunque mantenendo gli esercizi mancanti come non completati.</p><div class="partial-finish-actions"><button id="partial-edit">Modifica risultati</button><button id="partial-continue" class="primary">Completa sessione</button><button id="partial-close" class="danger">Chiudi comunque</button></div>`,
+          `<div class="info-box">ℹ️ Hai completato <b>${c.sets}/${c.total} serie</b>. Le serie mancanti resteranno segnate come non completate se chiudi ora.</div><div class="partial-finish-actions"><button id="partial-edit">✎ Modifica</button><button id="partial-continue" class="primary">▶ Continua</button><button id="partial-close" class="danger">■ Chiudi</button></div>`,
       );
     d.querySelector('#partial-edit').onclick = () => {
       d.close();

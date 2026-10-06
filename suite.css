@@ -157,14 +157,15 @@ html:where([data-theme="light"]),:where(:root[data-theme="light"]) body{backgrou
 :where(:root[data-theme="light"]) .exercise-topline .skip-exercise{border-color:#cec5b5;color:#ffad22;background:#ede8e0}
 :where(:root[data-theme="light"]) #editor textarea{border:1px solid #bcc2c8}
 :where(:root[data-theme="light"]) .exercise-note{background:#e1e6ec;color:#2e433b}
-:where(:root[data-theme="light"]) button[data-close],:where(:root[data-theme="light"]) button[data-remove-ingredient],:where(:root[data-theme="light"]) button.close{color:#de0000 !important;background:#eedce0 !important;border:1px solid #ee4848 !important}
+:where(:root[data-theme="light"]) button[data-close],:where(:root[data-theme="light"]) button[data-remove-ingredient],:where(:root[data-theme="light"]) button.close{color:#8a9099 !important;background:transparent !important;border:none !important;box-shadow:none !important}
 :where(:root[data-theme="light"]) .tap-feedback{border:2px solid #e8a33d}
 :where(:root[data-theme="light"]) #daybar button.holding{box-shadow:inset 0 -4px #e8a33d;filter:brightness(1.25)}
 :where(:root[data-theme="light"]) .completed-section > summary{color:#2dc189}
 :where(:root[data-theme="light"]) .skipped-section > summary{color:#ff7f0e}
 :where(:root[data-theme="light"]) .completed-section{border-color:#b7ccc5}
 :where(:root[data-theme="light"]) .skipped-section{border-color:#cec1b5}
-:where(:root[data-theme="light"]) .equipment-label{color:#d89729}
+:where(:root[data-theme="light"]) .equipment-label{color:#8a5a0f;background:rgba(216,151,41,0.14);border-color:rgba(216,151,41,0.35)}
+:where(:root[data-theme="light"]) .info-box{background:#f3f5e6;border-color:#cdd4a8;color:#51561f}
 :where(:root[data-theme="light"]) .pause-symbol{background:#ebe7df;color:#ab6e14}
 :where(:root[data-theme="light"]) .saved-check{background:#d6ece4;color:#29d48e}
 :where(:root[data-theme="light"]) .summary-counts > div{background:#e1e6ec}
