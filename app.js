@@ -3698,7 +3698,7 @@ async function sendToNoiDue(lines) {
    salvato in Supabase, tabella push_subscriptions, app='gym'). Un cron orario su Supabase
    chiama la funzione notify-pesoreminder che manda l'avviso alle 8:00 locali.
    Guida completa: GUIDA_NOTIFICHE.txt */
-const PUSH_VAPID_PUBLIC = "INCOLLA_QUI_LA_CHIAVE_PUBBLICA_VAPID_GYM";
+const PUSH_VAPID_PUBLIC = "BJ-n5y0FFrVnVmNebTeJ7jl2xZCvbufjM3kiBu4SJsMhKuyWPsoZsi8wwa0ovz-prskp8mOm62OQZWnm-ng5iJc";
 const PUSH_FN = "/functions/v1/notify-pesoreminder";
 let pushState = { sub: null, row: null, busy: false, msg: "", err: false, loaded: false };
 function pushSupported() { return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window; }
