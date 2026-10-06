@@ -458,7 +458,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.19.0';
+const APP_VERSION = '1.19.1';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -3844,13 +3844,14 @@ let restNotifiedTag = null;
    Supabase (e la aggiorna a ogni +15s, pausa, ripresa, salto); il server manda la notifica a
    quell'ora. Se il recupero finisce con l'app aperta, la riga viene tolta prima e resta solo
    l'avviso locale. Senza tabella o senza rete non succede nulla: resta il comportamento di prima. */
-let restPushKey = null, restPushTimer = null;
+// var (non let): updateRest() può essere chiamata all'avvio, prima di questa riga, se c'è un recupero in corso
+var restPushKey, restPushTimer;
 function restPushSync() {
   const r = gym.rest;
   const active = !!(r && r.remaining == null && r.end > Date.now() + 1500);
   const key = active ? `${Math.round(r.end / 1000)}|${r.name || ''}` : '';
   if (key === restPushKey) return;
-  const first = restPushKey === null;
+  const first = restPushKey === undefined;
   restPushKey = key;
   if (first && !active) return; // all'avvio senza recupero in corso non serve chiamare il server
   clearTimeout(restPushTimer);
