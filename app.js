@@ -1,6 +1,8 @@
 'use strict';
 // Recupero fisso quando si passa da un esercizio al successivo (sempre 90s, non riducibile).
 const EXERCISE_TRANSITION_REST = 90;
+// v1.20.0: recupero massimo tra le serie, per tutti gli esercizi e tutti i blocchi (1:30).
+const MAX_REST = 90;
 const GKEY = 'rc_gym_v2',
   main = document.getElementById('main'),
   catalogId = (name) =>
@@ -292,6 +294,18 @@ function migrateFullBodyV112(state) {
   state.settings.fullBodyV112 = true;
 }
 // 1.12.1 — recuperi, serie e range di ripetizioni rivisti per un livello intermedio.
+/* v1.20.0 — Recupero massimo 1:30: corregge il programma già salvato (anche quello sincronizzato),
+   i valori di base usati dai blocchi successivi e la sessione in corso. Gira a ogni avvio: non
+   cambia nulla se è già tutto entro il limite. */
+function capRestV120(state) {
+  const cap = (e) => {
+    if (!e) return;
+    if (typeof e.rest === 'number' && e.rest > MAX_REST) e.rest = MAX_REST;
+    if (typeof e.baseRest === 'number' && e.baseRest > MAX_REST) e.baseRest = MAX_REST;
+  };
+  (state.program || []).forEach((d) => d.exercises?.forEach(cap));
+  (state.sessions || []).forEach((s) => { if (!s.ended) s.exercises?.forEach(cap); });
+}
 function migrateLoadV1121(state) {
   if (state.settings.loadV1121) return;
   const defs = new Map(defaultProgram().map((d) => [d.key, new Map(d.exercises.map((e) => [e.id, e]))]));
@@ -386,6 +400,7 @@ function normalizeStateOnOpen(state) {
   migrateAbsRoutineV156(state);
   migrateFullBodyV112(state);
   migrateLoadV1121(state);
+  capRestV120(state);
   if (!state.settings.leanBulkV1123) {
     // 1.12.3 — profilo (30 anni, 186 cm, 86 kg) e calorie per la massa pulita:
     // media settimanale ~2.750 kcal (fabbisogno stimato ~2.650-2.700), proteine invariate (~2,1-2,4 g/kg).
@@ -458,7 +473,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.19.1';
+const APP_VERSION = '1.20.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -1881,7 +1896,7 @@ function bindWorkout() {
             x.stopped = false;
             if (done) {
               const exerciseJustFinished = x.rows.every((r) => r.done);
-              const restSec = exerciseJustFinished ? EXERCISE_TRANSITION_REST : x.rest;
+              const restSec = Math.min(MAX_REST, exerciseJustFinished ? EXERCISE_TRANSITION_REST : x.rest);
               if (restSec > 0)
                 n.rest = { end: Date.now() + restSec * 1000, name: x.name, sessionId: s.id };
             }
@@ -2206,7 +2221,7 @@ function programEditor() {
         : { id: U.uid(), name: '', sets: 3, reps: '10', rest: 60, unit: 'reps', move: '', note: '' };
     const d = U.modal(
       U.head(replace ? 'Sostituisci esercizio' : 'Esercizio') +
-        `<form><label>Nome</label><input name="name" required maxlength="160" value="${U.esc(e.name)}"><div class="grid"><div><label>Serie</label><input name="sets" type="number" min="1" max="30" required value="${e.sets}"></div><div><label>Obiettivo ripetizioni / minuti</label><input name="reps" required value="${U.esc(e.reps)}"></div></div><label>Misura</label><select name="unit"><option value="reps">Ripetizioni</option><option value="min" ${e.unit === 'min' ? 'selected' : ''}>Minuti</option></select><label>Recupero (secondi)</label><input name="rest" type="number" min="0" max="1800" required value="${e.rest}"><label>Una serie in meno nella settimana di scarico (settimana 8)</label><select name="compound"><option value="false">No</option><option value="true" ${e.compound ? 'selected' : ''}>Sì</option></select><label>Attrezzatura / impugnatura</label><input name="equipment" value="${U.esc(equipment(e))}"><label>Istruzioni</label><textarea name="note">${U.esc(e.note || '')}</textarea><div class="actions"><button class="primary">Conferma</button><button type="button" id="cancel-ex">Indietro</button></div></form>`,
+        `<form><label>Nome</label><input name="name" required maxlength="160" value="${U.esc(e.name)}"><div class="grid"><div><label>Serie</label><input name="sets" type="number" min="1" max="30" required value="${e.sets}"></div><div><label>Obiettivo ripetizioni / minuti</label><input name="reps" required value="${U.esc(e.reps)}"></div></div><label>Misura</label><select name="unit"><option value="reps">Ripetizioni</option><option value="min" ${e.unit === 'min' ? 'selected' : ''}>Minuti</option></select><label>Recupero (secondi, massimo 90)</label><input name="rest" type="number" min="0" max="90" required value="${Math.min(MAX_REST, e.rest)}"><label>Una serie in meno nella settimana di scarico (settimana 8)</label><select name="compound"><option value="false">No</option><option value="true" ${e.compound ? 'selected' : ''}>Sì</option></select><label>Attrezzatura / impugnatura</label><input name="equipment" value="${U.esc(equipment(e))}"><label>Istruzioni</label><textarea name="note">${U.esc(e.note || '')}</textarea><div class="actions"><button class="primary">Conferma</button><button type="button" id="cancel-ex">Indietro</button></div></form>`,
     );
     d.querySelector('#cancel-ex').onclick = draw;
     d.querySelector('form').onsubmit = (event) => {
@@ -2217,7 +2232,7 @@ function programEditor() {
           name: U.cleanText(f.get('name'), 160).trim(),
           sets: Number(f.get('sets')),
           reps: U.cleanText(f.get('reps'), 80),
-          rest: Number(f.get('rest')),
+          rest: Math.min(MAX_REST, Math.max(0, Number(f.get('rest')) || 0)),
           unit: f.get('unit'),
           compound: f.get('compound') === 'true',
           note: U.cleanText(f.get('note'), 2000),
@@ -2775,7 +2790,7 @@ function generateNextBlock() {
           e.baseRest ??= e.rest;
           if (e.compound) {
             e.reps = strength ? BLOCK_REP_SCHEMES.strength.compound : e.baseReps;
-            e.rest = strength ? e.baseRest + 30 : e.baseRest;
+            e.rest = Math.min(MAX_REST, strength ? e.baseRest + 30 : e.baseRest);
           }
           if (isCardio(e) && !d.optional) e.reps = moreCardio ? '20 min' : '15 min';
           if (knee !== 'ok' && /affondi bulgari/i.test(e.name)) {
@@ -3663,6 +3678,7 @@ var syncGym = window.SuiteSync
         n.foodTab = gym.foodTab;
         if (gym.shopping) n.shopping = gym.shopping;
         if (!validGym(n)) throw Error('Dati online non validi');
+        capRestV120(n); // anche i dati arrivati da un altro telefono rispettano il recupero massimo
         localStorage.setItem(GKEY, JSON.stringify(n));
         gym = n;
         render();

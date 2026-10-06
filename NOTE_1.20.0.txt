@@ -1,0 +1,10 @@
+VERSIONE 1.20.0 — Recupero massimo 1:30
+
+- Nessun esercizio ha più di 1:30 di recupero tra le serie.
+- Programma di base: Leg press 45°, Panca piana, Stacco rumeno, Hip thrust (erano 2:15)
+  e Lento avanti, Lat machine presa larga, Panca inclinata (erano 1:45) ora sono a 1:30.
+- Nuovi blocchi con obiettivo forza: prima aggiungevano 30 secondi (fino a 2:30-2:45),
+  ora restano entro 1:30.
+- Il programma già salvato sul telefono e quello sincronizzato vengono corretti da soli
+  all'apertura, così come la sessione in corso.
+- Modifica esercizio: il campo Recupero accetta al massimo 90 secondi.
