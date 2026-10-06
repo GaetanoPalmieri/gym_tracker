@@ -1,4 +1,6 @@
 'use strict';
+// Recupero fisso quando si passa da un esercizio al successivo (sempre 90s, non riducibile).
+const EXERCISE_TRANSITION_REST = 90;
 const GKEY = 'rc_gym_v2',
   main = document.getElementById('main'),
   catalogId = (name) =>
@@ -91,16 +93,42 @@ const EXERCISE_ALTERNATIVES = {
 function exerciseAlternatives(e) {
   return EXERCISE_ALTERNATIVES[e?.name] || [];
 }
-function showExerciseAlternatives(e) {
+function showExerciseAlternatives(e, i) {
   const alts = exerciseAlternatives(e);
   if (!alts.length) {
     U.toast('Nessuna variante disponibile per questo esercizio.');
     return;
   }
-  U.modal(
+  const d = U.modal(
     U.head('Versioni alternative') +
-      `<p class="muted">Alternative per <b>${U.esc(e.name)}</b>. Mantieni serie e ripetizioni della scheda, adattando il carico alla variante scelta.</p><div class="alternative-exercise-list">${alts.map((x) => `<div class="alternative-exercise-row">↔ <span>${U.esc(x)}</span></div>`).join('')}</div>`,
+      `<p class="muted">Alternative per <b>${U.esc(e.name)}</b>. Mantieni serie e ripetizioni della scheda, adattando il carico alla variante scelta. Scegli una variante per sostituirla nell'allenamento di oggi (le serie già registrate vengono mantenute).</p><div class="alternative-exercise-list">${alts.map((x, k) => `<button type="button" class="alternative-exercise-row" data-pick-variant="${k}">↔ <span>${U.esc(x)}</span></button>`).join('')}</div>`,
   );
+  d.querySelectorAll('[data-pick-variant]').forEach(
+    (b) =>
+      (b.onclick = () => {
+        const altName = alts[Number(b.dataset.pickVariant)];
+        d.close();
+        swapExerciseVariant(i, altName);
+      }),
+  );
+}
+function swapExerciseVariant(i, altName) {
+  const s = ensureSession();
+  if (!s) return;
+  const newId = catalogId(altName);
+  if (
+    mutate((n) => {
+      const session = n.sessions.find((x) => x.id === s.id);
+      const old = session.exercises[i];
+      if (!old) return;
+      const carriedNote = old.note || n.notes[old.id] || '';
+      session.exercises[i] = { ...old, id: newId, name: altName };
+      if (carriedNote) n.notes[newId] = carriedNote;
+    })
+  ) {
+    U.toast(`Esercizio sostituito con ${altName}.`);
+    render();
+  }
 }
 function exerciseExpandKey(e, i) {
   return `${gym.cycle || 1}:${gym.week}:${context()}:${e.id}:${i}`;
@@ -1369,7 +1397,7 @@ function exerciseCard(e, i, s, next) {
                 .map((r) => rowText(prev.e, r))
                 .join(' · ')}</p>`
             : ''
-        }${seriesInputs(e, i)}<div class="exercise-expanded-actions">${alts.length ? `<button data-alt="${i}" class="alt-exercise" aria-label="Versioni alternative per ${U.esc(e.name)}">↔ Variante</button>` : ''}<button data-info="${i}" class="strong-icon-action" aria-label="Informazioni esercizio">ⓘ</button><button data-note="${i}" class="strong-icon-action" aria-label="Modifica note esercizio">✎</button></div>${e.note ? `<p class="exercise-note">${U.esc(e.note)}</p>` : ''}</div>`
+        }${seriesInputs(e, i)}<div class="exercise-expanded-actions">${alts.length ? `<button data-alt="${i}" class="alt-exercise" aria-label="Versioni alternative per ${U.esc(e.name)}">↔ Variante</button>` : ''}<button data-info="${i}" class="strong-icon-action" aria-label="Informazioni esercizio">ⓘ</button><button data-note="${i}" class="strong-icon-action ${e.note ? 'has-note' : ''}" aria-label="Modifica note esercizio">✎</button></div>${e.note ? `<p class="exercise-note">${U.esc(e.note)}</p>` : ''}</div>`
       : `${e.note ? `<p class="exercise-note compact-note">${U.esc(e.note)}</p>` : ''}`
   }</div>`;
 }
@@ -1843,8 +1871,12 @@ function bindWorkout() {
             x.rows[j].done = done;
             x.rows[j].legacy = false;
             x.stopped = false;
-            if (done && x.rest > 0)
-              n.rest = { end: Date.now() + x.rest * 1000, name: x.name, sessionId: s.id };
+            if (done) {
+              const exerciseJustFinished = x.rows.every((r) => r.done);
+              const restSec = exerciseJustFinished ? EXERCISE_TRANSITION_REST : x.rest;
+              if (restSec > 0)
+                n.rest = { end: Date.now() + restSec * 1000, name: x.name, sessionId: s.id };
+            }
           })
         ) {
           render();
@@ -1876,7 +1908,7 @@ function bindWorkout() {
               r.legacy = false;
             });
             x.stopped = false;
-            if (x.rest > 0) n.rest = { end: Date.now() + x.rest * 1000, name: x.name, sessionId: s.id };
+            n.rest = { end: Date.now() + EXERCISE_TRANSITION_REST * 1000, name: x.name, sessionId: s.id };
           })
         ) {
           render();
@@ -1955,8 +1987,9 @@ function bindWorkout() {
   main.querySelectorAll('[data-alt]').forEach(
     (b) =>
       (b.onclick = () => {
-        const e = (active()?.exercises || freshExercises())[Number(b.dataset.alt)];
-        showExerciseAlternatives(e);
+        const i = Number(b.dataset.alt),
+          e = (active()?.exercises || freshExercises())[i];
+        showExerciseAlternatives(e, i);
       }),
   );
   main.querySelectorAll('[data-note]').forEach(
@@ -2015,10 +2048,12 @@ function updateRest() {
   );
   bar.querySelector('#rest-close').onclick = () => restSave((n) => (n.rest = null));
   if (paused) return;
-  if (remain === 0 && !r.notified)
+  if (remain === 0 && !r.notified) {
     mutate((n) => {
       if (n.rest) n.rest.notified = true;
     });
+    showRestEndNotification();
+  }
 }
 function editSession(id) {
   const source = gym.sessions.find((s) => s.id === id);
@@ -2753,7 +2788,7 @@ function generateNextBlock() {
   );
 }
 function more() {
-  return `${window.SuiteTheme ? SuiteTheme.card() : ''}${window.SuiteSync ? SuiteSync.cardHtml('recomp') : ''}<div class="card app-version-card"><h2>Versione app</h2><p class="muted">RecompApp ${APP_VERSION} · gli aggiornamenti vengono controllati automaticamente.</p><button id="check-app-update">Controlla aggiornamenti</button></div>${checksCard()}<div class="card"><h2>Le tue sessioni</h2><p class="muted">Durata, serie completate ed esercizi saltati.</p><button id="open-sessions">Riepilogo sessioni</button></div><div class="card"><h2>Backup e ripristino</h2><p class="muted">Dati salvati solo in questo browser. Ultima esportazione richiesta: ${gym.settings.lastExport ? U.date(gym.settings.lastExport) : 'mai'}.</p><div class="actions"><button id="export-gym">Esporta JSON</button><button id="import-gym">Importa backup</button></div><input type="file" accept=".json,application/json" hidden id="import-file"></div><div class="card"><h2>Unità di misura</h2><label for="weight-unit">Carichi e peso corporeo</label><select id="weight-unit"><option value="kg" ${weightUnit() === 'kg' ? 'selected' : ''}>kg</option><option value="lb" ${weightUnit() === 'lb' ? 'selected' : ''}>lb</option></select></div><div class="card"><h2>Storage locale</h2><p class="muted">${storageError ? U.esc(storageError) : 'Salvataggio locale disponibile. Le modifiche vengono confermate solo dopo la scrittura riuscita.'}</p></div><div class="card danger-zone"><h2>Reset dati</h2><p class="muted">Cancella allenamenti, note, peso e modifiche al piano da questo dispositivo.</p><button id="reset-data" class="danger">Azzera tutti i dati</button></div><div class="card"><h2>Integrazione</h2><details><summary>Indicazioni presenti nel piano</summary>${SUPPLEMENTS.map((s) => `<h3>${U.esc(s.title)}</h3><p class="muted">${U.esc(s.txt)}</p>`).join('')}</details></div><div class="card"><h2>Sessioni aperte</h2>${
+  return `${window.SuiteTheme ? SuiteTheme.card() : ''}${window.SuiteSync ? SuiteSync.cardHtml('recomp') : ''}<div class="card" id="pushCard"></div><div class="card app-version-card"><h2>Versione app</h2><p class="muted">RecompApp ${APP_VERSION} · gli aggiornamenti vengono controllati automaticamente.</p><button id="check-app-update">Controlla aggiornamenti</button></div>${checksCard()}<div class="card"><h2>Le tue sessioni</h2><p class="muted">Durata, serie completate ed esercizi saltati.</p><button id="open-sessions">Riepilogo sessioni</button></div><div class="card"><h2>Backup e ripristino</h2><p class="muted">Dati salvati solo in questo browser. Ultima esportazione richiesta: ${gym.settings.lastExport ? U.date(gym.settings.lastExport) : 'mai'}.</p><div class="actions"><button id="export-gym">Esporta JSON</button><button id="import-gym">Importa backup</button></div><input type="file" accept=".json,application/json" hidden id="import-file"></div><div class="card"><h2>Unità di misura</h2><label for="weight-unit">Carichi e peso corporeo</label><select id="weight-unit"><option value="kg" ${weightUnit() === 'kg' ? 'selected' : ''}>kg</option><option value="lb" ${weightUnit() === 'lb' ? 'selected' : ''}>lb</option></select></div><div class="card"><h2>Storage locale</h2><p class="muted">${storageError ? U.esc(storageError) : 'Salvataggio locale disponibile. Le modifiche vengono confermate solo dopo la scrittura riuscita.'}</p></div><div class="card danger-zone"><h2>Reset dati</h2><p class="muted">Cancella allenamenti, note, peso e modifiche al piano da questo dispositivo.</p><button id="reset-data" class="danger">Azzera tutti i dati</button></div><div class="card"><h2>Integrazione</h2><details><summary>Indicazioni presenti nel piano</summary>${SUPPLEMENTS.map((s) => `<h3>${U.esc(s.title)}</h3><p class="muted">${U.esc(s.txt)}</p>`).join('')}</details></div><div class="card"><h2>Sessioni aperte</h2>${
     gym.sessions
       .filter((s) => !s.legacy && !s.ended)
       .map(
@@ -3656,4 +3691,171 @@ async function sendToNoiDue(lines) {
     if (res.length) return { added, list: list.name };
   }
   throw new Error('conflitto');
+}
+
+/* ---------------- Notifiche push "Peso di oggi" (promemoria alle 8:00) ----------------
+   Stesso schema di Bilancio e Noi Due: il telefono si iscrive (permesso + indirizzo push
+   salvato in Supabase, tabella push_subscriptions, app='gym'). Un cron orario su Supabase
+   chiama la funzione notify-pesoreminder che manda l'avviso alle 8:00 locali.
+   Guida completa: GUIDA_NOTIFICHE.txt */
+const PUSH_VAPID_PUBLIC = "INCOLLA_QUI_LA_CHIAVE_PUBBLICA_VAPID_GYM";
+const PUSH_FN = "/functions/v1/notify-pesoreminder";
+let pushState = { sub: null, row: null, busy: false, msg: "", err: false, loaded: false };
+function pushSupported() { return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window; }
+function pushIsIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); }
+function pushStandalone() { return window.navigator.standalone === true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches); }
+function b64uToUint8(str) {
+  const pad = "=".repeat((4 - str.length % 4) % 4), b = atob((str + pad).replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from(b, (c) => c.charCodeAt(0));
+}
+function pushErrText(e) {
+  const t = String((e && e.message) || e || "");
+  if (/push_subscriptions/.test(t) && /(does not exist|42P01|PGRST205|schema cache)/.test(t)) return "Su Supabase manca la tabella delle notifiche: esegui il passo 2 della guida.";
+  if (/notify-pesoreminder|404/.test(t) && /function|not found|NOT_FOUND/i.test(t)) return "Su Supabase manca la funzione notify-pesoreminder: esegui il passo 4 della guida.";
+  if (e && e.auth) return "Rifai l'accesso alla sincronizzazione qui sopra.";
+  return t.replace(/^Errore \d+:\s*/, "").slice(0, 160) || "Qualcosa non ha funzionato.";
+}
+async function pushRegistration() {
+  if (!("serviceWorker" in navigator)) return null;
+  return (await navigator.serviceWorker.getRegistration()) || null;
+}
+async function refreshPushState() {
+  if (!pushSupported()) { pushState.loaded = true; renderPushCard(); return; }
+  try {
+    const reg = await pushRegistration();
+    pushState.sub = reg ? await reg.pushManager.getSubscription() : null;
+    pushState.row = null;
+    if (pushState.sub && window.SuiteSync && SuiteSync.signedIn) {
+      const rows = await SuiteSync.api(`/rest/v1/push_subscriptions?select=enabled&app=eq.gym&endpoint=eq.${encodeURIComponent(pushState.sub.endpoint)}`);
+      pushState.row = rows[0] || null;
+    }
+  } catch (e) { pushState.msg = pushErrText(e); pushState.err = true; }
+  pushState.loaded = true;
+  renderPushCard();
+}
+function renderPushCard() {
+  const card = document.getElementById("pushCard");
+  if (!card) return;
+  const on = !!(pushState.sub && pushState.row && pushState.row.enabled !== false);
+  let dot = "off", status, inner = "";
+  if (!pushSupported()) {
+    status = pushIsIOS() && !pushStandalone()
+      ? "Per ricevere le notifiche apri RecompApp dall'icona sulla schermata Home (iPhone con iOS 16.4 o successivo)."
+      : "Questo browser non supporta le notifiche push.";
+  } else if (!(window.SuiteSync && SuiteSync.signedIn)) {
+    status = "Collega prima la sincronizzazione qui sopra: le notifiche partono dal server.";
+  } else if (!pushState.loaded) {
+    status = "Controllo…"; dot = "busy";
+  } else if (on) {
+    dot = "on";
+    status = "Attive su questo telefono: ti avviso ogni mattina alle 8:00 di registrare il peso.";
+    inner = `<div class="suite-sync-actions"><button type="button" class="suite-sync-primary primary" id="pushTestBtn"${pushState.busy ? " disabled" : ""}>Invia una prova</button><button type="button" id="pushOffBtn"${pushState.busy ? " disabled" : ""}>Disattiva</button></div>`;
+  } else {
+    status = Notification.permission === "denied"
+      ? "Notifiche bloccate per RecompApp: riattivale in Impostazioni › Notifiche › RecompApp, poi torna qui."
+      : "Ricevi un promemoria alle 8:00 ogni mattina per registrare il peso corporeo.";
+    inner = `<button type="button" class="suite-sync-primary primary push-on-btn" id="pushOnBtn"${pushState.busy || Notification.permission === "denied" ? " disabled" : ""}>🔔 Attiva notifiche</button>`;
+  }
+  const msg = pushState.msg ? `<p class="push-msg${pushState.err ? " err" : ""}">${U.esc(pushState.msg)}</p>` : "";
+  card.innerHTML = `<h2>Notifiche</h2><p class="suite-sync-status"><span class="suite-sync-dot ${dot}" aria-hidden="true"></span>${U.esc(status)}</p>${inner}${msg}`;
+}
+let pushLastSigned = null;
+function pushOnSyncStatus() {
+  const signed = !!(window.SuiteSync && SuiteSync.signedIn);
+  if (signed !== pushLastSigned) { pushLastSigned = signed; refreshPushState(); } else renderPushCard();
+}
+function pushSay(text, err = false) { pushState.msg = text; pushState.err = err; renderPushCard(); }
+async function pushSaveRow() {
+  const j = pushState.sub.toJSON();
+  await SuiteSync.api("/rest/v1/push_subscriptions?on_conflict=endpoint", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    json: {
+      user_id: SuiteSync.userId, app: "gym",
+      endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth,
+      tz: (Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Rome"),
+      notify_hour: 8, device: navigator.userAgent.slice(0, 120),
+      enabled: true, updated_at: new Date().toISOString(),
+    },
+  });
+}
+async function pushEnable() {
+  if (pushState.busy) return;
+  pushState.busy = true; pushSay("");
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") { pushState.busy = false; pushSay(perm === "denied" ? "Permesso negato. Puoi riattivarlo in Impostazioni › Notifiche › RecompApp." : "Permesso non concesso.", true); return; }
+    const reg = await pushRegistration();
+    if (!reg) throw new Error("Service worker non attivo: riapri l'app e riprova.");
+    pushState.sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToUint8(PUSH_VAPID_PUBLIC) }));
+    await pushSaveRow();
+    pushState.row = { enabled: true };
+    pushState.busy = false; pushSay("Fatto. Tocca \"Invia una prova\" per controllare che arrivi.");
+  } catch (e) { pushState.busy = false; pushSay(pushErrText(e), true); }
+}
+async function pushDisable() {
+  if (pushState.busy || !pushState.sub) return;
+  pushState.busy = true; renderPushCard();
+  const endpoint = pushState.sub.endpoint;
+  try { await SuiteSync.api(`/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(endpoint)}`, { method: "DELETE" }); } catch (e) {}
+  try { await pushState.sub.unsubscribe(); } catch (e) {}
+  pushState.sub = null; pushState.row = null; pushState.busy = false;
+  pushSay("Notifiche disattivate su questo telefono.");
+}
+async function pushTest() {
+  if (pushState.busy) return;
+  pushState.busy = true; pushSay("Invio la prova…");
+  try {
+    const r = await SuiteSync.api(PUSH_FN, { method: "POST", json: { test: true } });
+    pushState.busy = false;
+    pushSay(r && r.sent ? "Prova inviata: dovrebbe arrivare tra pochi secondi." : "La prova non è partita: disattiva e riattiva le notifiche.", !(r && r.sent));
+  } catch (e) { pushState.busy = false; pushSay(pushErrText(e), true); }
+}
+document.addEventListener("click", (e) => {
+  const card = e.target.closest && e.target.closest("#pushCard");
+  if (!card) return;
+  const id = e.target.closest("button")?.id;
+  if (id === "pushOnBtn") pushEnable();
+  else if (id === "pushOffBtn") pushDisable();
+  else if (id === "pushTestBtn") pushTest();
+});
+setTimeout(refreshPushState, 1500);
+
+/* ---------------- Timer di recupero: notifica locale a fine recupero ----------------
+   iOS non supporta showTrigger per notifiche programmate: quando il timer di recupero
+   gestito da JS arriva a zero, mostriamo una notifica locale via Service Worker con i
+   pulsanti "Completato / +15s / Salta recupero". Limite reale: se l'app è in background
+   e il telefono sospende il JS, la notifica può non apparire esattamente al secondo giusto. */
+let restNotifiedTag = null;
+async function showRestEndNotification() {
+  if (!("serviceWorker" in navigator) || !gym.rest) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    await reg.showNotification("Recupero terminato", {
+      body: gym.rest.name ? `Pronto per: ${gym.rest.name}` : "Si riparte!",
+      vibrate: [200, 100, 200],
+      tag: "rest-timer",
+      actions: [
+        { action: "done", title: "Completato" },
+        { action: "add15", title: "+15s" },
+        { action: "skip", title: "Salta recupero" },
+      ],
+    });
+  } catch (e) {}
+}
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("message", (event) => {
+    const d = event.data || {};
+    if (d.type !== "rest-timer-action" || !gym.rest) return;
+    if (d.action === "add15") {
+      restSave((n) => {
+        if (!n.rest) return;
+        if (n.rest.remaining != null) n.rest.remaining = Math.max(0, n.rest.remaining + 15000);
+        else n.rest.end = Math.max(Date.now(), n.rest.end + 15000);
+        n.rest.notified = false;
+      });
+    } else if (d.action === "done" || d.action === "skip") {
+      restSave((n) => { n.rest = null; });
+    }
+  });
 }

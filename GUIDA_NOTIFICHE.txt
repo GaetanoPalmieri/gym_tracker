@@ -1,0 +1,81 @@
+RECOMPAPP — ATTIVARE LA NOTIFICA "PESO DI OGGI" (promemoria alle 8:00)
+(si fa una volta sola, tutto dal sito di Supabase, niente programmi da installare)
+
+Cosa serve prima
+- iPhone con iOS 16.4 o successivo, RecompApp aperta dall'icona sulla schermata Home.
+- Accesso fatto in Altro › Sincronizzazione (le notifiche partono dal server).
+- Un file con i segreti VAPID generati per questa app (vedi PASSO 3): NON caricarlo su GitHub.
+
+PASSO 1 — Carica la nuova versione
+Carica su GitHub/hosting i file di questa cartella come sempre. Apri RecompApp e tocca
+"Controlla aggiornamenti" nelle impostazioni.
+
+PASSO 2 — Tabella delle notifiche
+Supabase › il tuo progetto (thdlzqhqdktbkpnplxdm) › SQL Editor › New query.
+Incolla tutto il contenuto di supabase/notifiche.sql e premi Run. Deve dire "Success".
+(La tabella push_subscriptions è condivisa con Bilancio e Noi Due: lo script la crea solo se
+manca, altrimenti aggiunge solo le colonne che potrebbero servire a RecompApp.)
+
+PASSO 3 — Genera le chiavi VAPID per RecompApp
+Da un terminale con Node installato:
+  npx web-push generate-vapid-keys
+Copia la "Public Key" e la "Private Key" che escono.
+Nel file app.js di RecompApp, sostituisci il valore della costante PUSH_VAPID_PUBLIC con la
+Public Key appena generata (riga "const PUSH_VAPID_PUBLIC = ...").
+
+PASSO 4 — Segreti su Supabase
+Supabase › Edge Functions › Secrets (impostazioni delle Edge Functions).
+Aggiungi questi quattro (nomi con prefisso GYM_ perché il progetto è condiviso con le altre app):
+  GYM_VAPID_PUBLIC_KEY   = la Public Key del passo 3
+  GYM_VAPID_PRIVATE_KEY  = la Private Key del passo 3
+  GYM_VAPID_SUBJECT      = mailto: seguito dalla tua email (es. mailto:nome@gmail.com)
+  GYM_CRON_SECRET        = una stringa a caso lunga (es. generata con openssl rand -hex 24)
+
+PASSO 5 — Funzione che invia le notifiche
+Supabase › Edge Functions › crea una nuova funzione con l'editor del sito.
+  Nome: notify-pesoreminder   (esattamente così)
+  Contenuto: tutto il file supabase/functions/notify-pesoreminder/index.ts
+Pubblica (Deploy). Poi, nelle impostazioni della funzione, DISATTIVA la verifica JWT
+("Verify JWT" / "Enforce JWT verification"): i controlli di sicurezza sono già dentro la funzione.
+In alternativa, con la CLI di Supabase collegata al progetto:
+  supabase functions deploy notify-pesoreminder --no-verify-jwt
+
+PASSO 6 — Giro orario
+SQL Editor › New query. Incolla supabase/cron.sql, sostituisci INCOLLA_QUI_GYM_CRON_SECRET
+con il valore di GYM_CRON_SECRET del passo 4 e premi Run. Da qui la funzione parte da sola
+ogni ora (al minuto 5) e manda l'avviso quando per il telefono sono le 8:00 locali.
+
+PASSO 7 — Sul telefono
+RecompApp › Impostazioni › Notifiche › "🔔 Attiva notifiche" › Consenti.
+Tocca "Invia una prova": deve arrivare subito la notifica "Peso di oggi".
+
+Come funziona
+- Ogni ora la funzione controlla i telefoni iscritti (app='gym'): quando nel tuo fuso orario
+  sono le 8:00, manda il promemoria. Al massimo un avviso al giorno per telefono.
+- Il fuso orario e l'ora legale sono gestiti automaticamente confrontando l'orario locale del
+  telefono (colonna tz), non un offset UTC fisso: niente problemi al cambio ora.
+- Toccando la notifica si apre RecompApp.
+- Ogni telefono va attivato a parte. Se togli l'app dalla Home, riattivala.
+
+Notifica di fine recupero (separata, non serve Supabase)
+- Quando il timer di recupero tra le serie arriva a zero, l'app chiede al Service Worker di
+  mostrare una notifica locale con i pulsanti "Completato / +15s / Salta recupero": funziona
+  solo mentre l'app è installata e il permesso notifiche è concesso.
+- LIMITI REALI SU iOS (da sapere, non bug):
+  - Se l'app PWA è in background a lungo (schermo bloccato, altra app in primo piano) iOS può
+    sospendere il JavaScript: il timer potrebbe non emettere la notifica esattamente al secondo
+    previsto, o non emetterla affatto se la sospensione dura troppo.
+  - I pulsanti di azione nelle notifiche su iOS non sono sempre garantiti/affidabili come su
+    Android: in alcuni casi toccare la notifica apre semplicemente l'app senza eseguire l'azione.
+  - Non esiste un vero conto alla rovescia nella schermata di blocco (nessun "live countdown"
+    widget): la notifica arriva solo a fine recupero.
+
+Se qualcosa non va
+- "Su Supabase manca la tabella…": rifai il passo 2.
+- "Su Supabase manca la funzione…": controlla il nome notify-pesoreminder (passo 5).
+- "Accesso non valido": la verifica JWT è ancora attiva (passo 5) oppure rifai l'accesso.
+- Pulsante grigio "Notifiche bloccate": Impostazioni iPhone › Notifiche › RecompApp › Consenti.
+- La prova arriva ma l'avviso delle 8:00 no: SQL Editor →
+    select * from cron.job_run_details order by start_time desc limit 5;
+    select status_code, content from net._http_response order by created desc limit 5;
+  Un 401 vuol dire che GYM_CRON_SECRET nel cron.sql non è uguale a quello dei segreti.
