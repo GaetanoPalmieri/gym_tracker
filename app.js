@@ -458,7 +458,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.18.0';
+const APP_VERSION = '1.19.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -2034,6 +2034,7 @@ function restSave(change) {
   return false;
 }
 function updateRest() {
+  restPushSync();
   const bar = document.getElementById('rest-bar'),
     r = gym.rest;
   if (!r) {
@@ -3836,6 +3837,46 @@ setTimeout(refreshPushState, 1500);
    pulsanti "Completato / +15s / Salta recupero". Limite reale: se l'app è in background
    e il telefono sospende il JS, la notifica può non apparire esattamente al secondo giusto. */
 let restNotifiedTag = null;
+
+/* v1.19.0 — Recupero terminato anche a telefono bloccato.
+   Con lo schermo spento iOS ferma la web app e il timer qui sopra non può far partire l'avviso.
+   Allora, se le notifiche sono attive, l'app scrive l'ora di fine nella tabella rest_timers di
+   Supabase (e la aggiorna a ogni +15s, pausa, ripresa, salto); il server manda la notifica a
+   quell'ora. Se il recupero finisce con l'app aperta, la riga viene tolta prima e resta solo
+   l'avviso locale. Senza tabella o senza rete non succede nulla: resta il comportamento di prima. */
+let restPushKey = null, restPushTimer = null;
+function restPushSync() {
+  const r = gym.rest;
+  const active = !!(r && r.remaining == null && r.end > Date.now() + 1500);
+  const key = active ? `${Math.round(r.end / 1000)}|${r.name || ''}` : '';
+  if (key === restPushKey) return;
+  const first = restPushKey === null;
+  restPushKey = key;
+  if (first && !active) return; // all'avvio senza recupero in corso non serve chiamare il server
+  clearTimeout(restPushTimer);
+  const t = active ? { end: r.end, name: r.name } : null;
+  restPushTimer = setTimeout(() => restPushSend(t), 250);
+}
+async function restPushSend(t) {
+  try {
+    if (!(window.SuiteSync && SuiteSync.signedIn) || !pushSupported() || Notification.permission !== 'granted') return;
+    const reg = await pushRegistration();
+    const sub = reg && (await reg.pushManager.getSubscription());
+    if (!sub) return;
+    const ep = encodeURIComponent(sub.endpoint);
+    if (!t) {
+      await SuiteSync.api(`/rest/v1/rest_timers?endpoint=eq.${ep}`, { method: 'DELETE' });
+      return;
+    }
+    await SuiteSync.api('/rest/v1/rest_timers?on_conflict=endpoint', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      json: { user_id: SuiteSync.userId, endpoint: sub.endpoint, fire_at: new Date(t.end).toISOString(), body: t.name ? `▶️ ${t.name}` : '▶️ Si riparte', sent: false, updated_at: new Date().toISOString() },
+    });
+  } catch (e) {
+    /* tabella non ancora creata o rete assente: resta la notifica locale di sempre */
+  }
+}
 async function showRestEndNotification() {
   if (!("serviceWorker" in navigator) || !gym.rest) return;
   try {

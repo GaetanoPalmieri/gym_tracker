@@ -79,3 +79,36 @@ Se qualcosa non va
     select * from cron.job_run_details order by start_time desc limit 5;
     select status_code, content from net._http_response order by created desc limit 5;
   Un 401 vuol dire che GYM_CRON_SECRET nel cron.sql non è uguale a quello dei segreti.
+
+
+=====================================================================
+NOTIFICHE SCHEMATICHE (6 ottobre 2026)
+=====================================================================
+Il testo delle notifiche ora è uno schema: un dato per riga con un'icona davanti.
+Cambia solo la funzione su Supabase, non l'app: per averle basta
+Supabase › Edge Functions › notify-pesoreminder › Code › incolla il nuovo
+supabase/functions/notify-pesoreminder/index.ts › Deploy.
+
+=====================================================================
+NOVITÀ 1.19.0 — RECUPERO TERMINATO A TELEFONO BLOCCATO
+(serve che il promemoria peso sia già installato)
+=====================================================================
+
+PASSO A — Carica la nuova versione e apri RecompApp (Altro › Notifiche deve dire "Attive").
+
+PASSO B — Aggiorna la funzione
+Supabase › Edge Functions › notify-pesoreminder › Code: sostituisci TUTTO con il nuovo
+supabase/functions/notify-pesoreminder/index.ts › Deploy (verifica JWT sempre disattivata).
+
+PASSO C — Database e controllo ogni 5 secondi
+SQL Editor › New query. Incolla supabase/recupero.sql e premi Run. Non serve nessuna password:
+la prende dal cron del promemoria peso. Deve dire "Success".
+
+Prova: avvia una sessione, completa una serie, blocca il telefono. A fine recupero arriva
+"⏱️ Recupero terminato" con il prossimo esercizio (precisione di qualche secondo).
+
+Come funziona
+- L'app scrive l'ora di fine del recupero in Supabase e la aggiorna a ogni +15s / pausa / salto.
+- Il database controlla ogni 5 secondi se c'è un recupero scaduto e solo allora chiama la funzione.
+- Se l'app è aperta quando il recupero finisce, la riga viene tolta prima: niente doppio avviso.
+- Ogni notte vengono cancellate le righe vecchie dello storico dei cron (più di 3 giorni).
