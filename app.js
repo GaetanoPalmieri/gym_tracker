@@ -1396,7 +1396,7 @@ function exerciseCard(e, i, s, next) {
     key = exerciseExpandKey(e, i),
     expanded = expandedExerciseKeys.has(key),
     progress = totals(e).done;
-  return `<div class="card exercise-card ${done ? 'exercise-complete' : next ? 'exercise-next' : ''} ${expanded ? 'exercise-expanded' : 'exercise-compact'}"><div class="exercise-header-row"><div class="exercise-title-block exercise-title-toggle" data-exercise-toggle="${i}" role="button" tabindex="0" aria-expanded="${expanded}" aria-label="${expanded ? 'Riduci' : 'Apri'} ${U.esc(e.name)}"><div class="exercise-name-line"><h3>${U.esc(e.name)}</h3><span class="exercise-title-chevron" aria-hidden="true">${expanded ? '▴' : '▾'}</span></div><p class="equipment-label">${U.esc(equipment(e))}</p><p class="exercise-meta muted">${e.rows.length} serie · Obiettivo ${U.esc(e.target)} · Recupero ${fmtRest(e.rest)}</p></div>${status !== 'Completato' ? `<button data-skip="${i}" class="skip-exercise">${e.stopped ? 'Ripristina' : 'Salta esercizio'}</button>` : ''}</div><div class="compact-progress"><span>${progress}/${e.rows.length} serie</span><i><b style="width:${e.rows.length ? Math.round((progress / e.rows.length) * 100) : 0}%"></b></i></div><div class="compact-series-summary" style="--cols:${e.rows.length === 4 ? 2 : Math.max(1, Math.min(e.rows.length, 3))}">${compactExerciseSummary(e)}</div>${
+  return `<div class="card exercise-card ${done ? 'exercise-complete' : next ? 'exercise-next' : ''} ${expanded ? 'exercise-expanded' : 'exercise-compact'}"><div class="exercise-header-row"><div class="exercise-title-block exercise-title-toggle" data-exercise-toggle="${i}" role="button" tabindex="0" aria-expanded="${expanded}" aria-label="${expanded ? 'Riduci' : 'Apri'} ${U.esc(e.name)}"><div class="exercise-name-line"><h3>${U.esc(e.name)}</h3><span class="exercise-title-chevron" aria-hidden="true">${expanded ? '▴' : '▾'}</span></div><div class="equipment-labels">${equipmentLabels(e)}</div><p class="exercise-meta muted">${e.rows.length} serie · Obiettivo ${U.esc(e.target)} · Recupero ${fmtRest(e.rest)}</p></div>${status !== 'Completato' ? `<button data-skip="${i}" class="skip-exercise">${e.stopped ? 'Ripristina' : 'Salta esercizio'}</button>` : ''}</div><div class="compact-progress"><span>${progress}/${e.rows.length} serie</span><i><b style="width:${e.rows.length ? Math.round((progress / e.rows.length) * 100) : 0}%"></b></i></div><div class="compact-series-summary" style="--cols:${e.rows.length === 4 ? 2 : Math.max(1, Math.min(e.rows.length, 3))}">${compactExerciseSummary(e)}</div>${
     expanded
       ? `<div class="exercise-expanded-body">${
           prev
@@ -1405,7 +1405,7 @@ function exerciseCard(e, i, s, next) {
                 .map((r) => rowText(prev.e, r))
                 .join(' · ')}</p>`
             : ''
-        }${seriesInputs(e, i)}<div class="exercise-expanded-actions">${alts.length ? `<button data-alt="${i}" class="alt-exercise" aria-label="Versioni alternative per ${U.esc(e.name)}">↔ Variante</button>` : ''}<button data-info="${i}" class="strong-icon-action" aria-label="Informazioni esercizio">ⓘ</button><button data-note="${i}" class="strong-icon-action ${e.note ? 'has-note' : ''}" aria-label="Modifica note esercizio">✎</button></div>${e.note ? `<p class="exercise-note">${U.esc(e.note)}</p>` : ''}</div>`
+        }${seriesInputs(e, i)}<div class="exercise-expanded-actions">${alts.length ? `<button data-alt="${i}" class="alt-exercise" aria-label="Versioni alternative per ${U.esc(e.name)}">↔ Variante</button>` : ''}<button data-info="${i}" class="strong-icon-action" aria-label="Informazioni esercizio">ⓘ</button><button data-note="${i}" class="strong-icon-action ${e.note ? 'has-note' : ''}" aria-label="Modifica note esercizio">✎︎</button></div>${e.note ? `<p class="exercise-note">${U.esc(e.note)}</p>` : ''}</div>`
       : `${e.note ? `<p class="exercise-note compact-note">${U.esc(e.note)}</p>` : ''}`
   }</div>`;
 }
@@ -3066,44 +3066,45 @@ function render() {
 function equipment(e) {
   if (e.equipment) return e.equipment;
   const n = e.name.toLowerCase();
-  if (/push down|face pull/.test(n)) return 'Cavo alto · corda a due estremità';
-  if (/pulley/.test(n)) return 'Cavo basso · triangolo, presa neutra';
-  if (/croci ai cavi/.test(n)) return 'Due cavi · maniglie singole';
-  if (/laterali ai cavi/.test(n)) return 'Cavo basso · maniglia singola';
+  if (/push down|face pull/.test(n)) return 'Cavo alto · corda';
+  if (/pulley/.test(n)) return 'Cavo basso · triangolo';
+  if (/croci ai cavi/.test(n)) return 'Due cavi · maniglie';
+  if (/laterali ai cavi/.test(n)) return 'Cavo basso · maniglia';
   if (/cavi.*ez/.test(n)) return 'Cavo basso · barra EZ';
-  if (/trazioni/.test(n)) return 'Sbarra · alternativa: lat machine con presa neutra';
-  if (/lat machine/.test(n)) return 'Lat machine · barra lunga, presa larga';
-  if (/dip/.test(n)) return 'Parallele · corpo libero o macchina assistita';
+  if (/trazioni/.test(n)) return 'Sbarra · lat machine';
+  if (/lat machine/.test(n)) return 'Lat machine · presa larga';
+  if (/dip/.test(n)) return 'Parallele · corpo libero';
   if (/rear delt/.test(n)) return 'Due manubri · panca inclinata';
-  if (/calf/.test(n)) return 'Calf machine in piedi · appoggio stabile';
+  if (/calf/.test(n)) return 'Calf machine · in piedi';
   if (/leg press/.test(n)) return 'Pressa a 45°';
-  if (/leg extension/.test(n)) return 'Macchina leg extension · rullo sopra le caviglie';
-  if (/leg curl/.test(n)) return 'Macchina leg curl · versione seduta o sdraiata';
-  if (/hip thrust/.test(n)) return 'Bilanciere con imbottitura · panca stabile';
+  if (/leg extension/.test(n)) return 'Leg extension · caviglie';
+  if (/leg curl/.test(n)) return 'Leg curl · seduto o sdraiato';
+  if (/hip thrust/.test(n)) return 'Bilanciere · panca';
   if (/bilanciere/.test(n)) return /panca/.test(n) ? 'Bilanciere · panca piana' : 'Bilanciere';
-  if (/french press/.test(n)) return 'Manubrio singolo · impugnato con due mani';
+  if (/french press/.test(n)) return 'Manubrio singolo · due mani';
   if (/manubri|manubrio/.test(n))
     return /bulgari/.test(n)
-      ? 'Due manubri · panca per il piede posteriore'
+      ? 'Due manubri · piede posteriore'
       : /seduto|inclinata/.test(n)
-        ? 'Manubri · panca regolabile'
+        ? 'Manubri · panca'
         : 'Manubri';
   if (isCardio(e))
     return /tapis/.test(n)
-      ? 'Tapis roulant · velocità e pendenza regolabili'
-      : 'Corsa / camminata · velocità e pendenza';
-  if (/crunch ai cavi/.test(n)) return 'Cavo alto · corda a due estremità';
+      ? 'Tapis roulant · velocità/pendenza'
+      : 'Corsa / camminata · velocità/pendenza';
+  if (/crunch ai cavi/.test(n)) return 'Cavo alto · corda';
   if (/crunch inverso/.test(n)) return 'Panca piana';
   if (/plank/.test(n)) return 'Tappetino · corpo libero';
   if (/ab wheel/.test(n)) return 'Ruota per addominali · tappetino';
   if (/dead bug/.test(n)) return 'Tappetino · corpo libero';
-  if (/captain/.test(n)) return 'Captain chair (sedia per addominali)';
-  if (/pallof/.test(n)) return 'Cavo all’altezza del petto · maniglia singola';
-  if (/crunch/.test(n)) return 'Tappetino · alternativa: cavo alto con corda';
+  if (/captain/.test(n)) return 'Captain chair';
+  if (/pallof/.test(n)) return 'Cavo al petto · maniglia';
+  if (/crunch/.test(n)) return 'Tappetino · cavo alto';
   if (/gambe da sdraiato/.test(n)) return 'Tappetino · corpo libero';
   if (/kegel/.test(n)) return 'Nessuna attrezzatura';
   return 'Attrezzatura da specificare nella scheda';
 }
+function equipmentLabels(e){ return equipment(e).split(' · ').map(s=>`<span class="equipment-label">${U.esc(s.trim())}</span>`).join(''); }
 function howToHtml(name) {
   const h = HOWTO[name];
   if (!h) return '';
@@ -3121,7 +3122,7 @@ function showExerciseInfo(e) {
   const svg = ANIM_SVG[move] || '';
   const d = U.modal(
     U.head(e.name) +
-      `<p class="equipment-label">${U.esc(equipment(template || e))}</p>${svg ? `<div class="anim-box">${svg}</div><p class="anim-caption">Schema del movimento · segui le istruzioni per la variante indicata</p><button id="animation-toggle">Ⅱ Pausa animazione</button>` : '<p class="muted">Animazione non disponibile per questo esercizio personalizzato.</p>'}${howToHtml(e.name)}<h3 class="howto-h">Indicazioni per te</h3><p class="exercise-instructions">${U.esc(instructions)}</p>`,
+      `<div class="equipment-labels">${equipmentLabels(template || e)}</div>${svg ? `<div class="anim-box">${svg}</div><p class="anim-caption">Schema del movimento · segui le istruzioni per la variante indicata</p><button id="animation-toggle">Ⅱ Pausa animazione</button>` : '<p class="muted">Animazione non disponibile per questo esercizio personalizzato.</p>'}${howToHtml(e.name)}<h3 class="howto-h">Indicazioni per te</h3><p class="exercise-instructions">${U.esc(instructions)}</p>`,
   );
   if (svg) animateExercise(d);
 }

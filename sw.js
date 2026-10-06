@@ -3,25 +3,25 @@
    - Pagina: rete con timeout di 3 secondi, poi la copia salvata (veloce anche con segnale scarso).
    - File con ?v= e icone: prima la cache; un nuovo rilascio cambia ?v= e quindi l'indirizzo.
    - Il nuovo worker resta in attesa finché l'app non chiede di attivarlo (avviso "Aggiorna"). */
-const VERSION = '1.16.6';
+const VERSION = '1.16.7';
 const PREFIX = 'recompapp-';
 const CACHE = PREFIX + VERSION;
 const SHELL = [
   './',
   './index.html',
-  './suite.js?v=1.16.6',
-  './suite.css?v=1.16.6',
-  './shared.css?v=1.16.6',
-  './app.css?v=1.16.6',
-  './shared.js?v=1.16.6',
-  './data.js?v=1.16.6',
-  './foods.js?v=1.16.6',
-  './app.js?v=1.16.6',
-  './manifest.webmanifest?v=1.16.6',
-  './gym-icon-192.png?v=1.16.6',
-  './gym-icon-512.png?v=1.16.6',
-  './favicon-32.png?v=1.16.6',
-  './apple-touch-icon-gym.png?v=1.16.6'
+  './suite.js?v=1.16.7',
+  './suite.css?v=1.16.7',
+  './shared.css?v=1.16.7',
+  './app.css?v=1.16.7',
+  './shared.js?v=1.16.7',
+  './data.js?v=1.16.7',
+  './foods.js?v=1.16.7',
+  './app.js?v=1.16.7',
+  './manifest.webmanifest?v=1.16.7',
+  './gym-icon-192.png?v=1.16.7',
+  './gym-icon-512.png?v=1.16.7',
+  './favicon-32.png?v=1.16.7',
+  './apple-touch-icon-gym.png?v=1.16.7'
 ];
 const NETWORK_TIMEOUT_MS = 3000;
 

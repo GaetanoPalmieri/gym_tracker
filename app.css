@@ -307,10 +307,16 @@ button[data-close], button[data-remove-ingredient], button.close {
   border: 1px solid rgba(232, 193, 127, 0.3);
   border-radius: 999px;
   line-height: 1.4;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  padding: 2px 9px;
-  margin: 6px 0;
+  padding: 1px 7px;
+  margin: 0;
+}
+.equipment-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0 0;
 }
 .pause-panel {
   text-align: center;
@@ -1553,7 +1559,7 @@ main {
 }
 .card {
   border-radius: 14px !important;
-  padding: 12px !important;
+  padding: 14px !important;
   margin-bottom: 10px !important;
 }
 .card.exercise-next {
@@ -1876,7 +1882,7 @@ main {
   border-radius: 13px !important;
 }
 .exercise-card.exercise-compact {
-  padding: 9px 10px !important;
+  padding: 11px 12px !important;
 }
 .exercise-topline {
   margin-bottom: 6px !important;
@@ -1886,7 +1892,7 @@ main {
   line-height: 1.18 !important;
 }
 .equipment-label {
-  font-size: 12px !important;
+  font-size: 9.5px !important;
 }
 .exercise-meta {
   font-size: 12px !important;
@@ -2244,7 +2250,10 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   flex: 0 0 auto;
 }
 .exercise-header-row .equipment-label {
-  margin: 2px 0 0 !important;
+  margin: 0 !important;
+}
+.exercise-header-row .equipment-labels {
+  margin: 6px 0 0;
 }
 .exercise-header-row .exercise-meta {
   margin: 4px 0 0 !important;
@@ -2680,9 +2689,11 @@ header.top .title-row h1 {
 }
 /* 1.8.0 — Dialogo di conferma in-app */
 .ask-dialog {
-  border: 1px solid var(--line);
+  border: 1px solid var(--glass-edge);
   border-radius: 18px;
-  background: var(--card);
+  background: var(--glass-card);
+  -webkit-backdrop-filter: blur(26px) saturate(1.6);
+  backdrop-filter: blur(26px) saturate(1.6);
   color: var(--text);
   padding: 22px 20px 16px;
   width: min(340px, calc(100vw - 40px));
@@ -2909,7 +2920,7 @@ html.is-scrolled header.top {
   border-bottom-color: var(--glass-edge)!important;
 }
 /* Superfici in vetro */
-.card,details.meal-smart,.stats-kpi,.week-stepper,.supplement-timing,.stats-tabs,.compact-set,.closed-session-banner,.closed-session-complete-head,.closed-summary-kpis > div,.closed-summary-exercise {
+.card,details.meal-smart,.stats-kpi,.week-stepper,.supplement-timing,.stats-tabs,.compact-set,.closed-session-banner,.closed-session-complete-head,.closed-summary-kpis > div,.closed-summary-exercise,.exercise-note,.info-box {
   background-color: var(--glass-card)!important;
   border-color: var(--glass-edge)!important;
   border-radius: 18px!important;
@@ -3009,7 +3020,7 @@ html body main {
 }
 /* Pannelli: vetro smerigliato, sfondo sfocato */
 dialog {
-  background: rgba(22,29,37,.86)!important;
+  background: var(--glass-card)!important;
   border: 1px solid var(--glass-edge)!important;
   border-radius: 22px!important;
   -webkit-backdrop-filter: blur(26px) saturate(1.6);
@@ -3022,7 +3033,7 @@ dialog::backdrop {
   backdrop-filter: blur(6px);
 }
 .editor-head {
-  background: rgba(22,29,37,.94)!important;
+  background: var(--glass-card)!important;
 }
 /* In cima alla pagina l'intestazione è trasparente (nessuno stacco); diventa vetro quando si scorre. */
 html:not(.is-scrolled) header.top {
@@ -3299,29 +3310,29 @@ header.top {
   font-size: 13px;
   color: #b7c5c0!important;
 }
-/* Pulsanti per completare le serie: più grandi e facili da colpire */
+/* Pulsanti per completare le serie: compatti */
 #main .series-head,#main .series-row {
-  grid-template-columns: 24px minmax(0,1fr) minmax(0,1fr) 60px!important;
-  column-gap: 7px!important;
+  grid-template-columns: 22px minmax(0,1fr) minmax(0,1fr) 38px!important;
+  column-gap: 6px!important;
 }
 #main .series-row.cardio-row,#main .series-head.cardio-row {
-  grid-template-columns: 20px repeat(3,minmax(0,1fr)) 60px!important;
-  column-gap: 5px!important;
+  grid-template-columns: 18px repeat(3,minmax(0,1fr)) 38px!important;
+  column-gap: 4px!important;
 }
 #main .series-row input {
-  height: 46px!important;
-  min-height: 46px!important;
-  font-size: 17px!important;
+  height: 32px!important;
+  min-height: 32px!important;
+  font-size: 12.5px!important;
 }
 #main .series-done-btn {
-  width: 60px!important;
-  min-width: 60px!important;
-  max-width: 60px!important;
-  height: 46px!important;
-  min-height: 46px!important;
-  max-height: 46px!important;
-  font-size: 22px!important;
-  border-radius: 13px!important;
+  width: 36px!important;
+  min-width: 36px!important;
+  max-width: 36px!important;
+  height: 32px!important;
+  min-height: 32px!important;
+  max-height: 32px!important;
+  font-size: 15px!important;
+  border-radius: 9px!important;
 }
 #main .series-done-btn.good {
   background: linear-gradient(135deg,#3fb38e,#1f7a62)!important;
@@ -3330,15 +3341,15 @@ header.top {
   box-shadow: 0 6px 14px -6px rgba(58,166,132,.8)!important;
 }
 #main .series-all {
-  width: 60px!important;
-  min-width: 60px!important;
-  max-width: 60px!important;
-  height: 40px!important;
-  min-height: 40px!important;
-  max-height: 40px!important;
-  font-size: 12.5px!important;
+  width: 36px!important;
+  min-width: 36px!important;
+  max-width: 36px!important;
+  height: 28px!important;
+  min-height: 28px!important;
+  max-height: 28px!important;
+  font-size: 9.5px!important;
   font-weight: 800!important;
-  border-radius: 12px!important;
+  border-radius: 8px!important;
 }
 /* Gruppi di esercizi dello stesso muscolo (es. due di addominali di seguito) */
 .ex-group {
