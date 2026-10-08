@@ -1,0 +1,5 @@
+File NON usati da RecompApp (non referenziati in index.html né nel service worker).
+- icon-180/192/512/32.png, icon.svg: icone doppie, l'app usa gym-icon-*.png
+- shared.css / shared.js: dalla v1.18.0 sono uniti in app.css e data.js
+- temp_*.txt: copie temporanee del lavoro di unione
+Si può eliminare la cartella dopo qualche rilascio senza problemi.

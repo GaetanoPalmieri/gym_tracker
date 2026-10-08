@@ -1,0 +1,12 @@
+RecompApp 1.13.0 — spesa della settimana, tema chiaro
+
+Lista della spesa (Nutrizione › 🛒)
+- "Settimana intera" (predefinita): somma da sola tutte le 7 giornate del piano (G1–G4 e Riposo A, B, C),
+  senza selezionare i giorni. "Scegli i giorni" resta per liste parziali.
+- Quantità grandi in kg / l (es. 1,2 kg). Tocca un prodotto per spuntarlo: le spunte restano salvate
+  fino alla settimana successiva. "Copia lista" per incollarla o condividerla, "Togli spunte" per ricominciare.
+
+Stile comune alle 4 app
+- Tema chiaro e scuro come Bilancio e Noi Due: Altro › Aspetto (Sistema, Chiaro, Scuro). Sistema segue il telefono.
+- Popup centrale "Nuova versione disponibile" con "Più tardi" e "Aggiorna", come nelle altre app.
+- Nuovi file: suite.js e suite.css (vanno caricati insieme agli altri).

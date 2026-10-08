@@ -473,7 +473,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.20.0';
+const APP_VERSION = '1.21.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -692,6 +692,7 @@ function commit(n, { restore = false } = {}) {
     gym = n;
     storageError = '';
     if (window.syncGym) syncGym.changed();
+    if (typeof sessionPushSync === 'function') sessionPushSync();
     return true;
   } catch (e) {
     storageError =
@@ -1894,12 +1895,7 @@ function bindWorkout() {
             x.rows[j].done = done;
             x.rows[j].legacy = false;
             x.stopped = false;
-            if (done) {
-              const exerciseJustFinished = x.rows.every((r) => r.done);
-              const restSec = Math.min(MAX_REST, exerciseJustFinished ? EXERCISE_TRANSITION_REST : x.rest);
-              if (restSec > 0)
-                n.rest = { end: Date.now() + restSec * 1000, name: x.name, sessionId: s.id };
-            }
+            if (done) startRestAfterSet(n, n.sessions.find((x) => x.id === s.id), x);
           })
         ) {
           render();
@@ -1931,7 +1927,7 @@ function bindWorkout() {
               r.legacy = false;
             });
             x.stopped = false;
-            n.rest = { end: Date.now() + EXERCISE_TRANSITION_REST * 1000, name: x.name, sessionId: s.id };
+            startTransitionRest(n, n.sessions.find((x) => x.id === s.id), x);
           })
         ) {
           render();
@@ -1993,8 +1989,11 @@ function bindWorkout() {
         if (
           s &&
           mutate((n) => {
-            const e = n.sessions.find((x) => x.id === s.id).exercises[Number(b.dataset.skip)];
+            const sx = n.sessions.find((x) => x.id === s.id),
+              e = sx.exercises[Number(b.dataset.skip)];
             e.stopped = !e.stopped;
+            // Salta esercizio = si passa al prossimo: parte il recupero tra esercizi (Ripristina non lo tocca).
+            if (e.stopped) startTransitionRest(n, sx, e);
           })
         )
           render();
@@ -2041,6 +2040,47 @@ function bindWorkout() {
       }),
   );
 }
+/* v1.21.0 — Due tipi di recupero.
+   - Serie completata (ne restano altre dello stesso esercizio): recupero dell'esercizio, una notifica
+     "Serie 3 di 4 · Panca piana".
+   - Ultima serie, "✓ Tutte" o "Salta esercizio": recupero tra esercizi (1:30) verso il prossimo esercizio
+     da fare, notifica "Prossimo: Squat". Se non resta nessun esercizio non parte nessun recupero. */
+function nextExerciseOf(sess) {
+  return sess?.exercises?.find((e) => exStatus(e) !== 'Completato' && !e.stopped) || null;
+}
+function startTransitionRest(n, sess, from) {
+  const nx = nextExerciseOf(sess);
+  n.rest = null;
+  if (!nx) return;
+  n.rest = {
+    kind: 'transition',
+    end: Date.now() + Math.min(MAX_REST, EXERCISE_TRANSITION_REST) * 1000,
+    name: nx.name,
+    from: from?.name || '',
+    sessionId: sess.id,
+  };
+}
+function startRestAfterSet(n, sess, x) {
+  if (x.rows.every((r) => r.done)) return startTransitionRest(n, sess, x);
+  const restSec = Math.min(MAX_REST, Number(x.rest) || 0);
+  if (restSec <= 0) return;
+  const done = x.rows.filter((r) => r.done).length;
+  n.rest = {
+    kind: 'set',
+    end: Date.now() + restSec * 1000,
+    name: x.name,
+    set: Math.min(done + 1, x.rows.length),
+    sets: x.rows.length,
+    sessionId: sess.id,
+  };
+}
+// Testi del recupero, uguali nella barra, nella notifica locale e in quella del server.
+function restText(r) {
+  if (!r) return { title: 'Recupero terminato', line: '' };
+  if (r.kind === 'transition') return { title: 'Cambio esercizio', line: `Prossimo: ${r.name}`, push: `👉 Prossimo: ${r.name}` };
+  const serie = r.set && r.sets ? `Serie ${r.set} di ${r.sets} · ` : '';
+  return { title: 'Recupero', line: `${serie}${r.name}`, push: `▶️ ${serie}${r.name}` };
+}
 function restSave(change) {
   if (mutate((n) => change(n))) {
     updateRest();
@@ -2059,7 +2099,10 @@ function updateRest() {
   const paused = r.remaining != null,
     remain = Math.max(0, Math.ceil((paused ? r.remaining : r.end - Date.now()) / 1000));
   bar.hidden = false;
-  bar.innerHTML = `<div class="row"><span><b>${paused ? 'In pausa · ' : ''}${remain ? (remain >= 60 ? `${Math.floor(remain / 60)}:${String(remain % 60).padStart(2, '0')}` : remain + 's') : 'Recupero terminato'}</b><small style="display:block">${U.esc(r.name)}</small></span><div class="actions"><button data-rest-adjust="-15">−15s</button><button data-rest-adjust="15">+15s</button><button id="rest-close">${remain ? 'Salta' : 'Chiudi'}</button></div></div>`;
+  const txt = restText(r),
+    transition = r.kind === 'transition';
+  bar.classList.toggle('rest-transition', transition);
+  bar.innerHTML = `<div class="row"><span>${transition ? `<em class="rest-kind">↪ ${txt.title}</em>` : ''}<b>${paused ? 'In pausa · ' : ''}${remain ? (remain >= 60 ? `${Math.floor(remain / 60)}:${String(remain % 60).padStart(2, '0')}` : remain + 's') : 'Recupero terminato'}</b><small style="display:block">${U.esc(txt.line)}</small></span><div class="actions"><button data-rest-adjust="-15">−15s</button><button data-rest-adjust="15">+15s</button><button id="rest-close">${remain ? 'Salta' : 'Chiudi'}</button></div></div>`;
   bar.querySelectorAll('[data-rest-adjust]').forEach(
     (b) =>
       (b.onclick = () =>
@@ -2076,7 +2119,10 @@ function updateRest() {
     mutate((n) => {
       if (n.rest) n.rest.notified = true;
     });
-    showRestEndNotification();
+    // Una sola notifica: quella locale solo se l'app è aperta e il recupero è appena finito.
+    // A schermo bloccato (o se l'app torna davanti dopo) ci ha già pensato il server.
+    const fresh = Date.now() - r.end < 4000;
+    if (fresh && (document.visibilityState === 'visible' || restPushServerEnd !== r.end)) showRestEndNotification();
   }
 }
 function editSession(id) {
@@ -3544,8 +3590,12 @@ try {
     if (document.visibilityState === 'visible') checkForAppUpdate();
   }, 300000);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') saveLifecycleStamp('hidden');
-    else repairAfterIOSResume();
+    if (document.visibilityState === 'hidden') {
+      saveLifecycleStamp('hidden');
+      // Prima che iOS sospenda l'app: il server deve avere il recupero e il promemoria aggiornati.
+      restPushSync(true);
+      sessionPushSync(true);
+    } else repairAfterIOSResume();
     syncWakeLock();
   });
   window.addEventListener('pageshow', repairAfterIOSResume);
@@ -3553,6 +3603,14 @@ try {
     if (document.visibilityState === 'visible') repairAfterIOSResume();
   });
   render();
+  sessionPushSync();
+  try {
+    const q = new URLSearchParams(location.search);
+    if (q.get('sessione') === 'aperta') {
+      history.replaceState(null, '', location.pathname);
+      setTimeout(openSessionPrompt, 450);
+    }
+  } catch (e) {}
   document.body.classList.remove('launching');
   requestAnimationFrame(() => {
     const splash = document.getElementById('launch-screen');
@@ -3861,18 +3919,26 @@ let restNotifiedTag = null;
    quell'ora. Se il recupero finisce con l'app aperta, la riga viene tolta prima e resta solo
    l'avviso locale. Senza tabella o senza rete non succede nulla: resta il comportamento di prima. */
 // var (non let): updateRest() può essere chiamata all'avvio, prima di questa riga, se c'è un recupero in corso
-var restPushKey, restPushTimer;
-function restPushSync() {
-  const r = gym.rest;
-  const active = !!(r && r.remaining == null && r.end > Date.now() + 1500);
-  const key = active ? `${Math.round(r.end / 1000)}|${r.name || ''}` : '';
+/* v1.21.0 — Una sola notifica per recupero: con l'app davanti la riga sul server viene tolta 4 secondi
+   prima della fine (ci pensa l'avviso locale); se l'app va in background o il telefono si blocca la riga
+   resta (o viene riscritta) fino alla fine e la manda il server. Il server non anticipa più l'invio. */
+var restPushKey, restPushTimer, restPushServerEnd = null;
+function restPushSync(now) {
+  const r = gym.rest,
+    visible = document.visibilityState === 'visible';
+  // App davanti: tolgo la riga 4 s prima (avviso locale). In background la lascio fino alla fine.
+  const margin = visible ? 4000 : 0;
+  const active = !!(r && r.remaining == null && r.end > Date.now() + margin);
+  const key = active ? `${Math.round(r.end / 1000)}|${restText(r).push}` : '';
   if (key === restPushKey) return;
   const first = restPushKey === undefined;
   restPushKey = key;
   if (first && !active) return; // all'avvio senza recupero in corso non serve chiamare il server
   clearTimeout(restPushTimer);
-  const t = active ? { end: r.end, name: r.name } : null;
-  restPushTimer = setTimeout(() => restPushSend(t), 250);
+  const t = active ? { end: r.end, body: restText(r).push } : null;
+  if (!active && visible) restPushServerEnd = null;
+  if (now) restPushSend(t);
+  else restPushTimer = setTimeout(() => restPushSend(t), 250);
 }
 async function restPushSend(t) {
   try {
@@ -3888,18 +3954,110 @@ async function restPushSend(t) {
     await SuiteSync.api('/rest/v1/rest_timers?on_conflict=endpoint', {
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-      json: { user_id: SuiteSync.userId, endpoint: sub.endpoint, fire_at: new Date(t.end).toISOString(), body: t.name ? `▶️ ${t.name}` : '▶️ Si riparte', sent: false, updated_at: new Date().toISOString() },
+      json: { user_id: SuiteSync.userId, endpoint: sub.endpoint, fire_at: new Date(t.end).toISOString(), body: t.body || '▶️ Si riparte', sent: false, updated_at: new Date().toISOString() },
     });
+    restPushServerEnd = t.end;
   } catch (e) {
     /* tabella non ancora creata o rete assente: resta la notifica locale di sempre */
   }
+}
+/* v1.21.0 — Promemoria "Sessione ancora aperta".
+   Se una sessione resta aperta senza attività (nessuna serie segnata, nessuna modifica) il server manda
+   una notifica: dopo 60 minuti se il tempo sta scorrendo, dopo 2 ore se è in pausa. Ogni modifica
+   sposta in avanti il promemoria; terminando la sessione viene tolto. Usa la stessa tabella del
+   recupero (rest_timers) con una riga "<telefono>#sessione", quindi nessuna tabella nuova. */
+// var (non const): commit() la usa anche durante l'avvio, prima che questa riga venga eseguita
+var SESSION_IDLE_MIN = 60,
+  SESSION_PAUSED_MIN = 120;
+var sessPushKey, sessPushTimer;
+function fmtHoursMin(ms) {
+  const m = Math.max(1, Math.round(ms / 60000)),
+    h = Math.floor(m / 60);
+  return h ? `${h} h${m % 60 ? ` ${m % 60} min` : ''}` : `${m} min`;
+}
+function openSessionForReminder() {
+  return (
+    gym.sessions
+      .filter((x) => !x.legacy && !x.ended && !x.skippedSession)
+      .sort((a, b) => new Date(b.started || 0) - new Date(a.started || 0))[0] || null
+  );
+}
+function sessionReminder() {
+  const s = openSessionForReminder();
+  if (!s) return null;
+  const running = !!s.runningSince,
+    last = Math.max(Date.parse(gym.updatedAt || '') || 0, Date.parse(s.started || '') || 0) || Date.now(),
+    fire = last + (running ? SESSION_IDLE_MIN : SESSION_PAUSED_MIN) * 60000;
+  const body = running
+    ? `▶️ ${s.day} · in corso da ${fmtHoursMin(elapsed(s, fire))}\n👉 Tocca per terminarla o metterla in pausa`
+    : `⏸️ ${s.day} · in pausa (${fmtHoursMin(elapsed(s))} di allenamento)\n👉 Tocca per riprenderla o terminarla`;
+  return { fire, body };
+}
+function sessionPushSync(now) {
+  const t = sessionReminder();
+  const key = t ? `${Math.round(t.fire / 60000)}|${t.body}` : '';
+  if (key === sessPushKey) return;
+  sessPushKey = key;
+  clearTimeout(sessPushTimer);
+  if (now) sessionPushSend(t);
+  else sessPushTimer = setTimeout(() => sessionPushSend(t), 1500);
+}
+async function sessionPushSend(t) {
+  try {
+    if (!(window.SuiteSync && SuiteSync.signedIn) || !pushSupported() || Notification.permission !== 'granted') return;
+    const reg = await pushRegistration();
+    const sub = reg && (await reg.pushManager.getSubscription());
+    if (!sub) return;
+    const endpoint = sub.endpoint + '#sessione';
+    if (!t) {
+      await SuiteSync.api(`/rest/v1/rest_timers?endpoint=eq.${encodeURIComponent(endpoint)}`, { method: 'DELETE' });
+      return;
+    }
+    await SuiteSync.api('/rest/v1/rest_timers?on_conflict=endpoint', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      json: { user_id: SuiteSync.userId, endpoint, fire_at: new Date(t.fire).toISOString(), body: t.body, sent: false, updated_at: new Date().toISOString() },
+    });
+  } catch (e) {
+    /* tabella assente o rete assente: nessun promemoria, l'app funziona come prima */
+  }
+}
+// Aperta dalla notifica "Sessione ancora aperta": porta alla sessione e propone pausa / termina.
+function openSessionPrompt() {
+  const s = openSessionForReminder();
+  if (!s) {
+    U.toast('Nessuna sessione aperta.');
+    return;
+  }
+  if (!goToOpenSession(s, { resume: false })) return;
+  if (gym.tab !== 'workout') mutate((n) => (n.tab = 'workout'));
+  render();
+  const x = gym.sessions.find((y) => y.id === s.id);
+  if (!x.runningSince) {
+    pausePanel(x.id);
+    return;
+  }
+  const d = U.modal(
+    U.head('Sessione ancora aperta') +
+      `<div class="pause-panel"><span class="pause-symbol">⏱</span><p>${U.esc(x.day)}</p><strong>${U.duration(elapsed(x))}</strong><p class="muted">Il tempo sta ancora scorrendo. Hai finito l'allenamento?</p><div class="pause-actions"><button class="danger" id="open-finish">■ Termina e salva</button><button id="open-pause">Ⅱ Metti in pausa</button><button class="primary" id="open-continue">▶ Continua</button></div></div>`,
+  );
+  d.querySelector('#open-finish').onclick = () => {
+    d.close();
+    finishSession(x.id);
+  };
+  d.querySelector('#open-pause').onclick = () => {
+    d.close();
+    sessionAction('toggle');
+  };
+  d.querySelector('#open-continue').onclick = () => d.close();
 }
 async function showRestEndNotification() {
   if (!("serviceWorker" in navigator) || !gym.rest) return;
   try {
     const reg = await navigator.serviceWorker.ready;
-    await reg.showNotification("Recupero terminato", {
-      body: gym.rest.name ? `Pronto per: ${gym.rest.name}` : "Si riparte!",
+    const txt = restText(gym.rest);
+    await reg.showNotification("⏱️ Recupero terminato", {
+      body: txt.push || "▶️ Si riparte",
       vibrate: [200, 100, 200],
       tag: "rest-timer",
       actions: [
@@ -3913,6 +4071,10 @@ async function showRestEndNotification() {
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.addEventListener("message", (event) => {
     const d = event.data || {};
+    if (d.type === "session-open") {
+      openSessionPrompt();
+      return;
+    }
     if (d.type !== "rest-timer-action" || !gym.rest) return;
     if (d.action === "add15") {
       restSave((n) => {

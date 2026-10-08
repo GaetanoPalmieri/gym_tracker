@@ -112,3 +112,37 @@ Come funziona
 - Il database controlla ogni 5 secondi se c'è un recupero scaduto e solo allora chiama la funzione.
 - Se l'app è aperta quando il recupero finisce, la riga viene tolta prima: niente doppio avviso.
 - Ogni notte vengono cancellate le righe vecchie dello storico dei cron (più di 3 giorni).
+
+=====================================================================
+NOVITÀ 1.21.0 — UNA SOLA NOTIFICA PER RECUPERO + PROMEMORIA SESSIONE APERTA
+(serve che la 1.19.0 sia già installata: tabella rest_timers e cron gym-recupero)
+=====================================================================
+
+PASSO A — Carica la nuova versione e aggiorna RecompApp sul telefono.
+
+PASSO B — Aggiorna la funzione
+Supabase › Edge Functions › notify-pesoreminder › Code: sostituisci TUTTO con il nuovo
+supabase/functions/notify-pesoreminder/index.ts › Deploy (verifica JWT sempre disattivata).
+
+PASSO C — Riesegui il controllo
+SQL Editor › New query. Incolla di nuovo supabase/recupero.sql e premi Run ("Success").
+Cambia solo la regola del controllo ogni 5 secondi: la notifica parte a recupero finito
+(al massimo 1 secondo prima, non più 2). Nessuna tabella nuova, nessuna password.
+
+Come funziona il recupero
+- Serie completata (ne restano altre): recupero dell'esercizio. Notifica:
+  "⏱️ Recupero terminato · ▶️ Serie 3 di 4 · Panca piana".
+- Ultima serie, "✓ Tutte" oppure "Salta esercizio": recupero tra esercizi (1:30).
+  Notifica: "⏱️ Recupero terminato · 👉 Prossimo: Squat". Se non resta nessun esercizio
+  non parte nessun recupero.
+- Una sola notifica: con l'app aperta arriva quella del telefono (la riga sul server viene
+  tolta 4 secondi prima); a schermo bloccato arriva quella del server.
+
+Promemoria "🏋️ Sessione ancora aperta"
+- Se una sessione resta aperta senza che tocchi nulla: dopo 60 minuti se il tempo sta
+  scorrendo, dopo 2 ore se è in pausa. Ogni serie segnata sposta in avanti il promemoria;
+  terminando la sessione viene tolto.
+- Prima di mandarlo il server controlla nei dati sincronizzati che la sessione sia ancora
+  aperta (se l'hai chiusa da un altro telefono non arriva).
+- Toccando la notifica si apre la sessione con le scelte "Termina e salva", "Metti in pausa"
+  o "Continua".

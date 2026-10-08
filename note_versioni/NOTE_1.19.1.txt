@@ -1,0 +1,5 @@
+VERSIONE 1.19.1 — Correzione avvio
+
+- La 1.19.0 si fermava all'apertura con "Errore di avvio: Cannot access restPushKey before
+  initialization". Corretto: l'app si avvia normalmente, anche con un recupero in corso.
+- Tutto il resto della 1.19.0 (recupero terminato a telefono bloccato) resta invariato.

@@ -1,0 +1,9 @@
+VERSIONE 1.19.0 — Recupero terminato anche a telefono bloccato
+
+- Prima l'avviso "Recupero terminato" partiva dall'app: con lo schermo spento iOS la ferma,
+  quindi a telefono bloccato non arrivava mai.
+- Ora, con le notifiche attive, l'app comunica a Supabase quando finisce il recupero
+  (aggiornato a ogni +15s, pausa, ripresa o salto) e la notifica parte dal server,
+  anche a telefono bloccato: "⏱️ Recupero terminato · ▶️ prossimo esercizio".
+- Se il recupero finisce con l'app aperta resta solo l'avviso di sempre (niente doppioni).
+- Da installare su Supabase: vedi GUIDA_NOTIFICHE.txt, sezione "NOVITÀ 1.19.0".

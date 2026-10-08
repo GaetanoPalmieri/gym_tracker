@@ -1,4 +1,14 @@
-// RecompApp — notifica push "Peso di oggi" (Supabase Edge Function).
+// RecompApp — notifiche push "Peso di oggi" e "Recupero terminato" (Supabase Edge Function).
+//
+// v1.19.0 — Recupero terminato a telefono bloccato: con lo schermo spento iOS ferma la web app,
+// quindi il timer non può far partire l'avviso da solo. L'app scrive l'ora di fine nella tabella
+// rest_timers; un cron ogni 5 secondi (solo SQL, gratis) chiama questa funzione con
+// {"mode":"rest"} SOLO quando un recupero è scaduto, e qui parte la notifica.
+//
+// v1.21.0 — Una sola notifica per recupero: si manda a recupero finito (al massimo 1 secondo prima,
+// non più 2); con l'app aperta la riga viene tolta 4 secondi prima e arriva solo quella locale.
+// Nella stessa tabella l'app scrive anche il promemoria "Sessione ancora aperta" (riga "<telefono>#sessione"): prima di mandarlo
+// si controlla nei dati sincronizzati che la sessione sia davvero ancora aperta.
 //
 // Chi la chiama:
 //  - il cron di Supabase ogni ora (intestazione x-cron-secret): per ogni telefono iscritto (app='gym'),
@@ -47,21 +57,52 @@ function localNow(tz: string) {
   return { today: `${parts.year}-${parts.month}-${parts.day}`, hour: Number(parts.hour) };
 }
 
-function message() {
-  return {
-    title: "Peso di oggi",
-    body: "Buongiorno! Ricordati di registrare il peso corporeo di oggi in RecompApp.",
-    tag: "peso-reminder",
-    url: "./",
-  };
+// Notifica schematica: ultimo peso registrato e andamento degli ultimi 7 giorni
+// (letti dai dati sincronizzati di RecompApp, tabella app_data, app "recomp").
+async function loadData(userId: string) {
+  try {
+    const { data } = await admin.from("app_data").select("data").eq("app", "recomp").eq("user_id", userId).maybeSingle();
+    return data?.data ?? null;
+  } catch { return null; }
+}
+const SESSION_SUFFIX = "#sessione";
+// Dati non leggibili = nel dubbio mando il promemoria.
+function hasOpenSession(data: any) {
+  if (!data || !Array.isArray(data.sessions)) return true;
+  return data.sessions.some((s: any) => s && !s.legacy && !s.ended && !s.skippedSession);
+}
+function message(data: any = null, today = "") {
+  const lb = data?.settings?.weightUnit === "lb";
+  const unit = lb ? "lb" : "kg";
+  const num = (kg: number) => (Math.round((lb ? kg * 2.2046226218 : kg) * 10) / 10).toLocaleString("it-IT", { maximumFractionDigits: 1 });
+  const list = (Array.isArray(data?.bodyWeights) ? data.bodyWeights : [])
+    .filter((w: any) => w && w.date && Number(w.kg) > 0)
+    .map((w: any) => ({ day: String(w.date).slice(0, 10), kg: Number(w.kg) }))
+    .sort((a: any, b: any) => a.day.localeCompare(b.day));
+  const lines: string[] = [];
+  const last = list[list.length - 1];
+  if (last) {
+    const days = today ? Math.round((Date.parse(today) - Date.parse(last.day)) / 86400000) : NaN;
+    const when = days === 0 ? "oggi" : days === 1 ? "ieri" : days > 1 ? `${days} giorni fa` : last.day;
+    lines.push(`🕒 Ultimo ${num(last.kg)} ${unit} · ${when}`);
+    const ref = Date.parse(last.day) - 7 * 86400000;
+    const before = [...list].reverse().find((w: any) => Date.parse(w.day) <= ref);
+    if (before) {
+      const d = (lb ? 2.2046226218 : 1) * (last.kg - before.kg);
+      const r = Math.round(d * 10) / 10;
+      lines.push(r === 0 ? "➖ Stabile in 7 giorni" : `${r < 0 ? "📉 −" : "📈 +"}${Math.abs(r).toLocaleString("it-IT")} ${unit} in 7 giorni`);
+    }
+  }
+  lines.push("👉 Tocca per registrarlo");
+  return { title: "⚖️ Peso di oggi", body: lines.join("\n"), tag: "peso-reminder", url: "./" };
 }
 
-async function send(sub: any, payload: unknown) {
+async function send(sub: any, payload: unknown, opts: { TTL: number; urgency: string } = { TTL: 60 * 60 * 12, urgency: "normal" }) {
   try {
     await webpush.sendNotification(
       { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
       JSON.stringify(payload),
-      { TTL: 60 * 60 * 12, urgency: "normal" },
+      opts,
     );
     return "ok";
   } catch (e: any) {
@@ -94,12 +135,42 @@ Deno.serve(async (req) => {
       .eq("enabled", true);
     if (!subs?.length) return json({ error: "Nessun telefono iscritto: attiva prima le notifiche." }, 404);
     const results: string[] = [];
-    for (const s of subs) results.push(await send(s, message()));
+    const d0 = await loadData(u.user.id);
+    for (const s of subs) results.push(await send(s, message(d0, localNow(s.tz).today)));
     return json({ sent: results.filter((r) => r === "ok").length, results });
   }
 
   /* ---- Giro orario dal cron ---- */
   if (!env("GYM_CRON_SECRET") || cron !== env("GYM_CRON_SECRET")) return json({ error: "Segreto non valido" }, 401);
+  const reqBody: any = await req.json().catch(() => ({}));
+
+  /* ---- Recupero terminato (cron ogni 5 secondi, solo quando c'è un recupero scaduto) ---- */
+  if (reqBody?.mode === "rest") {
+    const limit = new Date(Date.now() + 1000).toISOString();
+    // "Prendo" i recuperi scaduti segnandoli come inviati: così due giri ravvicinati non li mandano due volte.
+    const { data: due, error: e1 } = await admin.from("rest_timers").update({ sent: true }).eq("sent", false).lte("fire_at", limit).select("*");
+    if (e1) return json({ error: e1.message }, 500);
+    let sent = 0;
+    for (const t of due || []) {
+      const isSession = String(t.endpoint).endsWith(SESSION_SUFFIX);
+      const endpoint = isSession ? String(t.endpoint).slice(0, -SESSION_SUFFIX.length) : t.endpoint;
+      const { data: subs } = await admin.from("push_subscriptions").select("*").eq("app", APP).eq("endpoint", endpoint).eq("enabled", true);
+      const sub = subs?.[0];
+      if (!sub) continue;
+      if (isSession) {
+        // Se nel frattempo la sessione è stata chiusa (anche da un altro telefono) non disturbo.
+        if (!hasOpenSession(await loadData(t.user_id))) continue;
+        const r = await send(sub, { title: "🏋️ Sessione ancora aperta", body: t.body || "👉 Tocca per terminarla o metterla in pausa", tag: "session-open", url: "./?sessione=aperta" }, { TTL: 3600, urgency: "normal" });
+        if (r === "ok") sent++;
+        continue;
+      }
+      const r = await send(sub, { title: "⏱️ Recupero terminato", body: t.body || "▶️ Si riparte", tag: "rest-timer", url: "./" }, { TTL: 120, urgency: "high" });
+      if (r === "ok") sent++;
+    }
+    // pulizia: recuperi già inviati da più di un'ora
+    await admin.from("rest_timers").delete().eq("sent", true).lt("fire_at", new Date(Date.now() - 3600000).toISOString());
+    return json({ rest: sent, due: due?.length || 0 });
+  }
   const { data: subs, error } = await admin.from("push_subscriptions").select("*").eq("app", APP).eq("enabled", true);
   if (error) return json({ error: error.message }, 500);
 
@@ -107,7 +178,7 @@ Deno.serve(async (req) => {
   for (const s of subs || []) {
     const { today, hour } = localNow(s.tz);
     if (hour < NOTIFY_HOUR || s.last_sent_day === today) { skipped++; continue; }
-    const r = await send(s, message());
+    const r = await send(s, message(await loadData(s.user_id), today));
     if (r === "ok") sent++;
     // Segna il giorno solo se è andata: se l'invio fallisce si riprova all'ora successiva.
     if (r === "ok") await admin.from("push_subscriptions").update({ last_sent_day: today }).eq("id", s.id);
