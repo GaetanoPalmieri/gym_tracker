@@ -5,6 +5,11 @@
 // rest_timers; un cron ogni 5 secondi (solo SQL, gratis) chiama questa funzione con
 // {"mode":"rest"} SOLO quando un recupero è scaduto, e qui parte la notifica.
 //
+// v1.21.0 — Una sola notifica per recupero: si manda a recupero finito (al massimo 1 secondo prima,
+// non più 2); con l'app aperta la riga viene tolta 4 secondi prima e arriva solo quella locale.
+// Nella stessa tabella l'app scrive anche il promemoria "Sessione ancora aperta" (riga "<telefono>#sessione"): prima di mandarlo
+// si controlla nei dati sincronizzati che la sessione sia davvero ancora aperta.
+//
 // Chi la chiama:
 //  - il cron di Supabase ogni ora (intestazione x-cron-secret): per ogni telefono iscritto (app='gym'),
 //    se nel suo fuso orario sono le 8 e oggi non ha già ricevuto l'avviso, manda il promemoria;
@@ -59,6 +64,12 @@ async function loadData(userId: string) {
     const { data } = await admin.from("app_data").select("data").eq("app", "recomp").eq("user_id", userId).maybeSingle();
     return data?.data ?? null;
   } catch { return null; }
+}
+const SESSION_SUFFIX = "#sessione";
+// Dati non leggibili = nel dubbio mando il promemoria.
+function hasOpenSession(data: any) {
+  if (!data || !Array.isArray(data.sessions)) return true;
+  return data.sessions.some((s: any) => s && !s.legacy && !s.ended && !s.skippedSession);
 }
 function message(data: any = null, today = "") {
   const lb = data?.settings?.weightUnit === "lb";
@@ -135,15 +146,24 @@ Deno.serve(async (req) => {
 
   /* ---- Recupero terminato (cron ogni 5 secondi, solo quando c'è un recupero scaduto) ---- */
   if (reqBody?.mode === "rest") {
-    const limit = new Date(Date.now() + 2000).toISOString();
+    const limit = new Date(Date.now() + 1000).toISOString();
     // "Prendo" i recuperi scaduti segnandoli come inviati: così due giri ravvicinati non li mandano due volte.
     const { data: due, error: e1 } = await admin.from("rest_timers").update({ sent: true }).eq("sent", false).lte("fire_at", limit).select("*");
     if (e1) return json({ error: e1.message }, 500);
     let sent = 0;
     for (const t of due || []) {
-      const { data: subs } = await admin.from("push_subscriptions").select("*").eq("app", APP).eq("endpoint", t.endpoint).eq("enabled", true);
+      const isSession = String(t.endpoint).endsWith(SESSION_SUFFIX);
+      const endpoint = isSession ? String(t.endpoint).slice(0, -SESSION_SUFFIX.length) : t.endpoint;
+      const { data: subs } = await admin.from("push_subscriptions").select("*").eq("app", APP).eq("endpoint", endpoint).eq("enabled", true);
       const sub = subs?.[0];
       if (!sub) continue;
+      if (isSession) {
+        // Se nel frattempo la sessione è stata chiusa (anche da un altro telefono) non disturbo.
+        if (!hasOpenSession(await loadData(t.user_id))) continue;
+        const r = await send(sub, { title: "🏋️ Sessione ancora aperta", body: t.body || "👉 Tocca per terminarla o metterla in pausa", tag: "session-open", url: "./?sessione=aperta" }, { TTL: 3600, urgency: "normal" });
+        if (r === "ok") sent++;
+        continue;
+      }
       const r = await send(sub, { title: "⏱️ Recupero terminato", body: t.body || "▶️ Si riparte", tag: "rest-timer", url: "./" }, { TTL: 120, urgency: "high" });
       if (r === "ok") sent++;
     }

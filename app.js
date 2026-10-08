@@ -473,7 +473,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.22.0';
+const APP_VERSION = '1.23.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -3671,7 +3671,7 @@ function showStartupError(err) {
     '<div class="launch-logo" aria-hidden="true">RC</div><p class="launch-title">RecompApp</p><p class="launch-caption">Errore di avvio</p><p class="launch-caption" style="max-width:300px;text-align:center">Ricarica la pagina. Se il problema persiste, usa il messaggio tecnico qui sotto.</p>';
   const detail = document.createElement('p');
   detail.className = 'launch-caption';
-  detail.style.cssText = 'max-width:320px;text-align:center;font-size:12px;opacity:.75;word-break:break-word';
+  detail.style.cssText = 'max-width:320px;text-align:center;font-size:13px;opacity:.75;word-break:break-word';
   detail.textContent = msg;
   splash.append(detail);
 }

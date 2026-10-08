@@ -42,7 +42,7 @@ button.blue {
 }
 .muted {
   color: #9fb0ab;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.5;
 }
 .row {
@@ -130,7 +130,7 @@ dialog {
   z-index: 1;
 }
 .editor-head h2 {
-  font-size: 19px;
+  font-size: 17px;
   margin: 0;
 }
 .calendar {
@@ -150,7 +150,7 @@ dialog {
 }
 .calendar-grid button small {
   display: block;
-  font-size: 9px;
+  font-size: 11px;
   color: #9fb0ab;
   overflow-wrap: anywhere;
 }
@@ -233,12 +233,12 @@ input[type='datetime-local'] {
 }
 /* ===== app.css ===== */
 .session-panel .session-actions button {
-  font-size: 12px !important;
+  font-size: 13px !important;
   padding: 9px !important;
   min-height: 40px;
 }
 .session-panel .session-clock {
-  font-size: 23px;
+  font-size: 22px;
 }
 .title-row {
   align-items: center;
@@ -255,15 +255,15 @@ input[type='datetime-local'] {
   height: 24px;
 }
 .card h3 {
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.4;
   margin: 0;
 }
 .card h2 {
-  font-size: 18px;
+  font-size: 17px;
 }
 .exercise-next h3 {
-  font-size: 19px;
+  font-size: 17px;
 }
 .exercise-topline .exercise-status {
   font-size: 11px;
@@ -294,7 +294,7 @@ nav.bottom button {
 }
 #rest-bar button {
   padding: 7px;
-  font-size: 12px;
+  font-size: 13px;
 }
 .ingredient {
   border: 1px solid #2b3640;
@@ -369,7 +369,7 @@ header.top .title-row h1 {
   min-width: 0;
   white-space: normal;
   padding: 9px 2px;
-  font-size: 12px;
+  font-size: 13px;
   min-height: 44px;
 }
 .exercise-topline {
@@ -402,7 +402,7 @@ button.button-tap {
   }
 }
 input, select, textarea {
-  font-size: 16px !important;
+  font-size: 17px !important;
   max-width: 100%;
   min-width: 0;
   touch-action: pan-y;
@@ -421,7 +421,7 @@ dialog {
 }
 @media (max-width: 360px) {
   header.top .title-row h1 {
-    font-size: 18px;
+    font-size: 17px;
   }
   .session-inline {
     gap: 3px;
@@ -601,7 +601,7 @@ button[data-close], button[data-remove-ingredient], button.close {
   border-radius: 50%;
   background: #214c3d;
   color: #7de6bb;
-  font-size: 24px;
+  font-size: 22px;
 }
 .summary-counts {
   display: grid;
@@ -619,7 +619,7 @@ button[data-close], button[data-remove-ingredient], button.close {
   border-radius: 12px;
 }
 .summary-counts b {
-  font-size: 23px;
+  font-size: 22px;
 }
 .summary-counts span {
   font-size: 11px;
@@ -655,7 +655,7 @@ button[data-close], button[data-remove-ingredient], button.close {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  font-size: 12px;
+  font-size: 13px;
   color: #bccac5;
 }
 .session-state {
@@ -711,7 +711,7 @@ header.top #weekbar, header.top #daybar {
 .nutrition-head p {
   margin: 0;
   color: var(--sub);
-  font-size: 12px;
+  font-size: 13px;
 }
 .nutrition-head .primary {
   flex: 0 0 auto;
@@ -721,7 +721,7 @@ header.top #weekbar, header.top #daybar {
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--accent2);
   font-weight: 800;
 }
@@ -755,7 +755,7 @@ header.top #weekbar, header.top #daybar {
   font-size: 13px;
 }
 .meal-macros {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--sub);
   white-space: nowrap;
 }
@@ -774,7 +774,7 @@ header.top #weekbar, header.top #daybar {
 .meal-alternatives {
   min-height: 38px;
   padding: 7px 9px;
-  font-size: 12px;
+  font-size: 13px;
   color: #bcebd9;
   background: #203d36;
   border-color: #315d50;
@@ -783,7 +783,7 @@ header.top #weekbar, header.top #daybar {
   margin-top: 10px !important;
 }
 .nutrition-note summary {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--sub);
 }
 .alt-group {
@@ -796,7 +796,7 @@ header.top #weekbar, header.top #daybar {
   margin-bottom: 8px;
 }
 .alt-source span {
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
   color: var(--accent2);
   font-weight: 800;
@@ -835,7 +835,7 @@ header.top #weekbar, header.top #daybar {
   flex-direction: column;
 }
 .stats-kpi span, .stats-kpi small {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--sub);
   line-height: 1.25;
 }
@@ -869,7 +869,7 @@ header.top #weekbar, header.top #daybar {
 .stats-section-head button {
   min-height: 36px;
   padding: 6px 10px;
-  font-size: 12px;
+  font-size: 13px;
 }
 .stats-session {
   display: grid;
@@ -883,7 +883,7 @@ header.top #weekbar, header.top #daybar {
   gap: 2px;
 }
 .stats-session small {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--sub);
 }
 .stats-session-meta {
@@ -910,14 +910,14 @@ header.top #weekbar, header.top #daybar {
   align-items: center;
   padding: 10px 0;
   border-bottom: 1px solid var(--line);
-  font-size: 12px;
+  font-size: 13px;
 }
 .stats-history-row > div {
   display: grid;
   gap: 2px;
 }
 .stats-history-row small {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--sub);
 }
 .stats-history-row button {
@@ -941,7 +941,7 @@ header.top #weekbar, header.top #daybar {
     gap: 2px;
   }
   .stats-kpi b {
-    font-size: 19px;
+    font-size: 17px;
   }
   .stats-session-meta {
     flex-wrap: wrap;
@@ -1128,7 +1128,7 @@ main {
   padding: 0;
   display: grid;
   place-items: center;
-  font-size: 18px;
+  font-size: 17px;
 }
 .meal-list {
   gap: 7px;
@@ -1149,7 +1149,7 @@ details.meal-smart > summary::-webkit-details-marker {
 }
 details.meal-smart > summary::after {
   content: '⌄';
-  font-size: 16px;
+  font-size: 17px;
   color: var(--sub);
   margin-left: 3px;
   transition: transform 0.16s ease;
@@ -1182,7 +1182,7 @@ details.meal-smart[open] > summary::after {
   border: 1px dashed #315d50;
   border-radius: 10px;
   color: #bcebd9;
-  font-size: 12px;
+  font-size: 13px;
 }
 @media (max-width: 380px) {
   .exercise-card > .row {
@@ -1217,7 +1217,7 @@ main {
   min-height: 44px;
   padding: 9px 14px;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: #ffbf87;
   border-color: #6e5037;
@@ -1260,7 +1260,7 @@ main {
 }
 .closed-session-banner > strong {
   display: block;
-  font-size: 16px;
+  font-size: 17px;
   margin-bottom: 6px;
 }
 .closed-session-banner p {
@@ -1304,7 +1304,7 @@ main {
     min-width: 0;
   }
   .session-closed-chip {
-    font-size: 10px;
+    font-size: 11px;
     padding: 6px 8px;
   }
   .closed-session-actions {
@@ -1470,7 +1470,7 @@ button {
     gap: 4px;
   }
   .page-nav button {
-    font-size: 10.5px;
+    font-size: 11px;
     padding-inline: 2px;
   }
 }
@@ -1538,7 +1538,7 @@ header.top .title-row {
   background: transparent !important;
   color: #aebbb6 !important;
   box-shadow: none !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
   font-weight: 700 !important;
   line-height: 1.15 !important;
   text-align: center;
@@ -1627,7 +1627,7 @@ header.top .title-row h1 {
   background: transparent !important;
   color: #aebbb6 !important;
   box-shadow: none !important;
-  font-size: 11.5px !important;
+  font-size: 11px !important;
   font-weight: 700 !important;
   line-height: 1.1 !important;
   white-space: nowrap !important;
@@ -1756,7 +1756,7 @@ body:not([data-active-tab='workout']) .workout-start-row {
 }
 @media (max-width: 420px) {
   .compact-set {
-    font-size: 10.5px;
+    font-size: 11px;
   }
 }
 /* 1.5.2 — slightly denser UI without shrinking already-small labels */
@@ -1767,7 +1767,7 @@ header.top .title-row {
   margin-bottom: 10px !important;
 }
 header.top .title-row h1 {
-  font-size: 24px !important;
+  font-size: 22px !important;
 }
 .page-nav {
   height: 50px !important;
@@ -1794,7 +1794,7 @@ main {
   padding: 18px 15px !important;
 }
 .exercise-next .exname {
-  font-size: 18px !important;
+  font-size: 17px !important;
 }
 .exercise-next .setbtn {
   padding: 12px 0 !important;
@@ -1825,7 +1825,7 @@ main {
 .notearea {
   min-height: 96px !important;
   padding: 9px !important;
-  font-size: 14px !important;
+  font-size: 15px !important;
 }
 .infobtn, .notebtn {
   width: 28px !important;
@@ -1838,12 +1838,12 @@ main {
   font-size: 17px !important;
 }
 .modal p {
-  font-size: 13.5px !important;
+  font-size: 13px !important;
 }
 .modal .close {
   margin-top: 12px !important;
   padding: 10px !important;
-  font-size: 14px !important;
+  font-size: 15px !important;
 }
 .timer-num {
   font-size: 80px !important;
@@ -1871,10 +1871,10 @@ main {
   font-size: 13px !important;
 }
 .supptitle {
-  font-size: 13.5px !important;
+  font-size: 13px !important;
 }
 .supptxt {
-  font-size: 12.5px !important;
+  font-size: 13px !important;
 }
 .sectiontitle {
   font-size: 15px !important;
@@ -1908,10 +1908,10 @@ main {
 }
 @media (max-width: 380px) {
   header.top .title-row h1 {
-    font-size: 19px !important;
+    font-size: 17px !important;
   }
   .page-nav button {
-    font-size: 10.5px !important;
+    font-size: 11px !important;
   }
 }
 /* 1.5.3 — dedicated completed-session summary */
@@ -1942,14 +1942,14 @@ main {
 .closed-session-complete-head p {
   margin: 0;
   color: var(--sub);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.4;
 }
 .closed-session-complete-head button {
   flex: 0 0 auto;
   min-height: 36px;
   padding: 6px 10px;
-  font-size: 12.5px;
+  font-size: 13px;
 }
 .closed-session-banner.incomplete {
   border-color: #7a6137;
@@ -1979,7 +1979,7 @@ main {
   justify-content: center;
   gap: 1px;
   overflow: visible;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
   background: none;
   color: #a1ebc8;
@@ -1991,11 +1991,11 @@ main {
 }
 .closed-summary-hero h2 {
   margin: 2px 0 2px;
-  font-size: 18px;
+  font-size: 17px;
 }
 .closed-summary-hero p {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
 }
 .closed-summary-kpis {
   display: grid;
@@ -2011,7 +2011,7 @@ main {
 }
 .closed-summary-kpis b {
   display: block;
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.2;
 }
 .closed-summary-kpis span {
@@ -2051,7 +2051,7 @@ main {
   white-space: nowrap;
   border-radius: 999px;
   padding: 4px 7px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   background: #26313a;
   color: var(--sub);
@@ -2116,14 +2116,14 @@ main {
   margin-bottom: 6px !important;
 }
 .exercise-title-block h3 {
-  font-size: 14px !important;
+  font-size: 15px !important;
   line-height: 1.18 !important;
 }
 .equipment-label {
-  font-size: 9.5px !important;
+  font-size: 11px !important;
 }
 .exercise-meta {
-  font-size: 12px !important;
+  font-size: 13px !important;
   margin: 5px 0 6px !important;
 }
 .compact-progress {
@@ -2137,7 +2137,7 @@ main {
   min-height: 24px !important;
   padding: 3px 6px !important;
   border-radius: 8px !important;
-  font-size: 10.5px !important;
+  font-size: 11px !important;
 }
 .exercise-expanded-body {
   margin-top: 8px !important;
@@ -2162,7 +2162,7 @@ main {
 }
 .setbtn {
   padding: 7px 0 !important;
-  font-size: 12.5px !important;
+  font-size: 13px !important;
   min-height: 38px !important;
 }
 .exercise-expanded-actions {
@@ -2172,15 +2172,15 @@ main {
 .exercise-expanded-actions button {
   min-height: 36px !important;
   padding: 7px 10px !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
 }
 .exercise-note {
-  font-size: 12px !important;
+  font-size: 13px !important;
   line-height: 1.4 !important;
 }
 .skip-exercise {
   padding: 7px 10px !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
   min-height: 38px !important;
 }
 .active-complete-head .closed-session-actions {
@@ -2254,7 +2254,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   padding-bottom: 8px !important;
 }
 .weight-delta {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
   padding: 5px 8px;
   border-radius: 999px;
@@ -2272,7 +2272,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
 }
 .trend-chart-wrap h3 {
   margin: 0 0 5px;
-  font-size: 14px;
+  font-size: 15px;
 }
 .trend-chart {
   width: 100%;
@@ -2281,7 +2281,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   overflow: visible;
 }
 .trend-chart text {
-  font-size: 10px;
+  font-size: 11px;
   fill: var(--sub);
 }
 .session-charts {
@@ -2301,7 +2301,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
 }
 @media (max-width: 360px) {
   .start-session-inline, .skip-session-page {
-    font-size: 11.5px !important;
+    font-size: 11px !important;
     padding-inline: 6px !important;
   }
 }
@@ -2329,7 +2329,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
 }
 @media (max-width: 360px) {
   .pause-session-inline, .finish-session-inline {
-    font-size: 11.5px !important;
+    font-size: 11px !important;
     padding-inline: 6px !important;
   }
 }
@@ -2353,7 +2353,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
     padding-inline: 5px;
   }
   .pause-session-inline, .finish-session-inline {
-    font-size: 10.8px !important;
+    font-size: 11px !important;
     padding-inline: 5px !important;
   }
 }
@@ -2384,13 +2384,13 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   gap: 4px !important;
 }
 .series-row input {
-  font-size: 12.5px !important;
+  font-size: 13px !important;
 }
 .cardio-row input {
   padding: 5px 4px !important;
 }
 .series-row input::placeholder, .weightrow input::placeholder, input[type='number']::placeholder {
-  font-size: 10.5px !important;
+  font-size: 11px !important;
   opacity: 0.72 !important;
 }
 .series-done-btn {
@@ -2420,7 +2420,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   min-height: 38px !important;
   padding: 0 !important;
   border-width: 2.5px !important;
-  font-size: 21px !important;
+  font-size: 22px !important;
   font-weight: 950 !important;
   -webkit-text-stroke: 0.35px currentColor;
   display: grid !important;
@@ -2575,7 +2575,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   color: #241800 !important;
 }
 .series-all {
-  font-size: 10px !important;
+  font-size: 11px !important;
   font-weight: 900 !important;
   line-height: 1 !important;
 }
@@ -2586,7 +2586,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   .inline-session-clock, .pause-session-inline, .finish-session-inline {
     height: 42px !important;
     min-height: 42px !important;
-    font-size: 11.5px !important;
+    font-size: 11px !important;
   }
   .series-head, .series-row {
     grid-template-columns: 23px minmax(0, 1fr) minmax(0, 1fr) 38px !important;
@@ -2640,7 +2640,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   min-width: 0;
   min-height: 40px;
   padding: 7px 7px;
-  font-size: 12.5px;
+  font-size: 13px;
 }
 .archive-action {
   border-color: #8c613b !important;
@@ -2657,7 +2657,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
 .series-count-actions button {
   min-height: 31px;
   padding: 5px 9px;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 750;
 }
 @media (max-width: 420px) {
@@ -2689,7 +2689,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   border: 1px solid var(--line);
   background: var(--card2);
   color: var(--sub);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
 }
 .week-picker-grid button.active {
@@ -2734,7 +2734,7 @@ body[data-active-tab='more'] main .card button {
 .inline-session-clock {
   justify-content: flex-end !important;
   padding: 0 12px 0 0 !important;
-  font-size: 18px !important;
+  font-size: 17px !important;
   font-weight: 400 !important;
   letter-spacing: 0.7px !important;
   font-variant-numeric: tabular-nums !important;
@@ -2760,11 +2760,11 @@ body[data-active-tab='more'] main .card button {
   place-items: center;
   border-radius: 9px;
   background: none;
-  font-size: 19px;
+  font-size: 17px;
 }
 .supplement-timing b {
   display: block;
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.25;
 }
 .supplement-timing small {
@@ -2779,7 +2779,7 @@ body[data-active-tab='more'] main .card button {
     grid-template-columns: minmax(102px, 1fr) minmax(0, 1fr) minmax(0, 1fr) !important;
   }
   .inline-session-clock {
-    font-size: 16.5px !important;
+    font-size: 17px !important;
     padding-right: 9px !important;
     letter-spacing: 0.5px !important;
   }
@@ -2797,7 +2797,7 @@ body[data-active-tab='more'] main .card button {
   align-items: center;
   justify-content: center;
   height: 44px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--sub);
   letter-spacing: 0.3px;
@@ -2834,14 +2834,14 @@ body[data-active-tab='more'] main .card button {
   background: transparent !important;
   border-color: var(--line) !important;
   color: var(--sub) !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
   min-width: 0 !important;
   min-height: 36px !important;
   padding: 6px 10px !important;
 }
 /* Messaggi "vuoto" più discreti. */
 .empty, .muted.center {
-  font-size: 14px;
+  font-size: 15px;
 }
 /* 1.8.0 — Controlli Allenamento compatti: settimana nel titolo, giorni su una riga. */
 .week-stepper {
@@ -2873,7 +2873,7 @@ body[data-active-tab='more'] main .card button {
 }
 .week-stepper .week-current {
   padding: 0 8px;
-  font-size: 14px;
+  font-size: 15px;
   min-width: 76px;
 }
 .week-stepper .week-current small {
@@ -3023,7 +3023,7 @@ header.top #daybar {
 }
 /* 1.10.0 — Nutrizione: titolo del giorno bilanciato, azioni con lo stesso stile. */
 .nutrition-head h2 {
-  font-size: 20px !important;
+  font-size: 22px !important;
   line-height: 1.25 !important;
   text-wrap: balance;
 }
@@ -3039,7 +3039,7 @@ header.top #daybar {
 .stats-kpi-caption {
   grid-column: 1 / -1;
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--sub);
   text-transform: uppercase;
@@ -3050,11 +3050,11 @@ header.top #daybar {
   gap: 2px !important;
 }
 .stats-kpi b {
-  font-size: 24px !important;
+  font-size: 22px !important;
   line-height: 1.1;
 }
 .stats-kpi small {
-  font-size: 12px !important;
+  font-size: 13px !important;
   color: var(--sub);
 }
 /* 1.10.0 — Altro: card compatte, azioni distruttive in fondo. */
@@ -3248,7 +3248,7 @@ header.top {
   border-color: rgba(232,163,61,.4)!important;
 }
 .weigh-icon {
-  font-size: 26px;
+  font-size: 22px;
   line-height: 1;
 }
 .weigh-form {
@@ -3271,7 +3271,7 @@ header.top {
   justify-self: center;
   min-height: 36px!important;
   padding: 4px 12px!important;
-  font-size: 14px;
+  font-size: 15px;
   text-decoration: underline;
   text-underline-offset: 3px;
   box-shadow: none!important;
@@ -3286,7 +3286,7 @@ header.top {
 }
 .block-done .eyebrow {
   color: #8fe0c4;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .06em;
@@ -3302,7 +3302,7 @@ header.top {
   gap: 2px;
   padding: 10px 0;
   border-top: 1px solid var(--glass-edge);
-  font-size: 14px;
+  font-size: 15px;
 }
 .check-card .check-row small.down {
   color: #7fe0b5;
@@ -3348,7 +3348,7 @@ header.top {
   margin-top: 14px;
 }
 .howto-h {
-  font-size: 16px;
+  font-size: 17px;
   margin: 16px 0 6px;
   color: #e8a33d;
 }
@@ -3401,7 +3401,7 @@ header.top {
   color: #f1f5f4!important;
 }
 .plan-tab-icon {
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1;
   color: #f7c463;
 }
@@ -3428,7 +3428,7 @@ header.top {
   margin: -2px 0 12px;
   color: #f7c463;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 15px;
 }
 .plan-box {
   display: block;
@@ -3439,12 +3439,12 @@ header.top {
   border: 1px solid var(--glass-edge);
 }
 .plan-box > b,.plan-box summary b {
-  font-size: 14px;
+  font-size: 15px;
 }
 .plan-box p {
   margin: 6px 0 0;
   line-height: 1.5;
-  font-size: 14px;
+  font-size: 15px;
 }
 .plan-box summary {
   cursor: pointer;
@@ -3520,7 +3520,7 @@ header.top {
 #main .series-row input {
   height: 32px!important;
   min-height: 32px!important;
-  font-size: 12.5px!important;
+  font-size: 13px!important;
 }
 #main .series-done-btn {
   width: 36px!important;
@@ -3545,7 +3545,7 @@ header.top {
   height: 28px!important;
   min-height: 28px!important;
   max-height: 28px!important;
-  font-size: 9.5px!important;
+  font-size: 11px!important;
   font-weight: 800!important;
   border-radius: 8px!important;
 }
@@ -3566,7 +3566,7 @@ header.top {
   display: none;
 }
 .ex-group-icon {
-  font-size: 20px;
+  font-size: 22px;
 }
 .ex-group-title {
   display: grid;
@@ -3575,7 +3575,7 @@ header.top {
 }
 .ex-group-title small {
   color: #b7c5c0;
-  font-size: 12.5px;
+  font-size: 13px;
 }
 .ex-group-chev {
   color: #b7c5c0;
@@ -3609,7 +3609,7 @@ header.top {
   background: transparent!important;
   border-radius: 12px;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 15px;
 }
 #editor .shop-tabs button.active {
   background: var(--teal-grad)!important;
@@ -3651,10 +3651,10 @@ header.top {
   border-top: 1px solid var(--glass-edge,#2b3640);
 }
 .shop-summary b {
-  font-size: 16px;
+  font-size: 17px;
 }
 .shop-summary span {
-  font-size: 12px;
+  font-size: 13px;
   opacity: .75;
 }
 .shop-list {
@@ -3797,15 +3797,15 @@ button[data-close], button.close {
 }
 .pause-actions button {
   min-height: 48px!important;
-  font-size: 14.5px!important;
+  font-size: 15px!important;
 }
 .partial-finish-actions button {
   min-height: 44px!important;
-  font-size: 13.5px!important;
+  font-size: 13px!important;
 }
 .ask-dialog .ask-actions button {
   min-height: 46px!important;
-  font-size: 14.5px!important;
+  font-size: 15px!important;
 }
 /* Azione principale: gradiente ambra come nel resto dell'app */
 .ask-dialog .ask-ok:not(.danger),
@@ -3825,7 +3825,7 @@ button[data-close], button.close {
   color: var(--danger)!important;
 }
 .ask-dialog .ask-msg {
-  font-size: 14.5px!important;
+  font-size: 15px!important;
   line-height: 1.5!important;
 }
 /* ---------- Riquadro informativo nei popup ---------- */
@@ -4016,7 +4016,7 @@ button[data-note].has-note {
   gap: 4px;
   border-radius: 999px;
   padding: 1px 8px;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 800;
   line-height: 1.4;
   letter-spacing: .01em;
@@ -4133,7 +4133,7 @@ html body .compact-set > b {
   margin: 4px 0 10px;
   padding: 9px 12px;
   border-radius: 12px;
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.35;
   background: color-mix(in srgb, #3fb38e 13%, transparent);
   border: 1px solid color-mix(in srgb, #3fb38e 30%, transparent);
@@ -4157,7 +4157,7 @@ html body .compact-set > b {
 }
 .week-card .week-head small {
   color: var(--sub);
-  font-size: 12.5px;
+  font-size: 13px;
 }
 .week-card .week-kpis {
   display: grid;
@@ -4177,7 +4177,7 @@ html body .compact-set > b {
   font-weight: 800;
 }
 .week-card .week-kpis small {
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--sub);
 }
 .week-card .week-groups {
@@ -4189,7 +4189,7 @@ html body .compact-set > b {
   grid-template-columns: 88px 1fr auto;
   gap: 10px;
   align-items: center;
-  font-size: 13.5px;
+  font-size: 13px;
 }
 .week-card .week-row i {
   height: 8px;
@@ -4205,11 +4205,11 @@ html body .compact-set > b {
 }
 .week-card .week-row em {
   font-style: normal;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--sub);
 }
 .week-card .week-records {
   margin: 12px 0 0;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
 }

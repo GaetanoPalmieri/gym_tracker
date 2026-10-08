@@ -1,4 +1,6 @@
 -- RecompApp 1.19.0 — "Recupero terminato" anche a telefono bloccato.
+-- RecompApp 1.21.0 — la notifica parte solo a recupero finito (al massimo 1 secondo prima, non più 2) e la stessa
+--                    tabella porta anche il promemoria "Sessione ancora aperta". Va rieseguito.
 -- Da incollare in Supabase › SQL Editor › New query › Run (una volta sola),
 -- DOPO aver aggiornato la funzione notify-pesoreminder (passo B della guida).
 -- Non serve incollare nessuna password: la prende dal cron del promemoria peso già installato.
@@ -38,7 +40,7 @@ begin
           url     := 'https://thdlzqhqdktbkpnplxdm.supabase.co/functions/v1/notify-pesoreminder',
           headers := %L::jsonb,
           body    := '{"mode":"rest"}'::jsonb)
-        where exists (select 1 from public.rest_timers where not sent and fire_at <= now() + interval '2 seconds'); $f$,
+        where exists (select 1 from public.rest_timers where not sent and fire_at <= now() + interval '1 second'); $f$,
     json_build_object('Content-Type','application/json','x-cron-secret',segreto)::text));
 
   -- Il controllo ogni 5 secondi lascia molte righe nello storico dei cron: lo pulisco ogni notte.
