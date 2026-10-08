@@ -1,0 +1,21 @@
+VERSIONE 1.21.0 — Recupero e notifiche sistemati, promemoria sessione aperta
+
+Recupero
+- Serie completata: parte il recupero dell'esercizio con una sola notifica a fine recupero
+  ("Serie 3 di 4 · Panca piana").
+- Ultima serie, "✓ Tutte" e ora anche "Salta esercizio": parte il recupero tra esercizi (1:30)
+  verso il prossimo esercizio da fare. Prima "Salta esercizio" non faceva partire nulla e la
+  notifica nominava l'esercizio appena finito invece del prossimo.
+- Niente più doppia notifica (quella del telefono + quella del server): con l'app aperta arriva
+  quella locale, a schermo bloccato quella del server. Riaprendo l'app dopo la fine del
+  recupero non ne arriva un'altra.
+- Barra del recupero: per il recupero dello stesso esercizio resta com'era (tempo + serie ed
+  esercizio); per il recupero tra esercizi diventa ambra con "↪ Cambio esercizio" e
+  "Prossimo: <esercizio>". Con nomi lunghi i pulsanti non escono più dallo schermo.
+
+Sessione aperta
+- Nuovo promemoria "🏋️ Sessione ancora aperta" dopo 60 minuti senza attività (2 ore se in
+  pausa). Toccandolo si apre la sessione con "Termina e salva", "Metti in pausa", "Continua".
+
+Da fare su Supabase (vedi GUIDA_NOTIFICHE.txt, "Novità 1.21.0"): aggiornare la funzione
+notify-pesoreminder e rieseguire supabase/recupero.sql.

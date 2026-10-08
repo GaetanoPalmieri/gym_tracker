@@ -473,7 +473,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.21.0';
+const APP_VERSION = '1.22.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -1421,9 +1421,107 @@ function exerciseCard(e, i, s, next) {
                 .map((r) => rowText(prev.e, r))
                 .join(' · ')}</p>`
             : ''
-        }${seriesInputs(e, i)}<div class="exercise-expanded-actions">${alts.length ? `<button data-alt="${i}" class="alt-exercise" aria-label="Versioni alternative per ${U.esc(e.name)}">↔ Variante</button>` : ''}<button data-info="${i}" class="strong-icon-action" aria-label="Informazioni esercizio">ⓘ</button><button data-note="${i}" class="strong-icon-action ${e.note ? 'has-note' : ''}" aria-label="Modifica note esercizio">✎︎</button></div>${e.note ? `<p class="exercise-note">${U.esc(e.note)}</p>` : ''}</div>`
+        }${loadTipHtml(e, prev)}${seriesInputs(e, i)}<div class="exercise-expanded-actions">${alts.length ? `<button data-alt="${i}" class="alt-exercise" aria-label="Versioni alternative per ${U.esc(e.name)}">↔ Variante</button>` : ''}<button data-info="${i}" class="strong-icon-action" aria-label="Informazioni esercizio">ⓘ</button><button data-note="${i}" class="strong-icon-action ${e.note ? 'has-note' : ''}" aria-label="Modifica note esercizio">✎︎</button></div>${e.note ? `<p class="exercise-note">${U.esc(e.note)}</p>` : ''}</div>`
       : ''
   }</div>`;
+}
+/* v1.22.0 — Carico suggerito per oggi, dalla sessione precedente dello stesso esercizio:
+   - tutte le serie al massimo dell'obiettivo (es. 10 su 8-10) → +2,5 kg (+5 lb) e si riparte dal minimo;
+   - qualche serie sotto il minimo → stesso carico (o −2,5 kg se più della metà è sotto);
+   - altrimenti stesso carico, una ripetizione in più. */
+function targetRange(t) {
+  const m = String(t || '').match(/(\d+)\s*[-–]\s*(\d+)/);
+  if (m) return [Number(m[1]), Number(m[2])];
+  const one = String(t || '').match(/\d+/);
+  return one ? [Number(one[0]), Number(one[0])] : null;
+}
+function loadSuggestion(e, prev) {
+  if (!prev || isCardio(e) || e.unit === 'min') return null;
+  const done = prev.e.rows.filter((r) => r.done && r.weight > 0 && r.reps > 0);
+  const range = targetRange(e.target);
+  if (!done.length || !range) return null;
+  const [lo, hi] = range;
+  const w = Math.max(...done.map((r) => r.weight));
+  const atW = done.filter((r) => r.weight === w);
+  const step = weightUnit() === 'lb' ? 5 / 2.2046226218 : 2.5;
+  const allTop = atW.length >= Math.min(prev.e.rows.length, e.rows.length) && atW.every((r) => r.reps >= hi);
+  const under = atW.filter((r) => r.reps < lo).length;
+  if (allTop) return { weight: w + step, reps: lo, why: `la volta scorsa tutte le serie a ${hi}+`, kind: 'up' };
+  if (under > atW.length / 2) return { weight: Math.max(0, w - step), reps: lo, why: `la volta scorsa sotto le ${lo} ripetizioni`, kind: 'down' };
+  const best = Math.min(hi, Math.max(...atW.map((r) => r.reps)) + 1);
+  return { weight: w, reps: best, why: under ? 'consolida il carico' : 'una ripetizione in più', kind: 'same' };
+}
+function loadTipHtml(e, prev) {
+  const t = loadSuggestion(e, prev);
+  if (!t) return '';
+  const icon = t.kind === 'up' ? '📈' : t.kind === 'down' ? '↘︎' : '💡';
+  return `<p class="load-tip load-${t.kind}">${icon} Oggi prova <b>${String(weightToDisplay(t.weight)).replace('.', ',')} ${weightLabel()} × ${t.reps}</b> · ${U.esc(t.why)}</p>`;
+}
+/* v1.22.0 — Record personali: carico più alto mai fatto (o più ripetizioni allo stesso carico). */
+function bestBefore(exId, beforeIso, skipSessionId) {
+  let w = 0, repsAtW = 0;
+  gym.sessions.forEach((s) => {
+    if (s.id === skipSessionId || (beforeIso && s.started && s.started >= beforeIso)) return;
+    s.exercises.forEach((x) => {
+      if (x.id !== exId) return;
+      x.rows.forEach((r) => {
+        if (!r.done || !(r.weight > 0)) return;
+        if (r.weight > w) { w = r.weight; repsAtW = r.reps || 0; }
+        else if (r.weight === w) repsAtW = Math.max(repsAtW, r.reps || 0);
+      });
+    });
+  });
+  return { w, repsAtW };
+}
+function isRecordRow(s, x, r) {
+  if (!r?.done || !(r.weight > 0) || isCardio(x)) return false;
+  const b = bestBefore(x.id, s.started, s.id);
+  if (!b.w) return false;
+  const earlier = x.rows.slice(0, x.rows.indexOf(r)).filter((q) => q.done && q.weight > 0);
+  const curBest = earlier.reduce((m, q) => Math.max(m, q.weight), 0);
+  if (r.weight > b.w && r.weight > curBest) return 'peso';
+  if (r.weight === b.w && (r.reps || 0) > b.repsAtW && !earlier.some((q) => q.weight === r.weight && (q.reps || 0) >= (r.reps || 0))) return 'rip';
+  return false;
+}
+function checkRecord(sessionId, i, j) {
+  const s = gym.sessions.find((x) => x.id === sessionId), x = s?.exercises[i], r = x?.rows[j];
+  const kind = s && isRecordRow(s, x, r);
+  if (!kind) return;
+  const wt = String(weightToDisplay(r.weight)).replace('.', ',');
+  U.toast(kind === 'peso' ? `🏆 Nuovo record: ${x.name} ${wt} ${weightLabel()}` : `🏆 Record di ripetizioni: ${x.name} ${wt} ${weightLabel()} × ${r.reps}`);
+  try { navigator.vibrate?.([20, 40, 20]); } catch (e) {}
+}
+/* v1.22.0 — Riepilogo della settimana (da lunedì): allenamenti, serie, volume e serie per gruppo muscolare,
+   più i record personali battuti. */
+function weeklySummaryHtml() {
+  const now = new Date(), mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
+  const from = mon.getTime();
+  const week = gym.sessions.filter((s) => !s.legacy && s.started && new Date(s.started).getTime() >= from && sessionCounts(s).sets > 0);
+  const groups = new Map();
+  let sets = 0, volume = 0;
+  const records = [];
+  week.forEach((s) => s.exercises.forEach((x) => {
+    const g = muscleGroup(x) || 'Altro';
+    x.rows.forEach((r) => {
+      if (!r.done) return;
+      sets++;
+      const v = !isCardio(x) && x.unit !== 'min' && r.weight > 0 && r.reps > 0 ? r.weight * r.reps : 0;
+      volume += v;
+      const cur = groups.get(g) || { sets: 0, vol: 0 };
+      cur.sets++; cur.vol += v; groups.set(g, cur);
+      const k = isRecordRow(s, x, r);
+      if (k) records.push(`${x.name} ${String(weightToDisplay(r.weight)).replace('.', ',')} ${weightLabel()}${k === 'rip' ? ` × ${r.reps}` : ''}`);
+    });
+  }));
+  const list = [...groups].filter(([g]) => g !== 'Cardio').sort((a, b) => b[1].sets - a[1].sets);
+  const max = Math.max(1, ...list.map(([, v]) => v.sets));
+  const volTxt = volume ? `${Math.round(weightUnit() === 'lb' ? volume * 2.2046226218 : volume).toLocaleString('it-IT')} ${weightLabel()}` : '—';
+  const dateTxt = `dal ${mon.getDate()} ${['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'][mon.getMonth()]}`;
+  if (!week.length) return `<div class="card week-card"><h2>Questa settimana</h2><p class="muted">${dateTxt} · nessun allenamento ancora. Il riepilogo con le serie per gruppo muscolare compare dalla prima sessione.</p></div>`;
+  return `<div class="card week-card"><div class="week-head"><h2>Questa settimana</h2><small>${dateTxt}</small></div>
+    <div class="week-kpis"><div><b>${week.length}</b><small>${week.length === 1 ? 'allenamento' : 'allenamenti'}</small></div><div><b>${sets}</b><small>serie</small></div><div><b>${volTxt}</b><small>volume (carico × rip.)</small></div></div>
+    <div class="week-groups">${list.map(([g, v]) => `<div class="week-row"><span>${U.esc(g)}</span><i><b style="width:${Math.round((v.sets / max) * 100)}%"></b></i><em>${v.sets} serie</em></div>`).join('')}</div>
+    ${records.length ? `<p class="week-records">🏆 ${records.length === 1 ? 'Record' : records.length + ' record'}: ${records.slice(0, 4).map(U.esc).join(' · ')}</p>` : ''}</div>`;
 }
 function closedExerciseSummary(e) {
   const t = totals(e),
@@ -1900,6 +1998,7 @@ function bindWorkout() {
         ) {
           render();
           updateRest();
+          if (done) checkRecord(s.id, i, j);
         }
       }),
   );
@@ -2383,7 +2482,7 @@ function stats() {
       .slice()
       .sort((a, b) => new Date(b.started || 0) - new Date(a.started || 0))
       .slice(0, 4);
-  return `${statsTabs()}<section class="stats-overview"><p class="stats-kpi-caption">Ultimi 30 giorni</p><div class="stats-kpi"><b>${last30.length}</b><small>Allenamenti</small></div><div class="stats-kpi"><b>${setCount}</b><small>Serie svolte</small></div><div class="stats-kpi"><b>${minutes}</b><small>Minuti</small></div></section><div class="card stats-focus"><div class="row"><div><h2>Progressi esercizio</h2><p class="muted">Scegli un esercizio e guarda un solo indicatore alla volta.</p></div></div><label>Esercizio</label><select id="stats-exercise">${[...names].map(([id, name]) => `<option value="${U.esc(id)}" ${id === selectedExercise ? 'selected' : ''}>${U.esc(name)}</option>`).join('')}</select><label>Indicatore</label><select id="stats-metric">${[
+  return `${statsTabs()}<section class="stats-overview"><p class="stats-kpi-caption">Ultimi 30 giorni</p><div class="stats-kpi"><b>${last30.length}</b><small>Allenamenti</small></div><div class="stats-kpi"><b>${setCount}</b><small>Serie svolte</small></div><div class="stats-kpi"><b>${minutes}</b><small>Minuti</small></div></section>${weeklySummaryHtml()}<div class="card stats-focus"><div class="row"><div><h2>Progressi esercizio</h2><p class="muted">Scegli un esercizio e guarda un solo indicatore alla volta.</p></div></div><label>Esercizio</label><select id="stats-exercise">${[...names].map(([id, name]) => `<option value="${U.esc(id)}" ${id === selectedExercise ? 'selected' : ''}>${U.esc(name)}</option>`).join('')}</select><label>Indicatore</label><select id="stats-metric">${[
     ...(cardio
       ? [
           ['speed', 'Velocità massima (km/h)'],
@@ -2440,7 +2539,8 @@ function nutrition() {
     d = gym.meals[key],
     sum = d.items.reduce((n, m) => n.map((v, j) => v + mealValues(m)[j]), [0, 0, 0, 0]),
     trainingDay = /^d[1-4]$/.test(key);
-  return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div>${weightReminder()}<div class="daytabs foodtabs">${Object.entries(
+  // v1.22.0 — "Peso di oggi" solo in Allenamento (prima compariva anche qui)
+  return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div><div class="daytabs foodtabs">${Object.entries(
     gym.meals,
   )
     .map(([k, v], idx, all) => {
@@ -2934,6 +3034,9 @@ function render() {
           ? stats()
           : more();
   if (gym.tab === 'workout') bindWorkout();
+  // v1.22.0 — la scheda Notifiche si riempie subito (prima restava vuota finché non arrivava un aggiornamento).
+  // (all'avvio pushState non è ancora pronto: ci pensa refreshPushState poco dopo)
+  if (document.getElementById('pushCard') && typeof pushState !== 'undefined' && pushState) renderPushCard();
   document.getElementById('weigh-today-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const val = parseGymNumber(new FormData(e.target).get('weight'));
@@ -3784,7 +3887,7 @@ async function sendToNoiDue(lines) {
    Guida completa: GUIDA_NOTIFICHE.txt */
 const PUSH_VAPID_PUBLIC = "BJ-n5y0FFrVnVmNebTeJ7jl2xZCvbufjM3kiBu4SJsMhKuyWPsoZsi8wwa0ovz-prskp8mOm62OQZWnm-ng5iJc";
 const PUSH_FN = "/functions/v1/notify-pesoreminder";
-let pushState = { sub: null, row: null, busy: false, msg: "", err: false, loaded: false };
+var pushState = { sub: null, row: null, busy: false, msg: "", err: false, loaded: false };
 function pushSupported() { return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window; }
 function pushIsIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); }
 function pushStandalone() { return window.navigator.standalone === true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches); }
@@ -3843,6 +3946,8 @@ function renderPushCard() {
   const msg = pushState.msg ? `<p class="push-msg${pushState.err ? " err" : ""}">${U.esc(pushState.msg)}</p>` : "";
   card.innerHTML = `<h2>Notifiche</h2><p class="suite-sync-status"><span class="suite-sync-dot ${dot}" aria-hidden="true"></span>${U.esc(status)}</p>${inner}${msg}`;
 }
+// v1.22.0 — all'avvio (anche se si apre l'app direttamente su Altro) la scheda Notifiche non resta vuota
+setTimeout(() => { if (document.getElementById('pushCard')) renderPushCard(); }, 0);
 let pushLastSigned = null;
 function pushOnSyncStatus() {
   const signed = !!(window.SuiteSync && SuiteSync.signedIn);
