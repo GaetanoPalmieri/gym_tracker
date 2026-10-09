@@ -473,7 +473,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.24.0';
+const APP_VERSION = '1.25.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -705,6 +705,49 @@ function commit(n, { restore = false } = {}) {
     U.toast('Salvataggio non riuscito. Modifica non applicata.');
     return false;
   }
+}
+/* v1.25.0 — Alimento dall'etichetta: una foto della tabella nutrizionale diventa una
+   voce dell'elenco alimenti, con i valori per 100 g gia riportati. Si corregge a mano
+   come qualsiasi altro alimento: e' un aiuto per non ricopiare i numeri. */
+function bindAiFoodCard() {
+  const card = document.getElementById('aiFoodCard');
+  if (!card) return;
+  const on = !!(window.SuiteAI && SuiteAI.disponibile());
+  card.hidden = !on;
+  if (!on || card.dataset.bound) return;
+  card.dataset.bound = '1';
+  const cam = document.getElementById('ai-food-cam'),
+    gal = document.getElementById('ai-food-gal'),
+    hint = document.getElementById('ai-food-hint');
+  document.getElementById('ai-food-shot')?.addEventListener('click', () => cam.click());
+  document.getElementById('ai-food-pick')?.addEventListener('click', () => gal.click());
+  async function leggi(input) {
+    const f = input.files && input.files[0];
+    input.value = '';
+    if (!f) return;
+    hint.textContent = 'Sto leggendo l\u2019etichetta\u2026';
+    const d = await SuiteAI.daFoto('etichetta', f, {});
+    if (!d || !(Number(d.kcal) > 0)) {
+      hint.textContent = 'Non sono riuscito a leggere i valori: aggiungilo a mano.';
+      return;
+    }
+    const nome = String(d.nome || '').trim() || 'Alimento senza nome';
+    const unit = d.unita === 'ml' ? 'ml' : 'g';
+    const num = (x) => (Number.isFinite(Number(x)) ? Math.round(Number(x) * 10) / 10 : 0);
+    const key = 'ai_' + Date.now().toString(36);
+    const ok = mutate((n) => {
+      n.foods = n.foods || {};
+      n.foods[key] = { name: nome.slice(0, 60), unit, v: [num(d.kcal), num(d.proteine), num(d.carboidrati), num(d.grassi)] };
+    });
+    if (!ok) {
+      hint.textContent = 'Non sono riuscito a salvarlo.';
+      return;
+    }
+    hint.textContent = `Aggiunto: ${nome} \u2014 ${num(d.kcal)} kcal, P ${num(d.proteine)} \u00b7 C ${num(d.carboidrati)} \u00b7 G ${num(d.grassi)} per 100 ${unit}. Controlla i valori.`;
+    U.toast('Alimento aggiunto');
+  }
+  cam.addEventListener('change', () => leggi(cam));
+  gal.addEventListener('change', () => leggi(gal));
 }
 function mutate(fn) {
   const n = U.clone(gym);
@@ -1875,10 +1918,59 @@ function muscleGroup(e) {
   if (/lat machine|rematore|pulley|trazioni/.test(n)) return 'Schiena';
   return '';
 }
+/* v1.25.0 — "Scrivi l'allenamento a parole": "panca 4x8 a 60, poi croci 3x12 a 14"
+   riempie carichi e ripetizioni degli esercizi di oggi. Scrive solo sulle righe
+   dell'esercizio riconosciuto, e solo dove il campo e' ancora vuoto. */
+function aiWorkoutRow() {
+  if (!(window.SuiteAI && SuiteAI.disponibile())) return '';
+  return `<div class="card ai-workout-card"><h2>Scrivilo a parole</h2><div class="ai-row"><div class="ai-row-input"><input type="text" class="text-input ai-input" id="ai-wk-input" placeholder="es. panca 4x8 a 60, croci 3x12 a 14" autocomplete="off" enterkeyhint="go"><button type="button" class="ai-go" id="ai-wk-go" aria-label="Leggi la frase">\u2728</button></div><small class="field-hint ai-hint" id="ai-wk-hint">Riempie carichi e ripetizioni degli esercizi di oggi. Quello che hai gia scritto non viene toccato.</small></div></div>`;
+}
+function bindAiWorkout() {
+  const inp = document.getElementById('ai-wk-input'),
+    btn = document.getElementById('ai-wk-go'),
+    hint = document.getElementById('ai-wk-hint');
+  if (!inp || !btn || btn.dataset.bound) return;
+  btn.dataset.bound = '1';
+  const norm = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  async function vai() {
+    const t = inp.value.trim();
+    if (!t) { inp.focus(); return; }
+    const s = active();
+    if (!s) { hint.textContent = 'Apri prima la giornata di allenamento.'; return; }
+    btn.disabled = true;
+    hint.textContent = 'Sto leggendo\u2026';
+    const d = await SuiteAI.ask('allenamento', t, {
+      contesto: { esercizi: s.exercises.map((e) => e.name), unita: weightUnit() },
+    });
+    btn.disabled = false;
+    const list = d && Array.isArray(d.esercizi) ? d.esercizi.filter((x) => x && x.nome) : [];
+    if (!list.length) { hint.textContent = 'Non ho capito: scrivi per esempio "panca 4x8 a 60".'; return; }
+    let scritti = 0, saltati = [];
+    for (const voce of list) {
+      const n = norm(voce.nome);
+      const i = s.exercises.findIndex((e) => { const en = norm(e.name); return en === n || en.includes(n) || n.includes(en); });
+      if (i < 0) { saltati.push(voce.nome); continue; }
+      const serie = Number(voce.serie) > 0 ? Math.min(s.exercises[i].rows.length, Math.round(Number(voce.serie))) : s.exercises[i].rows.length;
+      for (let j = 0; j < serie; j++) {
+        const row = s.exercises[i].rows[j];
+        if (!row) continue;
+        if (Number(voce.carico) > 0 && row.weight == null) { saveRow(i, j, 'weight', String(voce.carico)); scritti++; }
+        if (Number(voce.ripetizioni) > 0 && row.reps == null) saveRow(i, j, 'reps', String(voce.ripetizioni));
+      }
+    }
+    inp.value = '';
+    hint.textContent = scritti
+      ? `Scritte ${scritti} serie.${saltati.length ? ' Non ho trovato: ' + saltati.join(', ') + '.' : ''} Controlla e spunta.`
+      : `Non ho trovato questi esercizi nella giornata di oggi${saltati.length ? ': ' + saltati.join(', ') : ''}.`;
+    if (scritti) render();
+  }
+  btn.addEventListener('click', vai);
+  inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); vai(); } });
+}
 function workout() {
   const s = active(),
     closed = !s ? closedCurrent() : null;
-  const top = `${weightReminder()}`;
+  const top = `${weightReminder()}${s ? aiWorkoutRow() : ''}`;
   if (!s && gym.settings.blockDone)
     return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div>${weightReminder()}${blockDonePanel()}`;
   if (closed)
@@ -2958,7 +3050,7 @@ function generateNextBlock() {
   );
 }
 function more() {
-  return `${window.SuiteTheme ? SuiteTheme.card() : ''}${window.SuiteSync ? SuiteSync.cardHtml('recomp') : ''}<div class="card" id="pushCard"></div><div class="card app-version-card"><h2>Versione app</h2><p class="muted">RecompApp ${APP_VERSION} · gli aggiornamenti vengono controllati automaticamente.</p><button id="check-app-update">Controlla aggiornamenti</button></div>${checksCard()}<div class="card"><h2>Le tue sessioni</h2><p class="muted">Durata, serie completate ed esercizi saltati.</p><button id="open-sessions">Riepilogo sessioni</button></div><div class="card"><h2>Backup e ripristino</h2><p class="muted">Dati salvati solo in questo browser. Ultima esportazione richiesta: ${gym.settings.lastExport ? U.date(gym.settings.lastExport) : 'mai'}.</p><div class="actions"><button id="export-gym">Esporta JSON</button><button id="import-gym">Importa backup</button></div><input type="file" accept=".json,application/json" hidden id="import-file"></div><div class="card"><h2>Unità di misura</h2><label for="weight-unit">Carichi e peso corporeo</label><select id="weight-unit"><option value="kg" ${weightUnit() === 'kg' ? 'selected' : ''}>kg</option><option value="lb" ${weightUnit() === 'lb' ? 'selected' : ''}>lb</option></select></div><div class="card"><h2>Storage locale</h2><p class="muted">${storageError ? U.esc(storageError) : 'Salvataggio locale disponibile. Le modifiche vengono confermate solo dopo la scrittura riuscita.'}</p></div><div class="card danger-zone"><h2>Reset dati</h2><p class="muted">Cancella allenamenti, note, peso e modifiche al piano da questo dispositivo.</p><button id="reset-data" class="danger">Azzera tutti i dati</button></div><div class="card"><h2>Integrazione</h2><details><summary>Indicazioni presenti nel piano</summary>${SUPPLEMENTS.map((s) => `<h3>${U.esc(s.title)}</h3><p class="muted">${U.esc(s.txt)}</p>`).join('')}</details></div><div class="card"><h2>Sessioni aperte</h2>${
+  return `${window.SuiteTheme ? SuiteTheme.card() : ''}${window.SuiteSync ? SuiteSync.cardHtml('recomp') : ''}<div class="card" id="pushCard"></div><div class="card ai-food-card" id="aiFoodCard" hidden><h2>Alimento dall\u2019etichetta</h2><p class="muted">Fotografa la tabella nutrizionale: nome e valori per 100 g entrano nel tuo elenco alimenti, pronti da usare nei pasti.</p><div class="actions"><button id="ai-food-shot">\ud83d\udcf7 Fotografa l\u2019etichetta</button><button id="ai-food-pick">\ud83d\uddbc\ufe0f Dalla galleria</button></div><input type="file" accept="image/*" capture="environment" hidden id="ai-food-cam"><input type="file" accept="image/*" hidden id="ai-food-gal"><p class="muted" id="ai-food-hint"></p></div><div class="card app-version-card"><h2>Versione app</h2><p class="muted">RecompApp ${APP_VERSION} · gli aggiornamenti vengono controllati automaticamente.</p><button id="check-app-update">Controlla aggiornamenti</button></div>${checksCard()}<div class="card"><h2>Le tue sessioni</h2><p class="muted">Durata, serie completate ed esercizi saltati.</p><button id="open-sessions">Riepilogo sessioni</button></div><div class="card"><h2>Backup e ripristino</h2><p class="muted">Dati salvati solo in questo browser. Ultima esportazione richiesta: ${gym.settings.lastExport ? U.date(gym.settings.lastExport) : 'mai'}.</p><div class="actions"><button id="export-gym">Esporta JSON</button><button id="import-gym">Importa backup</button></div><input type="file" accept=".json,application/json" hidden id="import-file"></div><div class="card"><h2>Unità di misura</h2><label for="weight-unit">Carichi e peso corporeo</label><select id="weight-unit"><option value="kg" ${weightUnit() === 'kg' ? 'selected' : ''}>kg</option><option value="lb" ${weightUnit() === 'lb' ? 'selected' : ''}>lb</option></select></div><div class="card"><h2>Storage locale</h2><p class="muted">${storageError ? U.esc(storageError) : 'Salvataggio locale disponibile. Le modifiche vengono confermate solo dopo la scrittura riuscita.'}</p></div><div class="card danger-zone"><h2>Reset dati</h2><p class="muted">Cancella allenamenti, note, peso e modifiche al piano da questo dispositivo.</p><button id="reset-data" class="danger">Azzera tutti i dati</button></div><div class="card"><h2>Integrazione</h2><details><summary>Indicazioni presenti nel piano</summary>${SUPPLEMENTS.map((s) => `<h3>${U.esc(s.title)}</h3><p class="muted">${U.esc(s.txt)}</p>`).join('')}</details></div><div class="card"><h2>Sessioni aperte</h2>${
     gym.sessions
       .filter((s) => !s.legacy && !s.ended)
       .map(
@@ -3033,7 +3125,7 @@ function render() {
         : gym.tab === 'stats'
           ? stats()
           : more();
-  if (gym.tab === 'workout') bindWorkout();
+  if (gym.tab === 'workout') { bindWorkout(); bindAiWorkout(); }
   // v1.22.0 — la scheda Notifiche si riempie subito (prima restava vuota finché non arrivava un aggiornamento).
   // (all'avvio pushState non è ancora pronto: ci pensa refreshPushState poco dopo)
   if (document.getElementById('pushCard') && typeof pushState !== 'undefined' && pushState) renderPushCard();
@@ -3096,6 +3188,7 @@ function render() {
     checkForAppUpdate();
     U.toast('Controllo aggiornamenti avviato.');
   });
+  bindAiFoodCard();
   main
     .querySelectorAll('[data-session-summary]')
     .forEach((b) => (b.onclick = () => summary(b.dataset.sessionSummary)));

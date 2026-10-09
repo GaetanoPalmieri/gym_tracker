@@ -1,0 +1,15 @@
+VERSIONE 1.25.0
+
+Scrivi l'allenamento a parole
+- In Allenamento, riquadro in alto: "panca 4x8 a 60, croci 3x12 a 14" riempie
+  carichi e ripetizioni degli esercizi di oggi.
+- Scrive solo sugli esercizi che riconosce fra quelli della giornata, e solo dove
+  il campo e' ancora vuoto: quello che hai gia' scritto non viene toccato.
+- Se un esercizio non lo trova te lo dice invece di inventarselo.
+
+Alimento dall'etichetta
+- Altro > "Alimento dall'etichetta": fotografi la tabella nutrizionale e l'alimento
+  entra nel tuo elenco con nome, unita' e valori per 100 g (kcal, proteine,
+  carboidrati, grassi). Si correggono a mano come qualsiasi altro alimento.
+
+Tutto questo compare solo con l'AI accesa (vedi GUIDA_AI.txt).
