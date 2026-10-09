@@ -1754,7 +1754,7 @@ body:not([data-active-tab='workout']) .workout-start-row {
 .previous-session {
   margin-top: 0;
 }
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .compact-set {
     font-size: 11px;
   }
@@ -2191,7 +2191,7 @@ main {
 .active-complete-head .closed-session-actions button {
   min-height: 40px;
 }
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .active-complete-head .closed-session-actions {
     display: grid;
     grid-template-columns: 1fr;
@@ -2660,7 +2660,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   font-size: 11px;
   font-weight: 750;
 }
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .closed-session-actions.three-actions {
     grid-template-columns: 1fr;
   }
