@@ -473,7 +473,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.23.2';
+const APP_VERSION = '1.24.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
