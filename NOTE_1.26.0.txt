@@ -1,0 +1,6 @@
+VERSIONE 1.26.0
+
+- Messaggi in basso: riquadro di vetro trasparente con pallino verde, come in tutte le app
+  (prima verde chiaro pieno nel tema chiaro).
+- AI etichetta: i valori vengono letti anche se scritti come testo ("250 kcal", "12,5");
+  se l'AI non risponde compare il motivo.

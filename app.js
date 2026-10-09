@@ -473,7 +473,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.25.0';
+const APP_VERSION = '1.26.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -727,13 +727,13 @@ function bindAiFoodCard() {
     if (!f) return;
     hint.textContent = 'Sto leggendo l\u2019etichetta\u2026';
     const d = await SuiteAI.daFoto('etichetta', f, {});
-    if (!d || !(Number(d.kcal) > 0)) {
-      hint.textContent = 'Non sono riuscito a leggere i valori: aggiungilo a mano.';
+    if (!d || !(SuiteAI.numero(d.kcal) > 0)) {
+      hint.textContent = !d && SuiteAI.ultimoErrore ? SuiteAI.messaggioErrore('Aggiungilo a mano.') : 'Non sono riuscito a leggere i valori: aggiungilo a mano.';
       return;
     }
     const nome = String(d.nome || '').trim() || 'Alimento senza nome';
     const unit = d.unita === 'ml' ? 'ml' : 'g';
-    const num = (x) => (Number.isFinite(Number(x)) ? Math.round(Number(x) * 10) / 10 : 0);
+    const num = (x) => { const n = SuiteAI.numero(x); return Number.isFinite(n) ? Math.round(n * 10) / 10 : 0; };
     const key = 'ai_' + Date.now().toString(36);
     const ok = mutate((n) => {
       n.foods = n.foods || {};
