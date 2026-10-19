@@ -182,6 +182,7 @@ const defaultGym = () => ({
     leanBulkV1123: true,
     oneDairyV1124: true,
     lessYogurtV1125: true,
+    splitV127: true,
     profile: { age: 30, heightCm: 186, startKg: 86, sex: 'M' },
     block: 1,
     blockStart: mondayISO(new Date()),
@@ -207,7 +208,7 @@ function advanceWorkoutPosition(state, week = state.week, dayIdx = state.dayIdx)
     state.dayIdx = 0;
     if (week < MAX_WEEKS) state.week = week + 1;
     else {
-      // Fine del blocco di 8 settimane: il successivo si genera solo dopo il check fisico.
+      // Fine del blocco: il successivo si genera solo dopo il check fisico.
       state.week = MAX_WEEKS;
       state.settings ??= {};
       state.settings.blockDone = true;
@@ -306,6 +307,33 @@ function capRestV120(state) {
   (state.program || []).forEach((d) => d.exercises?.forEach(cap));
   (state.sessions || []).forEach((s) => { if (!s.ended) s.exercises?.forEach(cap); });
 }
+/* 1.27.0 — nuova scheda per la MASSA: 3 giorni con 2 gruppi muscolari + giorno 4 sui punti deboli,
+   blocco di 4 settimane che parte da questa settimana, alimentazione ricalcolata per la massa.
+   Gli esercizi con lo stesso nome restano collegati allo storico (stesso id), le note personali restano. */
+function migrateSplitV127(state) {
+  state.settings ??= {};
+  if (state.settings.splitV127) return;
+  const now = Date.now();
+  (state.sessions || []).forEach((x) => {
+    if (x.legacy || x.ended) return;
+    if (x.runningSince) x.elapsed = (x.elapsed || 0) + Math.max(0, now - x.runningSince);
+    x.runningSince = null;
+    const end = x.started ? new Date(x.started).getTime() + (x.elapsed || 0) : now;
+    x.ended = new Date(Math.min(end, now)).toISOString();
+    if ((x.exercises || []).some((e) => !e.stopped && e.rows?.some((r) => !r.done))) x.archivedIncomplete = true;
+  });
+  state.rest = null;
+  state.program = defaultProgram();
+  state.meals = U.clone(defaultGym().meals);
+  state.foodTab = 'd1';
+  state.cycle = (Number(state.cycle) || 1) + 1;
+  state.week = 1;
+  state.dayIdx = 0;
+  state.settings.block = 1;
+  state.settings.blockStart = mondayISO(new Date());
+  state.settings.blockDone = false;
+  state.settings.splitV127 = true;
+}
 function migrateLoadV1121(state) {
   if (state.settings.loadV1121) return;
   const defs = new Map(defaultProgram().map((d) => [d.key, new Map(d.exercises.map((e) => [e.id, e]))]));
@@ -401,6 +429,7 @@ function normalizeStateOnOpen(state) {
   migrateFullBodyV112(state);
   migrateLoadV1121(state);
   capRestV120(state);
+  migrateSplitV127(state);
   if (!state.settings.leanBulkV1123) {
     // 1.12.3 — profilo (30 anni, 186 cm, 86 kg) e calorie per la massa pulita:
     // media settimanale ~2.750 kcal (fabbisogno stimato ~2.650-2.700), proteine invariate (~2,1-2,4 g/kg).
@@ -473,7 +502,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.26.0';
+const APP_VERSION = '1.27.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -1260,7 +1289,7 @@ function selectWeek(week) {
 function showWeekPicker() {
   const d = U.modal(
     U.head('Seleziona settimana') +
-      `<p class="muted week-picker-help">Blocco ${gym.settings.block || 1}: scegli una delle ${MAX_WEEKS} settimane (2 mesi).</p><div class="week-picker-grid">${Array.from(
+      `<p class="muted week-picker-help">Blocco ${gym.settings.block || 1}: scegli una delle ${MAX_WEEKS} settimane.</p><div class="week-picker-grid">${Array.from(
         { length: MAX_WEEKS },
         (_, i) => {
           const w = i + 1;
@@ -1847,14 +1876,14 @@ function nutritionTargets() {
   const pr = gym.settings.profile || { age: 30, heightCm: 186, startKg: 86, sex: 'M' },
     last = (gym.bodyWeights || []).slice().sort((a, b) => new Date(b.date) - new Date(a.date))[0],
     kg = last?.kg || pr.startKg || 86;
-  // Mifflin-St Jeor × 1,4 (lavoro sedentario + 3-4 allenamenti + passi).
+  // 1.27.0 — MASSA: Mifflin-St Jeor × 1,5 (lavoro attivo + 3-4 allenamenti) e surplus di ~300 kcal.
   const bmr = 10 * kg + 6.25 * pr.heightCm - 5 * pr.age + (pr.sex === 'F' ? -161 : 5),
-    tdee = Math.round((bmr * 1.4) / 10) * 10,
-    target = tdee + 150,
-    goalLo = U.round(kg + 0.25),
-    goalHi = U.round(kg + 0.5);
+    tdee = Math.round((bmr * 1.5) / 10) * 10,
+    target = tdee + 300,
+    goalLo = U.round(kg + 0.8),
+    goalHi = U.round(kg + 1.5);
   const f = (n) => n.toLocaleString('it-IT');
-  return `<p class="muted">Massa pulita: fabbisogno stimato ~${f(tdee)} kcal, obiettivo ~${f(target)} kcal di media (circa 3.000 nei giorni pieni, 2.700 nel richiamo, 2.450-2.550 a riposo). Proteine ${Math.round(kg * 1.8)}-${Math.round(kg * 2.2)} g. Fra un mese il peso dovrebbe essere ${String(goalLo).replace('.', ',')}-${String(goalHi).replace('.', ',')} ${weightLabel()} con la vita stabile.</p>`;
+  return `<p class="muted">Massa: fabbisogno stimato ~${f(tdee)} kcal, obiettivo ~${f(target)} kcal di media (circa 3.200-3.300 nei giorni di allenamento, 3.100 nel giorno 4, 2.650-2.750 a riposo). Proteine ${Math.round(kg * 1.8)}-${Math.round(kg * 2.2)} g. Fra un mese il peso dovrebbe essere ${String(goalLo).replace('.', ',')}-${String(goalHi).replace('.', ',')} ${weightLabel()}: se sale di più, togli 30 g di carboidrati al giorno; se resta fermo, aggiungili.</p>`;
 }
 function planTab() {
   const w = gym.week,
@@ -1897,9 +1926,9 @@ function openPlanPanel() {
 function blockDonePanel() {
   const lastCheck = (gym.checks || []).at(-1),
     recent = lastCheck && Date.now() - new Date(lastCheck.date).getTime() < 14 * 864e5;
-  return `<div class="card block-done"><span class="eyebrow">Blocco ${gym.settings.block || 1} completato</span><h2>🎯 Hai chiuso le 8 settimane</h2><p>Per generare i prossimi 2 mesi serve il check fisico: peso, misure e come ti senti. In base ai dati l'app prepara il nuovo blocco.</p>${
+  return `<div class="card block-done"><span class="eyebrow">Blocco ${gym.settings.block || 1} completato</span><h2>🎯 Hai chiuso le ${MAX_WEEKS} settimane</h2><p>Per generare il prossimo blocco serve il check fisico: peso, misure e come ti senti. In base ai dati l'app prepara il nuovo blocco.</p>${
     recent
-      ? `<p class="muted">Ultimo check: ${U.date(lastCheck.date)}.</p><div class="actions"><button type="button" class="primary" data-generate-block>Genera i prossimi 2 mesi</button><button type="button" data-open-check>Nuovo check</button></div>`
+      ? `<p class="muted">Ultimo check: ${U.date(lastCheck.date)}.</p><div class="actions"><button type="button" class="primary" data-generate-block>Genera il prossimo blocco</button><button type="button" data-open-check>Nuovo check</button></div>`
       : `<button type="button" class="primary" data-open-check>Fai il check fisico</button>`
   }</div>`;
 }
@@ -2932,7 +2961,7 @@ function checksCard() {
         return `${l} ${String(U.round(c[k])).replace('.', ',')} ${u}${d ? ` <small class="${d > 0 ? 'up' : 'down'}">${d > 0 ? '+' : ''}${String(d).replace('.', ',')}</small>` : ''}`;
       })
       .join(' · ')}</span></div>`;
-  return `<div class="card check-card"><h2>Check fisico</h2><p class="muted">Blocco ${gym.settings.block || 1} · iniziato il ${new Date(gym.settings.blockStart + 'T00:00:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}. Alla fine delle 8 settimane il check fisico sblocca i 2 mesi successivi.</p>${list.map((c, i) => row(c, list[i + 1])).join('') || '<p class="muted">Nessun check registrato.</p>'}<button type="button" data-open-check>Nuovo check fisico</button></div>`;
+  return `<div class="card check-card"><h2>Check fisico</h2><p class="muted">Blocco ${gym.settings.block || 1} · iniziato il ${new Date(gym.settings.blockStart + 'T00:00:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}. Alla fine delle ${MAX_WEEKS} settimane il check fisico sblocca il blocco successivo.</p>${list.map((c, i) => row(c, list[i + 1])).join('') || '<p class="muted">Nessun check registrato.</p>'}<button type="button" data-open-check>Nuovo check fisico</button></div>`;
 }
 function openCheckForm() {
   const today = ymd(new Date()),
@@ -3046,7 +3075,7 @@ function generateNextBlock() {
   render();
   U.modal(
     U.head(`Blocco ${nextBlock} pronto`) +
-      `<p>Inizia lunedì ${new Date(gym.settings.blockStart + 'T00:00:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })} e dura 8 settimane.</p><ul class="block-changes">${changes.map((c) => `<li>${U.esc(c)}</li>`).join('')}</ul><p class="muted">Per una revisione completa della scheda esporta il backup e condividilo.</p>`,
+      `<p>Inizia lunedì ${new Date(gym.settings.blockStart + 'T00:00:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })} e dura ${MAX_WEEKS} settimane.</p><ul class="block-changes">${changes.map((c) => `<li>${U.esc(c)}</li>`).join('')}</ul><p class="muted">Per una revisione completa della scheda esporta il backup e condividilo.</p>`,
   );
 }
 function more() {

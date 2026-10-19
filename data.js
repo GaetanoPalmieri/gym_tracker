@@ -227,110 +227,351 @@ const CARDIO_START = (reps) => ({name:"Tapis roulant — camminata in pendenza",
 const KEGEL_START = {name:"Esercizi di Kegel (pavimento pelvico)", sets:3, reps:"10 contrazioni (5\" tieni + 5\" rilascia)", rest:15, move:"kegel",
   note:"Contrai i muscoli del pavimento pelvico, tieni 5 secondi e rilascia 5 secondi. Evita di trattenere il respiro."};
 
+/* 1.27.0 — Scheda per la MASSA su 3 giorni, 2 gruppi muscolari per giorno + giorno 4 facoltativo
+   (punti deboli: deltoidi e braccia, addome, cardio). Stessi nomi = stessi esercizi: lo storico dei carichi resta collegato. */
 const DAYS = [
-  { key:"d1", name:"Full body A", short:"G1 · Full A",
-    exercises:[
-      CARDIO_START("15 min"),
-      KEGEL_START,
-      {name:"Crunch ai cavi in ginocchio", sets:3, reps:"12-15", rest:45, move:"core",
-        note:"Fletti il busto portando le costole verso il bacino. Non tirare con le braccia e mantieni il bacino stabile."},
-      {name:"Dead bug controllato", sets:3, reps:"8 per lato", rest:30, move:"core",
-        note:"Zona lombare aderente al pavimento. Allunga lentamente braccio e gamba opposti senza perdere la posizione."},
-      {name:"Leg press 45°", sets:4, reps:"8-10", rest:90, compound:true, move:"leg_press",
-        note:"ATTENZIONE GINOCCHIO: piedi larghezza spalle, scendi solo fino a dove NON senti fastidio (circa 90° di flessione), non bloccare le ginocchia in estensione completa in alto."},
-      {name:"Panca piana con bilanciere", sets:4, reps:"6-8", rest:90, compound:true, move:"vertical_press",
-        note:"Scapole retratte e addotte, piedi ben piantati. Discesa controllata in 2-3 secondi, barra a metà petto, spinta esplosiva in alto senza staccare i glutei dalla panca."},
-      {name:"Rematore con manubrio monolaterale", sets:3, reps:"8-10", rest:45, move:"horizontal_pull",
-        note:"Un braccio per volta, busto quasi parallelo al pavimento, il gomito va verso l'anca, non verso l'alto."},
-      {name:"Lento avanti con manubri, seduto", sets:3, reps:"8-10", rest:90, move:"vertical_press",
-        note:"Core stabile, non iperestendere la zona lombare. I manubri partono all'altezza delle spalle e salgono fino quasi a toccarsi in alto."},
-      {name:"Leg curl sdraiato/seduto", sets:3, reps:"10-12", rest:60, move:"leg_press",
-        note:"Contrazione piena dei femorali in ogni ripetizione, evita strappi con inerzia."},
-      {name:"Alzate laterali con manubri", sets:4, reps:"12-15", rest:45, move:"lateral_raise",
-        note:"Punto debole - deltoidi: gomito leggermente flesso, salita fino all'altezza della spalla, nessuno slancio con il busto. Se serve, riduci il peso per fare tutte le ripetizioni in modo pulito."},
-      {name:"Push down tricipiti ai cavi", sets:3, reps:"10-12", rest:45, move:"vertical_press",
-        note:"Gomiti fissi lungo il fianco: si muove solo l'avambraccio. Estensione completa in basso."},
-    ]},
-  { key:"d2", name:"Full body B", short:"G2 · Full B",
-    exercises:[
-      CARDIO_START("15 min"),
-      KEGEL_START,
-      {name:"Knee raise alla captain chair", sets:3, reps:"10-15", rest:45, move:"core",
-        note:"Porta le ginocchia verso il petto con controllo e chiudi leggermente il bacino in alto. Evita slanci."},
-      {name:"Pallof press ai cavi", sets:3, reps:"10 per lato", rest:30, move:"core",
-        note:"Anti-rotazione: spingi le mani davanti al petto senza lasciare ruotare il busto. Core e glutei attivi."},
-      {name:"Stacco rumeno con bilanciere", sets:4, reps:"8-10", rest:90, compound:true, move:"hinge",
-        note:"Schiena neutra per tutto il movimento, bilanciere vicino alle gambe, spinta finale con i glutei. Fermati quando senti un buon allungamento dei femorali."},
-      {name:"Lat machine presa larga", sets:4, reps:"8-10", rest:90, move:"vertical_pull",
-        note:"Tira verso i capezzoli, petto in fuori, nessuno slancio con il busto. Controlla anche la fase di risalita."},
-      {name:"Panca inclinata con manubri (30°)", sets:3, reps:"8-10", rest:90, move:"vertical_press",
-        note:"Range di movimento completo. Evita di far \"sbattere\" i manubri in alto: mantieni un minimo di tensione e controllo in ogni ripetizione."},
-      {name:"Affondi bulgari con manubri", sets:3, reps:"8-10 per gamba", rest:75, move:"leg_press",
-        note:"Passo corto e controllato, il ginocchio della gamba anteriore non deve superare troppo la punta del piede. Fermati se senti fastidio articolare."},
-      {name:"Face pull ai cavi", sets:3, reps:"12-15", rest:45, move:"lateral_raise",
-        note:"Punto debole - deltoide posteriore: tira verso il viso con i gomiti alti. Ottimo anche per la postura delle spalle."},
-      {name:"Curl bicipiti con bilanciere", sets:3, reps:"8-10", rest:60, move:"curl",
-        note:"Gomiti fermi lungo il fianco, nessuno slancio con la schiena. Contrai bene in alto."},
-      {name:"French press con manubrio", sets:3, reps:"10-12", rest:60, move:"vertical_press",
-        note:"Gomiti stretti e fermi, scendi dietro la testa senza aprire i gomiti verso l'esterno."},
-    ]},
-  { key:"d3", name:"Full body C", short:"G3 · Full C",
-    exercises:[
-      CARDIO_START("15 min"),
-      KEGEL_START,
-      {name:"Ab wheel rollout", sets:3, reps:"8-12", rest:60, move:"core",
-        note:"Parti in ginocchio, glutei e addome contratti. Allunga solo fin dove riesci a mantenere la zona lombare neutra."},
-      {name:"Side plank", sets:3, reps:"30-45 sec per lato", rest:30, move:"core",
-        note:"Corpo in linea, bacino alto e addome attivo. Mantieni senza ruotare il tronco."},
-      {name:"Hip thrust con bilanciere", sets:4, reps:"8-10", rest:90, compound:true, move:"hinge",
-        note:"Mento verso il petto, spinta con i glutei, blocco di 1 secondo in massima contrazione in alto."},
-      {name:"Pulley basso (seated row)", sets:3, reps:"10-12", rest:75, move:"horizontal_pull",
-        note:"Petto alto, tira verso l'ombelico, controlla sempre il ritorno senza far \"cadere\" il peso."},
-      {name:"Arnold press con manubri", sets:3, reps:"8-10", rest:75, move:"vertical_press",
-        note:"Punto debole - deltoidi: rotazione fluida del polso durante la salita, ottimo per deltoide anteriore e laterale insieme."},
-      {name:"Croci ai cavi (cable fly)", sets:3, reps:"12-15", rest:45, move:"fly",
-        note:"Tensione continua su tutto il movimento, breve pausa in massima contrazione al centro."},
-      {name:"Leg extension", sets:3, reps:"12-15", rest:60, move:"leg_press",
-        note:"Carico moderato e movimento lento: rinforza il ginocchio senza lo stress da carico assiale dello squat pesante."},
-      {name:"Alzate laterali ai cavi (unilaterale)", sets:3, reps:"12-15 per lato", rest:30, move:"lateral_raise",
-        note:"Punto debole - deltoidi: il cavo mantiene tensione costante anche in basso, più efficace del manubrio su questo esercizio."},
-      {name:"Curl a martello con manubri", sets:3, reps:"10-12", rest:45, move:"curl",
-        note:"Presa neutra (palmi rivolti verso il corpo): lavora anche il brachiale, utile per braccia più \"piene\"."},
-      {name:"Calf raise in piedi", sets:4, reps:"10-15", rest:45, move:"leg_press",
-        note:"Range di movimento completo, pausa di 1 secondo in massima estensione."},
-    ]},
-  { key:"d4", name:"Richiamo · Aerobico (opzionale)", short:"G4 · Richiamo", optional:true,
-    exercises:[
-      CARDIO_START("25-30 min"),
-      KEGEL_START,
-      {name:"Plank frontale", sets:3, reps:"30-45 sec", rest:30, move:"core",
-        note:"Gomiti sotto le spalle, corpo in linea da testa a talloni. Glutei e addome contratti, respira senza far cedere la zona lombare."},
-      {name:"Crunch inverso su panca", sets:3, reps:"12-15", rest:30, move:"core",
-        note:"Arrotola il bacino verso il petto senza slancio e scendi lentamente. Il lavoro è dell'addome, non delle gambe."},
-      {name:"Alzate posteriori (rear delt fly) su panca inclinata", sets:3, reps:"15-20", rest:30, move:"lateral_raise",
-        note:"Punto debole - deltoide posteriore: busto appoggiato alla panca, peso leggero e movimento controllato, niente slancio."},
-      {name:"Alzate laterali con manubri", sets:3, reps:"15-20", rest:30, move:"lateral_raise",
-        note:"Punto debole - deltoidi: gomito leggermente flesso, salita fino all'altezza della spalla, nessuno slancio con il busto. Se serve, riduci il peso per fare tutte le ripetizioni in modo pulito."},
-      {name:"Curl 21 (bicipiti, manubri leggeri)", sets:2, reps:"21 (7+7+7)", rest:60, move:"curl",
-        note:"Punto debole - braccia: 7 ripetizioni nella metà bassa del movimento + 7 nella metà alta + 7 complete. Usa un peso leggero: brucia molto ma dà grande volume alle braccia."},
-      {name:"Push down tricipiti ai cavi", sets:2, reps:"15-20", rest:45, move:"vertical_press",
-        note:"Gomiti fissi lungo il fianco: si muove solo l'avambraccio. Estensione completa in basso."},
-    ]},
+  {
+    "key": "d1",
+    "name": "Petto e tricipiti",
+    "short": "G1 · Petto + Tricipiti",
+    "exercises": [
+      {
+        "name": "Tapis roulant — camminata in pendenza",
+        "sets": 1,
+        "reps": "8-10 min",
+        "rest": 0,
+        "move": "cardio",
+        "note": "Solo riscaldamento: ritmo tranquillo. In fase di massa il cardio lungo si fa nel giorno 4."
+      },
+      {
+        "name": "Esercizi di Kegel (pavimento pelvico)",
+        "sets": 3,
+        "reps": "10 contrazioni (5\" tieni + 5\" rilascia)",
+        "rest": 15,
+        "move": "kegel",
+        "note": "Contrai i muscoli del pavimento pelvico, tieni 5 secondi e rilascia 5 secondi. Evita di trattenere il respiro."
+      },
+      {
+        "name": "Crunch ai cavi in ginocchio",
+        "sets": 3,
+        "reps": "12-15",
+        "rest": 45,
+        "move": "core",
+        "note": "Fletti il busto portando le costole verso il bacino. Non tirare con le braccia e mantieni il bacino stabile."
+      },
+      {
+        "name": "Panca piana con bilanciere",
+        "sets": 4,
+        "reps": "6-8",
+        "rest": 90,
+        "compound": true,
+        "move": "vertical_press",
+        "note": "Esercizio principale del giorno. Ultimo dato: 30 kg × 8/7/7/6: resta a 30 kg finché non chiudi 4×8, poi +2,5 kg. Scapole retratte, discesa in 2-3 secondi, barra a metà petto."
+      },
+      {
+        "name": "Panca inclinata con manubri (30°)",
+        "sets": 3,
+        "reps": "8-10",
+        "rest": 90,
+        "move": "vertical_press",
+        "note": "Petto alto. Ultimo dato 12 kg per manubrio: quando chiudi 3×10 passa a 14 kg."
+      },
+      {
+        "name": "Croci ai cavi (cable fly)",
+        "sets": 3,
+        "reps": "12-15",
+        "rest": 60,
+        "move": "fly",
+        "note": "Tensione continua su tutto il movimento, breve pausa in massima contrazione al centro."
+      },
+      {
+        "name": "Push down tricipiti ai cavi",
+        "sets": 3,
+        "reps": "10-12",
+        "rest": 60,
+        "move": "vertical_press",
+        "note": "Gomiti fissi lungo il fianco: si muove solo l'avambraccio. Estensione completa in basso."
+      },
+      {
+        "name": "French press con manubrio",
+        "sets": 3,
+        "reps": "10-12",
+        "rest": 60,
+        "move": "vertical_press",
+        "note": "Gomiti stretti e fermi, scendi dietro la testa senza aprire i gomiti verso l'esterno."
+      }
+    ]
+  },
+  {
+    "key": "d2",
+    "name": "Dorso e bicipiti",
+    "short": "G2 · Dorso + Bicipiti",
+    "exercises": [
+      {
+        "name": "Tapis roulant — camminata in pendenza",
+        "sets": 1,
+        "reps": "8-10 min",
+        "rest": 0,
+        "move": "cardio",
+        "note": "Solo riscaldamento: ritmo tranquillo. In fase di massa il cardio lungo si fa nel giorno 4."
+      },
+      {
+        "name": "Esercizi di Kegel (pavimento pelvico)",
+        "sets": 3,
+        "reps": "10 contrazioni (5\" tieni + 5\" rilascia)",
+        "rest": 15,
+        "move": "kegel",
+        "note": "Contrai i muscoli del pavimento pelvico, tieni 5 secondi e rilascia 5 secondi. Evita di trattenere il respiro."
+      },
+      {
+        "name": "Knee raise alla captain chair",
+        "sets": 3,
+        "reps": "10-15",
+        "rest": 45,
+        "move": "core",
+        "note": "Porta le ginocchia verso il petto con controllo e chiudi leggermente il bacino in alto. Evita slanci."
+      },
+      {
+        "name": "Lat machine presa larga",
+        "sets": 4,
+        "reps": "8-10",
+        "rest": 90,
+        "move": "vertical_pull",
+        "note": "Esercizio principale del giorno. Ultimo dato 30 kg: quando chiudi 4×10 aumenta di 5 kg. Tira verso il petto, niente slancio con il busto.",
+        "compound": true
+      },
+      {
+        "name": "Rematore con manubrio monolaterale",
+        "sets": 3,
+        "reps": "8-10",
+        "rest": 75,
+        "move": "horizontal_pull",
+        "note": "Ultimo dato 10 kg: è leggero per te, prova 14-16 kg mantenendo la tecnica. Gomito verso l'anca.",
+        "compound": true
+      },
+      {
+        "name": "Pulley basso (seated row)",
+        "sets": 3,
+        "reps": "10-12",
+        "rest": 75,
+        "move": "horizontal_pull",
+        "note": "Petto alto, tira verso l'ombelico, controlla sempre il ritorno senza far \"cadere\" il peso."
+      },
+      {
+        "name": "Face pull ai cavi",
+        "sets": 3,
+        "reps": "12-15",
+        "rest": 45,
+        "move": "lateral_raise",
+        "note": "Punto debole - deltoide posteriore: tira verso il viso con i gomiti alti. Ottimo anche per la postura delle spalle."
+      },
+      {
+        "name": "Curl bicipiti con bilanciere",
+        "sets": 3,
+        "reps": "8-10",
+        "rest": 60,
+        "move": "curl",
+        "note": "Punto debole - braccia: gomiti fermi, niente slancio. Quando chiudi 3×10 aggiungi 2,5 kg."
+      },
+      {
+        "name": "Curl a martello con manubri",
+        "sets": 3,
+        "reps": "10-12",
+        "rest": 60,
+        "move": "curl",
+        "note": "Presa neutra (palmi rivolti verso il corpo): lavora anche il brachiale, utile per braccia più \"piene\"."
+      }
+    ]
+  },
+  {
+    "key": "d3",
+    "name": "Gambe e spalle",
+    "short": "G3 · Gambe + Spalle",
+    "exercises": [
+      {
+        "name": "Tapis roulant — camminata in pendenza",
+        "sets": 1,
+        "reps": "8-10 min",
+        "rest": 0,
+        "move": "cardio",
+        "note": "Solo riscaldamento: scalda bene le ginocchia prima della leg press."
+      },
+      {
+        "name": "Esercizi di Kegel (pavimento pelvico)",
+        "sets": 3,
+        "reps": "10 contrazioni (5\" tieni + 5\" rilascia)",
+        "rest": 15,
+        "move": "kegel",
+        "note": "Contrai i muscoli del pavimento pelvico, tieni 5 secondi e rilascia 5 secondi. Evita di trattenere il respiro."
+      },
+      {
+        "name": "Ab wheel rollout",
+        "sets": 3,
+        "reps": "8-12",
+        "rest": 45,
+        "move": "core",
+        "note": "Parti in ginocchio, glutei e addome contratti. Allunga solo fin dove riesci a mantenere la zona lombare neutra."
+      },
+      {
+        "name": "Leg press 45°",
+        "sets": 4,
+        "reps": "8-10",
+        "rest": 90,
+        "compound": true,
+        "move": "leg_press",
+        "note": "ATTENZIONE GINOCCHIO: piedi larghezza spalle, scendi solo fino a dove NON senti fastidio (circa 90° di flessione), non bloccare le ginocchia in estensione completa in alto."
+      },
+      {
+        "name": "Stacco rumeno con bilanciere",
+        "sets": 3,
+        "reps": "8-10",
+        "rest": 90,
+        "compound": true,
+        "move": "hinge",
+        "note": "Ultimo dato 10 kg × 12: troppo leggero, passa a 20-25 kg e fai 8-10 ripetizioni. Schiena neutra, bilanciere vicino alle gambe."
+      },
+      {
+        "name": "Leg curl sdraiato/seduto",
+        "sets": 3,
+        "reps": "10-12",
+        "rest": 60,
+        "move": "leg_press",
+        "note": "Contrazione piena dei femorali in ogni ripetizione, evita strappi con inerzia."
+      },
+      {
+        "name": "Leg extension",
+        "sets": 3,
+        "reps": "12-15",
+        "rest": 60,
+        "move": "leg_press",
+        "note": "Carico moderato e movimento lento: rinforza il ginocchio senza lo stress da carico assiale dello squat pesante."
+      },
+      {
+        "name": "Lento avanti con manubri, seduto",
+        "sets": 3,
+        "reps": "8-10",
+        "rest": 90,
+        "move": "vertical_press",
+        "note": "Ultimo dato 10 kg per manubrio. Core stabile, non inarcare la schiena.",
+        "compound": true
+      },
+      {
+        "name": "Alzate laterali con manubri",
+        "sets": 4,
+        "reps": "12-15",
+        "rest": 45,
+        "move": "lateral_raise",
+        "note": "Punto debole - deltoidi: gomito leggermente flesso, salita fino all'altezza della spalla, nessuno slancio con il busto. Se serve, riduci il peso per fare tutte le ripetizioni in modo pulito."
+      },
+      {
+        "name": "Calf raise in piedi",
+        "sets": 3,
+        "reps": "12-15",
+        "rest": 45,
+        "move": "leg_press",
+        "note": "Range di movimento completo, pausa di 1 secondo in massima estensione."
+      }
+    ]
+  },
+  {
+    "key": "d4",
+    "name": "Punti deboli · Addome e cardio",
+    "short": "G4 · Punti deboli",
+    "optional": true,
+    "exercises": [
+      {
+        "name": "Esercizi di Kegel (pavimento pelvico)",
+        "sets": 3,
+        "reps": "10 contrazioni (5\" tieni + 5\" rilascia)",
+        "rest": 15,
+        "move": "kegel",
+        "note": "Contrai i muscoli del pavimento pelvico, tieni 5 secondi e rilascia 5 secondi. Evita di trattenere il respiro."
+      },
+      {
+        "name": "Plank frontale",
+        "sets": 3,
+        "reps": "30-45 sec",
+        "rest": 30,
+        "move": "core",
+        "note": "Gomiti sotto le spalle, corpo in linea da testa a talloni. Glutei e addome contratti, respira senza far cedere la zona lombare."
+      },
+      {
+        "name": "Crunch inverso su panca",
+        "sets": 3,
+        "reps": "12-15",
+        "rest": 30,
+        "move": "core",
+        "note": "Arrotola il bacino verso il petto senza slancio e scendi lentamente. Il lavoro è dell'addome, non delle gambe."
+      },
+      {
+        "name": "Side plank",
+        "sets": 2,
+        "reps": "30-45 sec per lato",
+        "rest": 30,
+        "move": "core",
+        "note": "Corpo in linea, bacino alto e addome attivo. Mantieni senza ruotare il tronco."
+      },
+      {
+        "name": "Arnold press con manubri",
+        "sets": 3,
+        "reps": "10-12",
+        "rest": 75,
+        "move": "vertical_press",
+        "note": "Punto debole - deltoidi: rotazione fluida del polso, deltoide anteriore e laterale insieme. Carico più leggero del lento avanti."
+      },
+      {
+        "name": "Alzate laterali ai cavi (unilaterale)",
+        "sets": 3,
+        "reps": "12-15 per lato",
+        "rest": 30,
+        "move": "lateral_raise",
+        "note": "Punto debole - deltoidi: il cavo mantiene tensione costante anche in basso, più efficace del manubrio su questo esercizio."
+      },
+      {
+        "name": "Alzate posteriori (rear delt fly) su panca inclinata",
+        "sets": 3,
+        "reps": "15-20",
+        "rest": 30,
+        "move": "lateral_raise",
+        "note": "Punto debole - deltoide posteriore: busto appoggiato alla panca, peso leggero e movimento controllato, niente slancio."
+      },
+      {
+        "name": "Curl 21 (bicipiti, manubri leggeri)",
+        "sets": 2,
+        "reps": "21 (7+7+7)",
+        "rest": 60,
+        "move": "curl",
+        "note": "Punto debole - braccia: 7 ripetizioni nella metà bassa del movimento + 7 nella metà alta + 7 complete. Usa un peso leggero: brucia molto ma dà grande volume alle braccia."
+      },
+      {
+        "name": "Push down tricipiti ai cavi",
+        "sets": 3,
+        "reps": "15-20",
+        "rest": 45,
+        "move": "vertical_press",
+        "note": "Punto debole - braccia: carico leggero, ripetizioni alte, estensione completa. Fai curl 21 e push down uno dopo l'altro (superserie) per risparmiare tempo."
+      },
+      {
+        "name": "Tapis roulant — camminata in pendenza",
+        "sets": 1,
+        "reps": "20-25 min",
+        "rest": 0,
+        "move": "cardio",
+        "note": "Cardio in zona 2 alla fine: fa bene al cuore e al recupero. In massa non serve di più: non trasformarlo in corsa."
+      }
+    ]
+  }
 ];
 
 /* Blocco di 8 settimane per un livello intermedio: si parte subito con carichi di lavoro reali,
    progressione per 7 settimane e un solo scarico nella settimana 8 (insieme al check fisico).
    Doppia progressione: prima si sale di ripetizioni fino al massimo del range, poi si aumenta il carico. */
-const BLOCK_WEEKS = 8;
+const BLOCK_WEEKS = 4;
 const PROGRESSION_TEXT = {
-  1: "Settimana 1 — si parte forti: carichi di lavoro veri, 1-2 ripetizioni in riserva su tutti gli esercizi. Usa i pesi delle ultime sessioni dove gli esercizi sono gli stessi.",
-  2: "Settimana 2 — doppia progressione: aggiungi ripetizioni fino al massimo del range. Quando lo raggiungi in tutte le serie, aumenta il carico (+2,5 kg sui multiarticolari, +1-2 kg sui complementari).",
-  3: "Settimana 3: continua a salire. Multiarticolari a 1-2 ripetizioni in riserva, ultima serie dei complementari vicino al cedimento tecnico.",
-  4: "Settimana 4: progressione regolare. Se dormi male o senti dolori articolari, ripeti i carichi della settimana scorsa invece di forzare.",
-  5: "Settimana 5: obiettivo battere i numeri della settimana 3 di almeno una ripetizione o un piccolo carico.",
-  6: "Settimana 6: multiarticolari a 1 ripetizione in riserva, complementari a cedimento tecnico nell'ultima serie.",
-  7: "Settimana 7 — picco del blocco: i carichi più alti per le ripetizioni indicate, tecnica pulita e ginocchio senza dolore.",
-  8: "Settimana 8 — SCARICO e CHECK: carico -10/15% e una serie in meno sui multiarticolari. A fine settimana fai il check fisico (Altro → Check fisico) per generare i 2 mesi successivi.",
+  1: "Settimana 1 — partenza: usa i carichi delle ultime sessioni e lascia 2 ripetizioni in riserva. Su stacco rumeno e rematore i pesi erano troppo leggeri: alzali subito (vedi nota dell'esercizio).",
+  2: "Settimana 2 — doppia progressione: aggiungi ripetizioni fino al massimo del range; quando ci arrivi in tutte le serie aumenta il carico (+2,5 kg sui multiarticolari, +1-2 kg sui complementari). 1 ripetizione in riserva.",
+  3: "Settimana 3 — la più dura: multiarticolari a 1 ripetizione in riserva, ultima serie dei complementari vicina al cedimento tecnico. Prova a battere i numeri della settimana 1.",
+  4: "Settimana 4 — consolidamento e CHECK: stessi carichi della settimana 3 con una serie in meno sui multiarticolari. A fine settimana pesati e fai il check fisico (Altro → Check fisico) per le prossime 4 settimane.",
 };
 /* Schema delle ripetizioni dei blocchi successivi (generati dopo il check fisico):
    i blocchi pari spostano i multiarticolari verso la forza, quelli dispari tornano all'ipertrofia. */
@@ -378,313 +619,313 @@ const ANIM_SVG = {
 
 const MEALS = {
   "d1": {
-    "label": "Giorno 1 · Full body A — Allenamento",
-    "kcal": "≈ 2899 kcal",
-    "macros": "~205g proteine · 327g carbo · 82g grassi",
+    "label": "Giorno 1 · Petto e tricipiti — Allenamento",
+    "kcal": "≈ 3315 kcal",
+    "macros": "~195g proteine · 432g carbo · 88g grassi",
     "items": [
       {
         "t": "08:00 · Colazione",
         "icon": "🥣",
-        "txt": "250g yogurt greco 0% + 90g fiocchi d'avena; 1 banana (circa 120g) + 15g burro d'arachidi. Mescola a freddo, senza cottura.",
+        "txt": "100g fiocchi d'avena; 250g yogurt greco 0%; 120g banana; 20g burro d'arachidi.",
+        "m": "746 kcal · P45 · C99 · G18"
+      },
+      {
+        "t": "11:30 · Spuntino",
+        "icon": "🥜",
+        "txt": "80g pane integrale; 20g mandorle; 150g mela.",
+        "m": "400 kcal · P12 · C57 · G14"
+      },
+      {
+        "t": "13:00 · Pranzo",
+        "icon": "🍗",
+        "txt": "200g petto di pollo; 130g riso basmati (a crudo); 200g verdure; 10g olio EVO.",
+        "m": "823 kcal · P59 · C109 · G15"
+      },
+      {
+        "t": "16:30 · Spuntino (pre allenamento)",
+        "icon": "🍌",
+        "txt": "120g banana; 50g gallette di riso; 20g miele.",
+        "m": "361 kcal · P5 · C84 · G2"
+      },
+      {
+        "t": "21:00 · Cena",
+        "icon": "🍽️",
+        "txt": "200g manzo magro 5%; 400g patate; 200g verdure; 15g olio EVO.",
+        "m": "767 kcal · P53 · C76 · G26"
+      },
+      {
+        "t": "23:00 · Pre nanna",
+        "icon": "🌙",
+        "txt": "150g fiocchi di latte magri; 15g noci.",
+        "m": "218 kcal · P20 · C7 · G13"
+      }
+    ]
+  },
+  "d2": {
+    "label": "Giorno 2 · Dorso e bicipiti — Allenamento",
+    "kcal": "≈ 3240 kcal",
+    "macros": "~196g proteine · 406g carbo · 88g grassi",
+    "items": [
+      {
+        "t": "08:00 · Colazione",
+        "icon": "🥣",
+        "txt": "100g fiocchi d'avena; 250g yogurt greco 0%; 100g mirtilli; 20g burro d'arachidi.",
+        "m": "696 kcal · P45 · C86 · G18"
+      },
+      {
+        "t": "11:30 · Spuntino",
+        "icon": "🥜",
+        "txt": "80g pane integrale; 25g marmellata; 15g mandorle.",
+        "m": "352 kcal · P10 · C50 · G11"
+      },
+      {
+        "t": "13:00 · Pranzo",
+        "icon": "🍗",
+        "txt": "200g petto di tacchino; 140g pasta integrale (a crudo); 200g verdure; 10g olio EVO.",
+        "m": "844 kcal · P69 · C102 · G16"
+      },
+      {
+        "t": "16:30 · Spuntino (pre allenamento)",
+        "icon": "🍌",
+        "txt": "120g banana; 50g gallette di riso; 20g miele.",
+        "m": "361 kcal · P5 · C84 · G2"
+      },
+      {
+        "t": "21:00 · Cena",
+        "icon": "🍽️",
+        "txt": "180g salmone; 400g patate; 200g verdure; 5g olio EVO.",
+        "m": "777 kcal · P47 · C76 · G29"
+      },
+      {
+        "t": "23:00 · Pre nanna",
+        "icon": "🌙",
+        "txt": "150g fiocchi di latte magri; 15g cioccolato fondente 85%.",
+        "m": "210 kcal · P20 · C7 · G11"
+      }
+    ]
+  },
+  "d3": {
+    "label": "Giorno 3 · Gambe e spalle — Allenamento",
+    "kcal": "≈ 3161 kcal",
+    "macros": "~185g proteine · 417g carbo · 83g grassi",
+    "items": [
+      {
+        "t": "08:00 · Colazione",
+        "icon": "🥣",
+        "txt": "100g pane integrale; 25g burro d'arachidi; 25g marmellata; 250g yogurt greco 0%.",
+        "m": "610 kcal · P41 · C70 · G18"
+      },
+      {
+        "t": "11:30 · Spuntino",
+        "icon": "🥜",
+        "txt": "50g fiocchi d'avena; 120g banana; 15g mandorle.",
+        "m": "383 kcal · P11 · C58 · G12"
+      },
+      {
+        "t": "13:00 · Pranzo",
+        "icon": "🍗",
+        "txt": "200g petto di pollo; 130g riso basmati (a crudo); 200g verdure; 10g olio EVO.",
+        "m": "823 kcal · P59 · C109 · G15"
+      },
+      {
+        "t": "16:30 · Spuntino (pre allenamento)",
+        "icon": "🍌",
+        "txt": "120g banana; 50g gallette di riso; 20g miele.",
+        "m": "361 kcal · P5 · C84 · G2"
+      },
+      {
+        "t": "21:00 · Cena",
+        "icon": "🍽️",
+        "txt": "120g uova intere (2 uova ≈ 120g); 100g petto di pollo; 400g patate dolci; 200g verdure; 10g olio EVO.",
+        "m": "766 kcal · P48 · C89 · G24"
+      },
+      {
+        "t": "23:00 · Pre nanna",
+        "icon": "🌙",
+        "txt": "150g fiocchi di latte magri; 15g noci.",
+        "m": "218 kcal · P20 · C7 · G13"
+      }
+    ]
+  },
+  "d4": {
+    "label": "Giorno 4 · Punti deboli, addome e cardio",
+    "kcal": "≈ 3091 kcal",
+    "macros": "~182g proteine · 381g carbo · 91g grassi",
+    "items": [
+      {
+        "t": "08:00 · Colazione",
+        "icon": "🥣",
+        "txt": "90g fiocchi d'avena; 250g yogurt greco 0%; 120g banana; 15g burro d'arachidi.",
         "m": "679 kcal · P43 · C92 · G15"
       },
       {
         "t": "11:30 · Spuntino",
         "icon": "🥜",
-        "txt": "30g mandorle + 1 mela",
-        "m": "265 kcal · P6 · C31 · G15"
+        "txt": "70g pane integrale; 20g mandorle; 150g mela.",
+        "m": "375 kcal · P11 · C52 · G14"
       },
       {
         "t": "13:00 · Pranzo",
         "icon": "🍗",
-        "txt": "200g petto di pollo alla griglia; 110g riso basmati (a crudo); verdure con 10g olio EVO",
-        "m": "752 kcal · P58 · C94 · G15"
+        "txt": "180g manzo magro 5%; 110g couscous integrale (a crudo); 200g verdure; 10g olio EVO.",
+        "m": "772 kcal · P54 · C85 · G22"
       },
       {
-        "t": "16:30 · Spuntino",
+        "t": "16:30 · Spuntino (pre allenamento)",
         "icon": "🍌",
-        "txt": "1 banana + 50g gallette di riso con miele",
-        "m": "346 kcal · P5 · C80 · G2"
-      },
-      {
-        "t": "21:00 · Cena",
-        "icon": "🥩",
-        "txt": "220g manzo magro (5%) alla piastra; 300g patate dolci al forno; insalata con 10g olio EVO",
-        "m": "650 kcal · P55 · C60 · G22"
-      },
-      {
-        "t": "23:00 · Pre nanna",
-        "icon": "🥣",
-        "txt": "250g yogurt greco 0%; 20g cioccolato fondente 85%",
-        "m": "260 kcal · P25 · C15 · G9"
-      }
-    ]
-  },
-  "d2": {
-    "label": "Giorno 2 · Full body B — Allenamento",
-    "kcal": "≈ 2715 kcal",
-    "macros": "~189g proteine · 263g carbo · 91g grassi",
-    "items": [
-      {
-        "t": "08:00 · Colazione",
-        "icon": "🥣",
-        "txt": "250g yogurt greco 0% + 70g fiocchi d'avena + 100g mirtilli + 15g burro d'arachidi. Tutto in una ciotola, senza cottura.",
-        "m": "555 kcal · P39 · C67 · G14"
-      },
-      {
-        "t": "11:30 · Spuntino",
-        "icon": "🍎",
-        "txt": "1 mela + 20g burro di arachidi",
-        "m": "250 kcal · P7 · C25 · G16"
-      },
-      {
-        "t": "13:00 · Pranzo",
-        "icon": "🦃",
-        "txt": "220g petto di tacchino alla griglia; 120g pasta integrale (a crudo); verdure con 10g olio EVO",
-        "m": "795 kcal · P71 · C88 · G16"
-      },
-      {
-        "t": "16:30 · Spuntino",
-        "icon": "🍌",
-        "txt": "1 banana + 40g gallette di riso con 20g miele",
+        "txt": "40g gallette di riso; 20g miele; 120g banana.",
         "m": "322 kcal · P5 · C76 · G2"
       },
       {
         "t": "21:00 · Cena",
-        "icon": "🐟",
-        "txt": "200g salmone al forno; 300g patate; insalata con 10g olio EVO",
-        "m": "787 kcal · P49 · C59 · G37"
+        "icon": "🍽️",
+        "txt": "170g salmone; 350g patate; 200g verdure; 5g olio EVO.",
+        "m": "718 kcal · P44 · C68 · G28"
       },
       {
         "t": "23:00 · Pre nanna",
-        "icon": "🥣",
-        "txt": "200g fiocchi di latte magri (cottage) + 20g mandorle",
-        "m": "280 kcal · P28 · C10 · G14"
-      }
-    ]
-  },
-  "d3": {
-    "label": "Giorno 3 · Full body C — Allenamento",
-    "kcal": "≈ 2910 kcal",
-    "macros": "~216g proteine · 311g carbo · 80g grassi",
-    "items": [
-      {
-        "t": "08:00 · Colazione",
-        "icon": "🥛",
-        "txt": "250g yogurt greco 0% + 110g fiocchi d'avena + 15g burro d'arachidi. Avena mescolata nello yogurt, anche la sera prima in frigorifero.",
-        "m": "646 kcal · P44 · C77 · G16"
-      },
-      {
-        "t": "11:30 · Spuntino",
-        "icon": "🥣",
-        "txt": "150g fiocchi di latte magri (cottage) + 1 banana (circa 120g) + 10g mandorle. Pronti da consumare; tieni i fiocchi di latte al fresco.",
-        "m": "288 kcal · P21 · C33 · G9"
-      },
-      {
-        "t": "13:00 · Pranzo",
-        "icon": "🍗",
-        "txt": "200g petto di pollo; 90g riso basmati (a crudo); verdure con 10g olio EVO",
-        "m": "740 kcal · P68 · C70 · G17"
-      },
-      {
-        "t": "16:30 · Spuntino",
-        "icon": "🍯",
-        "txt": "1 banana + 30g miele su 40g gallette di riso",
-        "m": "280 kcal · P3 · C60 · G1"
-      },
-      {
-        "t": "21:00 · Cena",
-        "icon": "🐟",
-        "txt": "200g salmone al forno; 250g patate dolci; insalata con 10g olio EVO",
-        "m": "620 kcal · P45 · C48 · G26"
-      },
-      {
-        "t": "23:00 · Pre nanna",
-        "icon": "🍫",
-        "txt": "250g yogurt greco 0% + 20g cioccolato fondente 85%",
-        "m": "260 kcal · P25 · C15 · G9"
-      }
-    ]
-  },
-  "d4": {
-    "label": "Giorno 4 · Richiamo/aerobico (opzionale)",
-    "kcal": "≈ 2780 kcal",
-    "macros": "~198g proteine · 312g carbo · 77g grassi",
-    "items": [
-      {
-        "t": "08:00 · Colazione",
-        "icon": "🍞",
-        "txt": "100g pane integrale con 25g burro d'arachidi e 20g marmellata; 250g yogurt greco 0%. Pane pronto, senza tostatura.",
-        "m": "598 kcal · P41 · C67 · G18"
-      },
-      {
-        "t": "11:30 · Spuntino",
-        "icon": "🥣",
-        "txt": "150g fiocchi di latte magri (cottage) + 1 banana (circa 120g) + 10g mandorle. Nessun frullatore; tieni i fiocchi di latte al fresco.",
-        "m": "288 kcal · P21 · C33 · G9"
-      },
-      {
-        "t": "13:00 · Pranzo",
-        "icon": "🥩",
-        "txt": "200g manzo magro (5%) macinato; 60g couscous integrale (a crudo); verdure con 10g olio EVO",
-        "m": "624 kcal · P52 · C50 · G22"
-      },
-      {
-        "t": "16:30 · Spuntino",
-        "icon": "🍎",
-        "txt": "40g gallette di riso con 20g miele + 1 mela",
-        "m": "294 kcal · P4 · C70 · G2"
-      },
-      {
-        "t": "21:00 · Cena",
-        "icon": "🍳",
-        "txt": "2 uova intere ben cotte + 120g petto di pollo alla piastra; 250g patate al forno; 200g insalata con 10g olio EVO. Le uova sostituiscono parte del pollo.",
-        "m": "608 kcal · P48 · C51 · G22"
-      },
-      {
-        "t": "23:00 · Pre nanna",
-        "icon": "🍫",
-        "txt": "250g yogurt greco 0% + 20g cioccolato fondente 85%",
-        "m": "260 kcal · P25 · C15 · G9"
+        "icon": "🌙",
+        "txt": "200g fiocchi di latte magri; 10g noci.",
+        "m": "225 kcal · P26 · C7 · G10"
       }
     ]
   },
   "r1": {
     "label": "Riposo A",
-    "kcal": "≈ 2314 kcal",
-    "macros": "~181g proteine · 206g carbo · 83g grassi",
+    "kcal": "≈ 2634 kcal",
+    "macros": "~172g proteine · 305g carbo · 80g grassi",
     "items": [
       {
         "t": "08:00 · Colazione",
         "icon": "🥣",
-        "txt": "250g yogurt greco 0% + 90g fiocchi d'avena + 20g burro d'arachidi. Mescola a freddo o prepara la sera prima e conserva in frigorifero.",
-        "m": "602 kcal · P43 · C65 · G17"
+        "txt": "80g fiocchi d'avena; 250g yogurt greco 0%; 20g burro d'arachidi; 100g mirtilli.",
+        "m": "622 kcal · P42 · C74 · G17"
       },
       {
         "t": "11:30 · Spuntino",
         "icon": "🥜",
-        "txt": "20g mandorle + 1 mela",
-        "m": "200 kcal · P4 · C27 · G10"
+        "txt": "20g mandorle; 150g mela.",
+        "m": "200 kcal · P5 · C22 · G11"
       },
       {
         "t": "13:00 · Pranzo",
-        "icon": "🦃",
-        "txt": "200g petto di tacchino alla griglia; 90g riso basmati (a crudo); verdure con 10g olio EVO",
-        "m": "674 kcal · P58 · C78 · G14"
+        "icon": "🍗",
+        "txt": "180g petto di tacchino; 120g riso basmati (a crudo); 200g verdure; 10g olio EVO.",
+        "m": "760 kcal · P56 · C102 · G14"
       },
       {
         "t": "16:30 · Spuntino",
-        "icon": "🥣",
-        "txt": "200g yogurt greco 0% + 20g noci",
-        "m": "249 kcal · P24 · C10 · G14"
+        "icon": "🍌",
+        "txt": "170g yogurt greco 0%; 15g noci; 10g miele.",
+        "m": "229 kcal · P20 · C16 · G10"
       },
       {
         "t": "21:00 · Cena",
-        "icon": "🐟",
-        "txt": "200g merluzzo o platessa al forno; 250g patate al forno; insalata con 10g olio EVO",
-        "m": "497 kcal · P44 · C51 · G12"
+        "icon": "🍽️",
+        "txt": "200g merluzzo; 400g patate; 200g verdure; 15g olio EVO.",
+        "m": "657 kcal · P47 · C76 · G17"
       },
       {
         "t": "23:00 · Pre nanna",
-        "icon": "🍫",
-        "txt": "20g cioccolato fondente 85% + 1 kiwi",
-        "m": "150 kcal · P2 · C14 · G9"
+        "icon": "🌙",
+        "txt": "20g cioccolato fondente 85%; 75g kiwi.",
+        "m": "166 kcal · P3 · C15 · G11"
       }
     ]
   },
   "r2": {
     "label": "Riposo B",
-    "kcal": "≈ 2304 kcal",
-    "macros": "~168g proteine · 251g carbo · 69g grassi",
+    "kcal": "≈ 2723 kcal",
+    "macros": "~186g proteine · 314g carbo · 79g grassi",
     "items": [
       {
         "t": "08:00 · Colazione",
         "icon": "🥣",
-        "txt": "250g yogurt greco 0% + 70g fiocchi d'avena + 20g burro d'arachidi. Mescola a freddo o prepara la sera prima e conserva in frigorifero.",
-        "m": "528 kcal · P40 · C53 · G16"
+        "txt": "90g pane integrale; 25g burro d'arachidi; 250g yogurt greco 0%.",
+        "m": "525 kcal · P40 · C51 · G17"
       },
       {
         "t": "11:30 · Spuntino",
-        "icon": "🧀",
-        "txt": "150g fiocchi di latte magri (cottage) + 1 mela",
-        "m": "230 kcal · P24 · C25 · G3"
+        "icon": "🥜",
+        "txt": "150g fiocchi di latte magri; 150g mela.",
+        "m": "198 kcal · P18 · C26 · G3"
       },
       {
         "t": "13:00 · Pranzo",
-        "icon": "🧆",
-        "txt": "220g ceci cotti (scolati); 80g riso basmati (a crudo); verdure con 10g olio EVO",
-        "m": "786 kcal · P29 · C130 · G17"
+        "icon": "🍗",
+        "txt": "200g ceci cotti; 90g riso basmati (a crudo); 80g tonno al naturale; 200g verdure; 10g olio EVO.",
+        "m": "881 kcal · P49 · C132 · G18"
       },
       {
         "t": "16:30 · Spuntino",
-        "icon": "🥝",
-        "txt": "20g mandorle + 1 kiwi",
-        "m": "200 kcal · P4 · C22 · G11"
+        "icon": "🍌",
+        "txt": "20g mandorle; 75g kiwi; 20g gallette di riso.",
+        "m": "245 kcal · P7 · C29 · G12"
       },
       {
         "t": "21:00 · Cena",
-        "icon": "🐟",
-        "txt": "200g tonno al naturale (o pesce spada); 250g patate al forno; insalata con 10g olio EVO",
-        "m": "565 kcal · P60 · C51 · G13"
+        "icon": "🍽️",
+        "txt": "200g manzo magro 5%; 350g patate; 200g verdure; 10g olio EVO.",
+        "m": "684 kcal · P52 · C68 · G21"
       },
       {
         "t": "23:00 · Pre nanna",
-        "icon": "🍫",
-        "txt": "200g yogurt greco 0% + 20g cioccolato fondente 85%",
-        "m": "230 kcal · P22 · C15 · G9"
+        "icon": "🌙",
+        "txt": "170g yogurt greco 0%; 15g cioccolato fondente 85%.",
+        "m": "190 kcal · P19 · C9 · G8"
       }
     ]
   },
   "r3": {
     "label": "Riposo C",
-    "kcal": "≈ 2342 kcal",
-    "macros": "~164g proteine · 206g carbo · 96g grassi",
+    "kcal": "≈ 2692 kcal",
+    "macros": "~170g proteine · 299g carbo · 88g grassi",
     "items": [
       {
         "t": "08:00 · Colazione",
-        "icon": "🍞",
-        "txt": "90g pane integrale con 20g burro d'arachidi; 250g yogurt greco 0%. Tutto pronto, senza cottura.",
-        "m": "494 kcal · P39 · C50 · G15"
+        "icon": "🥣",
+        "txt": "80g fiocchi d'avena; 250g yogurt greco 0%; 20g burro d'arachidi; 120g banana.",
+        "m": "672 kcal · P43 · C87 · G17"
       },
       {
         "t": "11:30 · Spuntino",
-        "icon": "🍊",
-        "txt": "1 arancia + 15g noci",
-        "m": "170 kcal · P3 · C20 · G10"
+        "icon": "🥜",
+        "txt": "150g arancia; 30g gallette di riso; 10g miele.",
+        "m": "217 kcal · P4 · C50 · G1"
       },
       {
         "t": "13:00 · Pranzo",
-        "icon": "🐟",
-        "txt": "200g salmone al forno; 80g quinoa (a crudo); verdure con 10g olio EVO",
-        "m": "850 kcal · P54 · C59 · G41"
+        "icon": "🍗",
+        "txt": "150g salmone; 100g quinoa (a crudo); 200g verdure.",
+        "m": "730 kcal · P47 · C72 · G26"
       },
       {
         "t": "16:30 · Spuntino",
-        "icon": "🍏",
-        "txt": "1 mela + 20g mandorle",
-        "m": "215 kcal · P5 · C25 · G12"
+        "icon": "🍌",
+        "txt": "150g mela; 20g mandorle.",
+        "m": "200 kcal · P5 · C22 · G11"
       },
       {
         "t": "21:00 · Cena",
-        "icon": "🍳",
-        "txt": "2 uova intere ben cotte + 120g petto di pollo alla piastra; 250g patate al forno; 200g insalata con 10g olio EVO. Le uova sostituiscono parte del pollo.",
-        "m": "569 kcal · P47 · C43 · G22"
+        "icon": "🍽️",
+        "txt": "120g uova intere (2 uova ≈ 120g); 100g petto di pollo; 300g patate; 200g verdure; 10g olio EVO.",
+        "m": "653 kcal · P47 · C60 · G24"
       },
       {
         "t": "23:00 · Pre nanna",
-        "icon": "🥣",
-        "txt": "200g yogurt greco 0% + 10g cioccolato fondente 85%",
-        "m": "210 kcal · P22 · C10 · G7"
+        "icon": "🌙",
+        "txt": "200g fiocchi di latte magri; 10g cioccolato fondente 85%.",
+        "m": "220 kcal · P25 · C8 · G9"
       }
     ]
   }
 };
 
 const FOOD_TABS = [
-  {key:"d1", short:"G1 Full A"},
-  {key:"d2", short:"G2 Full B"},
-  {key:"d3", short:"G3 Full C"},
-  {key:"d4", short:"G4 Richiamo"},
+  {key:"d1", short:"G1 Petto"},
+  {key:"d2", short:"G2 Dorso"},
+  {key:"d3", short:"G3 Gambe"},
+  {key:"d4", short:"G4 Deboli"},
   {key:"r1", short:"Riposo A"},
   {key:"r2", short:"Riposo B"},
   {key:"r3", short:"Riposo C"},
