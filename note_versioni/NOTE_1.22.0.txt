@@ -1,0 +1,10 @@
+VERSIONE 1.22.0 — Carico suggerito, record, riepilogo settimanale
+
+- Scheda esercizio: "Oggi prova 42,5 kg × 8" in base alla volta scorsa (tutte le serie al massimo →
+  +2,5 kg; sotto il minimo → stesso carico o meno; altrimenti una ripetizione in più).
+- 🏆 Avviso quando batti un record (carico più alto o più ripetizioni allo stesso carico).
+- Statistiche: "Questa settimana" con allenamenti, serie, volume e serie per gruppo muscolare, e i record.
+- "Peso di oggi" solo in Allenamento (non più anche in Nutrizione).
+- Serie più leggibili nella scheda esercizio; giorno selezionato verde (ambra resta per le azioni).
+- Corretta la scheda Notifiche vuota in Altro; "Salta sessione" leggibile nel tema chiaro.
+- Grafica comune alle app (suite-ui.css), nessun testo sotto gli 11 px.

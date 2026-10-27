@@ -1,0 +1,16 @@
+VERSIONE 1.29.0 — Ritocchi grafici e di uso
+
+- Giorni (G1…G4) su due righe: il numero del giorno in grande, i gruppi muscolari sotto
+  (prima "G2 · Dorso + Bicipiti" andava a capo su tre righe).
+- Durante la sessione, sotto Pausa / Termina, una barra con serie fatte, esercizi
+  completati e percentuale.
+- "Salta esercizio" diventa un pulsante compatto "↷ Salta": il nome dell'esercizio ha
+  più spazio e va meno a capo.
+- Negli esercizi senza recupero (es. tapis roulant) non compare più "Recupero 0s".
+- Altro: tolta la scheda tecnica "Storage locale"; compare solo se il salvataggio
+  sul telefono ha un problema.
+
+Pulizia della cartella
+- Tolti i doppioni (icone, file .sql e index.ts già presenti in supabase/, shared.css/js,
+  cartella _non_usati). Le note delle versioni vecchie sono in note_versioni/;
+  qui resta solo quella dell'ultima versione.

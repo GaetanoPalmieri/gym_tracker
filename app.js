@@ -502,18 +502,21 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.27.0';
+const APP_VERSION = '1.31.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
   month = U.local().slice(0, 7),
   selectedDay = '',
   selectedExercise = '',
-  metric = 'weight',
+  metric = 'e1rm',
   chartPoints = [],
   wakeLock = null,
   statsView = 'exercises',
-  expandedExerciseKeys = new Set();
+  expandedExerciseKeys = new Set(),
+  // v1.28.0 — esercizi "prossimi" che hai chiuso a mano (non si riaprono da soli)
+  autoClosedExerciseKeys = new Set(),
+  propagatedRows = [];
 function isNum(n) {
   return U.finite(n) && n >= 0;
 }
@@ -831,7 +834,15 @@ function totals(e) {
     reps: measured.length ? measured.reduce((n, r) => n + r.reps, 0) : null,
     volume: knownVolume.length ? knownVolume.reduce((n, r) => n + r.weight * r.reps, 0) : null,
     partialVolume: knownVolume.length < done.length,
+    e1rm: knownVolume.reduce((m, r) => Math.max(m, estimate1RM(r.weight, r.reps) || 0), 0) || null,
   };
+}
+/* v1.31.0 — Massimale stimato (1 ripetizione) con la formula di Epley: carico × (1 + rip/30).
+   Permette di confrontare sessioni fatte con ripetizioni diverse (es. 60 × 8 e 65 × 5).
+   Oltre le 15 ripetizioni la stima non è affidabile e non si calcola. */
+function estimate1RM(w, reps) {
+  if (!(w > 0) || !(reps >= 1) || reps > 15) return null;
+  return reps === 1 ? w : w * (1 + reps / 30);
 }
 function exStatus(e) {
   const d = totals(e).done;
@@ -941,9 +952,21 @@ function saveRow(i, j, field, value) {
     const s = n.sessions.find((x) => x.id === session.id);
     if (!s || !s.exercises[i] || !s.exercises[i].rows[j]) return;
     const e = s.exercises[i],
-      row = e.rows[j];
+      row = e.rows[j],
+      old = row[field];
     row[field] = val;
     row.legacy = false;
+    // v1.28.0 — stesso carico sulle serie successive non ancora fatte (vuote o con il valore di prima)
+    if (field === 'weight' && val != null && !isCardio(e)) {
+      for (let k = j + 1; k < e.rows.length; k++) {
+        const r = e.rows[k];
+        if (r.done) continue;
+        if (r.weight == null || (old != null && r.weight === old)) {
+          r.weight = val;
+          propagatedRows.push(k);
+        } else break;
+      }
+    }
     n.exerciseValues ??= {};
     n.exerciseValues[e.id] ??= U.clone(rememberedRows(e));
     n.exerciseValues[e.id][j] ??= {};
@@ -1395,7 +1418,7 @@ function header() {
   day.innerHTML = gym.program
     .map(
       (d, i) =>
-        `<button data-dayidx="${i}" class="${gym.dayIdx === i ? 'active' : ''}">${U.esc(d.short)}</button>`,
+        `<button data-dayidx="${i}" class="${gym.dayIdx === i ? 'active' : ''}">${dayTabLabel(d.short)}</button>`,
     )
     .join('');
   wb.querySelectorAll('[data-week]').forEach(bindWeekGesture);
@@ -1456,17 +1479,43 @@ function bindDayGesture(b) {
   };
 }
 
+/* v1.29.0 — Etichetta del giorno su due righe: "G2" in evidenza, gruppi muscolari sotto
+   (prima "G2 · Dorso + Bicipiti" andava a capo su tre righe). */
+function dayTabLabel(short) {
+  const m = String(short || '').match(/^\s*(G\d+|[A-Z]\d*)\s*[·\-:]?\s*(.*)$/);
+  if (!m || !m[2]) return U.esc(short);
+  return `<b class="day-code">${U.esc(m[1])}</b><small class="day-name">${U.esc(m[2].replace(/\s*\+\s*/g, ' · '))}</small>`;
+}
 function rowText(e, r) {
   return isCardio(e)
     ? `${r.reps ?? '—'} min · ${r.speed ?? '—'} km/h · ${r.incline ?? '—'}% pendenza`
     : `${r.weight == null ? '—' : weightToDisplay(r.weight)} ${weightLabel()} × ${r.reps ?? '—'} ${e.unit === 'min' ? 'min' : 'rip.'}`;
 }
+/* v1.28.0 — Carico proposto per una serie ancora vuota: la serie sopra di questa sessione,
+   poi il carico suggerito ("Oggi prova…"), poi quello della volta scorsa. Compare in grigio
+   nel riquadro e, toccando ✓ senza scrivere niente, viene registrato lui. */
+function weightHint(e, j, sessionId) {
+  if (!e || isCardio(e) || e.unit === 'min') return null;
+  for (let k = j - 1; k >= 0; k--) if (e.rows[k]?.weight != null) return e.rows[k].weight;
+  const prev = previous(e.id, sessionId);
+  const tip = loadSuggestion(e, prev);
+  if (tip && tip.weight > 0) return tip.weight;
+  const pr = prev?.e.rows[j]?.weight != null ? prev.e.rows[j] : prev?.e.rows.filter((r) => r.weight != null).pop();
+  if (pr?.weight != null) return pr.weight;
+  const rem = gym.exerciseValues?.[e.id]?.[j]?.weight;
+  return rem != null && rem > 0 ? rem : null;
+}
 function seriesInputs(e, i, editing = false) {
   const cardio = isCardio(e),
-    prefix = editing ? 'data-edit-row' : 'data-row';
+    prefix = editing ? 'data-edit-row' : 'data-row',
+    sid = editing ? null : active()?.id,
+    currentRow = editing ? -1 : e.rows.findIndex((r) => !r.done);
+  const shortLabel = { weight: weightLabel(), reps: e.unit === 'min' || cardio ? 'min' : 'rip.', speed: 'km/h', incline: '%' };
   const input = (r, j, f, label, step) => {
     const value = f === 'weight' ? weightToDisplay(r[f]) : (r[f] ?? '');
-    return `<input ${prefix}="${i}:${j}:${f}" aria-label="${label}, serie ${j + 1}" type="number" min="0" step="${step}" inputmode="decimal" placeholder="${label}" value="${value}">`;
+    const hint = !editing && f === 'weight' && r.weight == null && !r.done ? weightHint(e, j, sid) : null;
+    const ph = hint != null ? String(weightToDisplay(hint)) : shortLabel[f] || label;
+    return `<input ${prefix}="${i}:${j}:${f}" class="${hint != null ? 'has-hint' : ''}" aria-label="${label}, serie ${j + 1}" type="number" min="0" step="${step}" inputmode="decimal" placeholder="${ph}" value="${value}">`;
   };
   const doneHead = editing
     ? '<span>Fatta</span>'
@@ -1474,7 +1523,42 @@ function seriesInputs(e, i, editing = false) {
   const controls = editing
     ? `<div class="series-count-actions"><button type="button" data-edit-series-remove="${i}">− Serie</button><button type="button" data-edit-series-add="${i}">＋ Serie</button></div>`
     : `<div class="series-count-actions"><button type="button" data-series-remove="${i}">− Serie</button><button type="button" data-series-add="${i}">＋ Serie</button></div>`;
-  return `<div class="series-head ${cardio ? 'cardio-row' : ''}"><span>#</span>${cardio ? '<span>km/h</span><span>Pend. %</span><span>Min.</span>' : `<span>${weightLabel()}</span><span>${e.unit === 'min' ? 'Minuti' : 'Rip.'}</span>`}${doneHead}</div>${e.rows.map((r, j) => `<div class="series-row ${cardio ? 'cardio-row' : ''}"><span>${j + 1}</span>${cardio ? input(r, j, 'speed', 'Velocità km/h', 0.1) + input(r, j, 'incline', 'Pendenza %', 0.5) : input(r, j, 'weight', `Carico ${weightLabel()}`, 0.5)}${input(r, j, 'reps', e.unit === 'min' || cardio ? 'Minuti' : 'Ripetizioni', e.unit === 'min' || cardio ? 0.1 : 1)}${editing ? `<input type="checkbox" aria-label="Serie ${j + 1} completata" data-edit-done="${i}:${j}" ${r.done ? 'checked' : ''}>` : `<button class="series-done-btn ${r.done ? 'good' : ''}" data-complete="${i}:${j}" aria-pressed="${r.done}" aria-label="Completa serie ${j + 1}">${r.done ? '✓' : '○'}</button>`}</div>`).join('')}${controls}`;
+  return `<div class="series-head ${cardio ? 'cardio-row' : ''}"><span>#</span>${cardio ? '<span>km/h</span><span>Pend. %</span><span>Min.</span>' : `<span>${weightLabel()}</span><span>${e.unit === 'min' ? 'Minuti' : 'Rip.'}</span>`}${doneHead}</div>${e.rows.map((r, j) => `<div class="series-row ${cardio ? 'cardio-row' : ''} ${r.done ? 'is-done' : ''} ${j === currentRow ? 'is-current' : ''}"><span class="series-num">${j + 1}</span>${cardio ? input(r, j, 'speed', 'Velocità km/h', 0.1) + input(r, j, 'incline', 'Pendenza %', 0.5) : input(r, j, 'weight', `Carico ${weightLabel()}`, 0.5)}${input(r, j, 'reps', e.unit === 'min' || cardio ? 'Minuti' : 'Ripetizioni', e.unit === 'min' || cardio ? 0.1 : 1)}${editing ? `<input type="checkbox" aria-label="Serie ${j + 1} completata" data-edit-done="${i}:${j}" ${r.done ? 'checked' : ''}>` : `<button class="series-done-btn ${r.done ? 'good' : ''}" data-complete="${i}:${j}" aria-pressed="${r.done}" aria-label="Completa serie ${j + 1}">${r.done ? '✓' : '○'}</button>`}</div>`).join('')}${controls}`;
+}
+/* v1.28.0 — Durante la sessione l'esercizio da fare adesso è già aperto con i riquadri
+   delle serie: niente tocchi in più. Se lo chiudi resta chiuso. */
+function isExerciseExpanded(e, i, s, next) {
+  const key = exerciseExpandKey(e, i);
+  if (expandedExerciseKeys.has(key)) return true;
+  return !!(s && !s.ended && next && !e.stopped && exStatus(e) !== 'Completato' && !autoClosedExerciseKeys.has(key));
+}
+/* Dopo l'ultima serie di un esercizio si apre il successivo nella scheda (non il primo
+   rimasto indietro) e la pagina scorre fino a lui. */
+function openExerciseAfter(i) {
+  const s = active();
+  if (!s) return null;
+  const list = s.exercises;
+  for (let k = i + 1; k < list.length; k++) {
+    const x = list[k];
+    if (exStatus(x) !== 'Completato' && !x.stopped) {
+      const key = exerciseExpandKey(x, k);
+      expandedExerciseKeys.add(key);
+      autoClosedExerciseKeys.delete(key);
+      return k;
+    }
+  }
+  return null;
+}
+function focusNextExercise(k) {
+  requestAnimationFrame(() => {
+    const card =
+      k != null
+        ? main.querySelector(`[data-exercise-toggle="${k}"]`)?.closest('.exercise-card')
+        : main.querySelector('.exercise-card.exercise-next.exercise-expanded');
+    if (!card) return;
+    const top = card.getBoundingClientRect().top + window.scrollY - 140;
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  });
 }
 function exerciseCard(e, i, s, next) {
   const status = exStatus(e),
@@ -1482,16 +1566,16 @@ function exerciseCard(e, i, s, next) {
     prev = previous(e.id, s?.id),
     alts = exerciseAlternatives(e),
     key = exerciseExpandKey(e, i),
-    expanded = expandedExerciseKeys.has(key),
+    expanded = isExerciseExpanded(e, i, s, next),
     progress = totals(e).done;
-  return `<div class="card exercise-card ${done ? 'exercise-complete' : next ? 'exercise-next' : ''} ${expanded ? 'exercise-expanded' : 'exercise-compact'}"><div class="exercise-header-row"><div class="exercise-title-block exercise-title-toggle" data-exercise-toggle="${i}" role="button" tabindex="0" aria-expanded="${expanded}" aria-label="${expanded ? 'Riduci' : 'Apri'} ${U.esc(e.name)}"><div class="exercise-name-line"><h3>${U.esc(e.name)}</h3><span class="exercise-title-chevron" aria-hidden="true">${expanded ? '▴' : '▾'}</span></div><div class="equipment-labels">${equipmentLabels(e)}</div><p class="exercise-meta muted">${e.rows.length} serie · Obiettivo ${U.esc(e.target)} · Recupero ${fmtRest(e.rest)}</p></div>${e.note && !expanded ? `<button data-note="${i}" class="strong-icon-action has-note compact-note-btn" aria-label="Nota presente: apri la nota di ${U.esc(e.name)}">✎︎</button>` : ''}${status !== 'Completato' ? `<button data-skip="${i}" class="skip-exercise">${e.stopped ? 'Ripristina' : 'Salta esercizio'}</button>` : ''}</div><div class="compact-progress"><span>${progress}/${e.rows.length} serie</span><i><b style="width:${e.rows.length ? Math.round((progress / e.rows.length) * 100) : 0}%"></b></i></div><div class="compact-series-summary" style="--cols:${e.rows.length === 4 ? 2 : Math.max(1, Math.min(e.rows.length, 3))}">${compactExerciseSummary(e)}</div>${
+  return `<div class="card exercise-card ${done ? 'exercise-complete' : next ? 'exercise-next' : ''} ${expanded ? 'exercise-expanded' : 'exercise-compact'}"><div class="exercise-header-row"><div class="exercise-title-block exercise-title-toggle" data-exercise-toggle="${i}" role="button" tabindex="0" aria-expanded="${expanded}" aria-label="${expanded ? 'Riduci' : 'Apri'} ${U.esc(e.name)}"><div class="exercise-name-line"><h3>${U.esc(e.name)}</h3><span class="exercise-title-chevron" aria-hidden="true">${expanded ? '▴' : '▾'}</span></div><div class="equipment-labels">${equipmentLabels(e)}</div><p class="exercise-meta muted">${e.rows.length} serie · Obiettivo ${U.esc(e.target)}${Number(e.rest) > 0 ? ` · Recupero ${fmtRest(e.rest)}` : ''}</p></div>${e.note && !expanded ? `<button data-note="${i}" class="strong-icon-action has-note compact-note-btn" aria-label="Nota presente: apri la nota di ${U.esc(e.name)}">✎︎</button>` : ''}${status !== 'Completato' ? `<button data-skip="${i}" class="skip-exercise" aria-label="${e.stopped ? 'Ripristina' : 'Salta'} ${U.esc(e.name)}">${e.stopped ? '↺ Ripristina' : '↷ Salta'}</button>` : ''}</div><div class="compact-progress"><span>${progress}/${e.rows.length} serie</span><i><b style="width:${e.rows.length ? Math.round((progress / e.rows.length) * 100) : 0}%"></b></i></div><div class="compact-series-summary" style="--cols:${e.rows.length === 4 ? 2 : Math.max(1, Math.min(e.rows.length, 3))}">${compactExerciseSummary(e)}</div>${
     expanded
       ? `<div class="exercise-expanded-body">${
           prev
             ? `<p class="muted previous-session">Ultima sessione ${U.date(prev.s.started)}: ${prev.e.rows
                 .filter((r) => r.done)
                 .map((r) => rowText(prev.e, r))
-                .join(' · ')}</p>`
+                .join(' · ')}${totals(prev.e).e1rm ? ` <span class="prev-1rm">· massimale stimato ${String(Math.round(weightToDisplay(totals(prev.e).e1rm) * 2) / 2).replace('.', ',')} ${weightLabel()}</span>` : ''}</p>`
             : ''
         }${loadTipHtml(e, prev)}${seriesInputs(e, i)}<div class="exercise-expanded-actions">${alts.length ? `<button data-alt="${i}" class="alt-exercise" aria-label="Versioni alternative per ${U.esc(e.name)}">↔ Variante</button>` : ''}<button data-info="${i}" class="strong-icon-action" aria-label="Informazioni esercizio">ⓘ</button><button data-note="${i}" class="strong-icon-action ${e.note ? 'has-note' : ''}" aria-label="Modifica note esercizio">✎︎</button></div>${e.note ? `<p class="exercise-note">${U.esc(e.note)}</p>` : ''}</div>`
       : ''
@@ -1593,7 +1677,7 @@ function weeklySummaryHtml() {
   return `<div class="card week-card"><div class="week-head"><h2>Questa settimana</h2><small>${dateTxt}</small></div>
     <div class="week-kpis"><div><b>${week.length}</b><small>${week.length === 1 ? 'allenamento' : 'allenamenti'}</small></div><div><b>${sets}</b><small>serie</small></div><div><b>${volTxt}</b><small>volume (carico × rip.)</small></div></div>
     <div class="week-groups">${list.map(([g, v]) => `<div class="week-row"><span>${U.esc(g)}</span><i><b style="width:${Math.round((v.sets / max) * 100)}%"></b></i><em>${v.sets} serie</em></div>`).join('')}</div>
-    ${records.length ? `<p class="week-records">🏆 ${records.length === 1 ? 'Record' : records.length + ' record'}: ${records.slice(0, 4).map(U.esc).join(' · ')}</p>` : ''}</div>`;
+    ${records.length ? `<div class="week-records"><b>🏆 ${records.length === 1 ? 'Un record questa settimana' : records.length + ' record questa settimana'}</b><ul>${records.slice(0, 5).map((r) => `<li>${U.esc(r)}</li>`).join('')}</ul>${records.length > 5 ? `<small>e altri ${records.length - 5}</small>` : ''}</div>` : ''}</div>`;
 }
 function closedExerciseSummary(e) {
   const t = totals(e),
@@ -1686,7 +1770,7 @@ function closedSeriesInputs(e, i, allowCompletion) {
   const cardio = isCardio(e),
     input = (r, j, f, label, step) => {
       const value = f === 'weight' ? weightToDisplay(r[f]) : (r[f] ?? '');
-      return `<input data-closed-row="${i}:${j}:${f}" aria-label="${label}, serie ${j + 1}" type="number" min="0" step="${step}" inputmode="decimal" placeholder="${label}" value="${value}">`;
+      return `<input data-closed-row="${i}:${j}:${f}" aria-label="${label}, serie ${j + 1}" type="number" min="0" step="${step}" inputmode="decimal" placeholder="${f === 'weight' ? weightLabel() : f === 'speed' ? 'km/h' : f === 'incline' ? '%' : e.unit === 'min' || cardio ? 'min' : 'rip.'}" value="${value}">`;
     };
   return `<div class="series-head ${cardio ? 'cardio-row' : ''}"><span>#</span>${cardio ? '<span>km/h</span><span>Pend. %</span><span>Min.</span>' : `<span>${weightLabel()}</span><span>${e.unit === 'min' ? 'Minuti' : 'Rip.'}</span>`}<span>Fatta</span></div>${e.rows.map((r, j) => `<div class="series-row ${cardio ? 'cardio-row' : ''}"><span>${j + 1}</span>${cardio ? input(r, j, 'speed', 'Velocità km/h', 0.1) + input(r, j, 'incline', 'Pendenza %', 0.5) : input(r, j, 'weight', `Carico ${weightLabel()}`, 0.5)}${input(r, j, 'reps', e.unit === 'min' || cardio ? 'Minuti' : 'Ripetizioni', e.unit === 'min' || cardio ? 0.1 : 1)}<input class="closed-complete-check" type="checkbox" aria-label="Serie ${j + 1} completata" data-closed-done="${i}:${j}" ${r.done ? 'checked' : ''}></div>`).join('')}<div class="series-count-actions"><button type="button" data-closed-series-remove="${i}">− Serie</button><button type="button" data-closed-series-add="${i}">＋ Serie</button></div>`;
 }
@@ -1996,6 +2080,16 @@ function bindAiWorkout() {
   btn.addEventListener('click', vai);
   inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); vai(); } });
 }
+/* v1.29.0 — Avanzamento della sessione sotto Pausa / Termina: serie ed esercizi fatti. */
+function sessionProgressBar(s) {
+  const list = (s?.exercises || []).filter((e) => !e.stopped);
+  const sets = list.reduce((t, e) => t + e.rows.length, 0),
+    done = list.reduce((t, e) => t + e.rows.filter((r) => r.done).length, 0),
+    exDone = list.filter((e) => exStatus(e) === 'Completato').length;
+  if (!sets) return '';
+  const pct = Math.round((done / sets) * 100);
+  return `<div class="sess-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Avanzamento sessione"><div class="sp-top"><span><b>${done}</b>/${sets} serie</span><span><b>${exDone}</b>/${list.length} esercizi</span><span class="sp-pct">${pct}%</span></div><i><b style="width:${pct}%"></b></i></div>`;
+}
 function workout() {
   const s = active(),
     closed = !s ? closedCurrent() : null;
@@ -2036,7 +2130,7 @@ function workout() {
   }
   const topActions = !s
     ? `<div class="workout-top-actions session-action-row"><button id="start-session-inline" class="start-session-inline">▶ Avvia sessione</button><button id="skip-session" class="skip-session-page">↷ Salta sessione</button></div>`
-    : `<div class="workout-top-actions session-action-row active-session-actions"><span id="session-clock" class="inline-session-clock" aria-label="Tempo totale sessione">${U.duration(elapsed(s))}</span><button id="pause-session-inline" class="pause-session-inline">${s.runningSince ? 'Ⅱ Pausa' : '▶ Riprendi'}</button><button id="finish-session-inline" class="finish-session-inline">■ Termina</button></div>`;
+    : `<div class="workout-top-actions session-action-row active-session-actions"><span id="session-clock" class="inline-session-clock" aria-label="Tempo totale sessione">${U.duration(elapsed(s))}</span><button id="pause-session-inline" class="pause-session-inline">${s.runningSince ? 'Ⅱ Pausa' : '▶ Riprendi'}</button><button id="finish-session-inline" class="finish-session-inline">■ Termina</button></div>${sessionProgressBar(s)}`;
   return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div>${top}${topActions}${current.join('')}${completed.length ? `<details class="card completed-section" open><summary>✓ Completati · ${completed.length}</summary>${completed.join('')}</details>` : ''}${skipped.length ? `<details class="card skipped-section" open><summary>↷ Saltati / interrotti · ${skipped.length}</summary>${skipped.join('')}</details>` : ''}${!ex.length ? '<div class="card empty">Scheda vuota: aggiungi un esercizio dalla modifica scheda.</div>' : ''}`;
 }
 function bindWorkout() {
@@ -2045,9 +2139,17 @@ function bindWorkout() {
       const i = Number(b.dataset.exerciseToggle),
         e = (active()?.exercises || freshExercises())[i];
       if (!e) return;
-      const key = exerciseExpandKey(e, i);
-      if (expandedExerciseKeys.has(key)) expandedExerciseKeys.delete(key);
-      else expandedExerciseKeys.add(key);
+      const key = exerciseExpandKey(e, i),
+        s = active(),
+        list = s ? s.exercises : freshExercises(),
+        nextIdx = list.findIndex((x) => exStatus(x) !== 'Completato' && !x.stopped);
+      if (isExerciseExpanded(e, i, s, i === nextIdx)) {
+        expandedExerciseKeys.delete(key);
+        autoClosedExerciseKeys.add(key);
+      } else {
+        expandedExerciseKeys.add(key);
+        autoClosedExerciseKeys.delete(key);
+      }
       render();
     };
     b.onclick = toggle;
@@ -2089,11 +2191,30 @@ function bindWorkout() {
   main.querySelectorAll('[data-row]').forEach((inp) => {
     const persist = () => {
       const [i, j, f] = inp.dataset.row.split(':');
+      propagatedRows = [];
       if (!saveRow(Number(i), Number(j), f, inp.value)) render();
-      else header();
+      else {
+        header();
+        // v1.28.0 — il carico scritto passa alle serie successive ancora vuote
+        const s = active();
+        propagatedRows.forEach((k) => {
+          const other = main.querySelector(`[data-row="${i}:${k}:weight"]`),
+            v = s?.exercises[Number(i)]?.rows[k]?.weight;
+          if (other && other !== document.activeElement && v != null) {
+            other.value = weightToDisplay(v);
+            other.classList.remove('has-hint');
+          }
+        });
+      }
     };
     inp.onchange = persist;
     inp.onblur = persist;
+    // Toccando il riquadro il numero viene selezionato: si riscrive senza cancellare.
+    inp.onfocus = () => {
+      try {
+        inp.select();
+      } catch {}
+    };
   });
   main.querySelectorAll('[data-complete]').forEach(
     (b) =>
@@ -2108,17 +2229,33 @@ function bindWorkout() {
           return;
         }
         const done = !row.done;
+        // v1.28.0 — serie senza carico scritto: si registra quello proposto (in grigio nel riquadro)
+        const fillWeight = done && row.weight == null ? weightHint(e, j, s.id) : null;
+        const wasLast = done && e.rows.filter((r) => !r.done).length === 1;
         if (
           mutate((n) => {
             const x = n.sessions.find((x) => x.id === s.id).exercises[i];
+            if (fillWeight != null) {
+              x.rows[j].weight = fillWeight;
+              n.exerciseValues ??= {};
+              n.exerciseValues[x.id] ??= U.clone(rememberedRows(x));
+              n.exerciseValues[x.id][j] ??= {};
+              n.exerciseValues[x.id][j].weight = fillWeight;
+            }
             x.rows[j].done = done;
             x.rows[j].legacy = false;
             x.stopped = false;
             if (done) startRestAfterSet(n, n.sessions.find((x) => x.id === s.id), x);
           })
         ) {
+          let after = null;
+          if (wasLast) {
+            expandedExerciseKeys.delete(exerciseExpandKey(e, i));
+            after = openExerciseAfter(i);
+          }
           render();
           updateRest();
+          if (wasLast) focusNextExercise(after);
           if (done) checkRecord(s.id, i, j);
         }
       }),
@@ -2142,7 +2279,11 @@ function bindWorkout() {
         if (
           mutate((n) => {
             const x = n.sessions.find((x) => x.id === s.id).exercises[i];
-            x.rows.forEach((r) => {
+            x.rows.forEach((r, j) => {
+              if (!r.done && r.weight == null) {
+                const h = weightHint(x, j, s.id);
+                if (h != null) r.weight = h;
+              }
               r.done = true;
               r.legacy = false;
             });
@@ -2150,8 +2291,11 @@ function bindWorkout() {
             startTransitionRest(n, n.sessions.find((x) => x.id === s.id), x);
           })
         ) {
+          expandedExerciseKeys.delete(exerciseExpandKey(e, i));
+          const after = openExerciseAfter(i);
           render();
           updateRest();
+          focusNextExercise(after);
         }
       }),
   );
@@ -2265,11 +2409,15 @@ function bindWorkout() {
      "Serie 3 di 4 · Panca piana".
    - Ultima serie, "✓ Tutte" o "Salta esercizio": recupero tra esercizi (1:30) verso il prossimo esercizio
      da fare, notifica "Prossimo: Squat". Se non resta nessun esercizio non parte nessun recupero. */
-function nextExerciseOf(sess) {
-  return sess?.exercises?.find((e) => exStatus(e) !== 'Completato' && !e.stopped) || null;
+function nextExerciseOf(sess, from) {
+  const list = sess?.exercises || [],
+    open = (e) => exStatus(e) !== 'Completato' && !e.stopped,
+    at = from ? list.indexOf(from) : -1;
+  // v1.28.0 — prima quello che viene dopo nella scheda, poi quelli rimasti indietro
+  return (at >= 0 ? list.slice(at + 1).find(open) : null) || list.find(open) || null;
 }
 function startTransitionRest(n, sess, from) {
-  const nx = nextExerciseOf(sess);
+  const nx = nextExerciseOf(sess, from);
   n.rest = null;
   if (!nx) return;
   n.rest = {
@@ -2516,19 +2664,49 @@ function trendChart(points, label, unit = '') {
   if (!points.length) return '<div class="empty">Nessun dato disponibile.</div>';
   const values = points.map((p) => Number(p.value)).filter(Number.isFinite);
   if (!values.length) return '<div class="empty">Nessun dato disponibile.</div>';
-  let lo = Math.min(...values),
-    hi = Math.max(...values);
+  const vMin = Math.min(...values),
+    vMax = Math.max(...values);
+  let lo = vMin,
+    hi = vMax;
   const span = Math.max(hi - lo, Math.max(Math.abs(hi) * 0.03, 1)),
     pad = span * 0.18;
   lo -= pad;
   hi += pad;
   const first = Date.parse(points[0].date),
     last = Date.parse(points.at(-1).date),
+    yOf = (v) => 150 - ((v - lo) / (hi - lo)) * 120,
     pos = points.map((p) => ({
       x: last === first ? 190 : 48 + ((Date.parse(p.date) - first) / (last - first)) * 290,
-      y: 150 - ((p.value - lo) / (hi - lo)) * 120,
+      y: yOf(p.value),
     }));
-  return `<div class="trend-chart-wrap"><h3>${U.esc(label)}</h3><svg class="touch-chart trend-chart" viewBox="0 0 380 190" role="img" aria-label="${U.esc(label)}"><path d="M48 20V150H350" fill="none" stroke="#52616c"/><text x="2" y="30">${U.round(hi)}${unit ? ' ' + U.esc(unit) : ''}</text><text x="2" y="153">${U.round(lo)}${unit ? ' ' + U.esc(unit) : ''}</text><polyline points="${pos.map((p) => p.x + ',' + p.y).join(' ')}" fill="none" stroke="#55c3a7" stroke-width="3"/>${pos.map((p) => `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#e8a33d"/>`).join('')}<text x="48" y="180">${new Date(points[0].date).toLocaleDateString('it-IT')}</text><text x="350" y="180" text-anchor="end">${new Date(points.at(-1).date).toLocaleDateString('it-IT')}</text></svg></div>`;
+  /* v1.30.0 — Etichette con la virgola e i valori veri (massimo, minimo e ultimo punto),
+     non più gli estremi "allargati" del grafico (es. 72.79 kg). */
+  const n = (v) => String(Math.round(v * 10) / 10).replace('.', ','),
+    u = unit ? ' ' + U.esc(unit) : '',
+    d = (iso) => new Date(iso).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }),
+    lp = pos.at(-1),
+    lastV = values.at(-1);
+  const axis = vMax === vMin
+    ? `<text x="2" y="${yOf(vMax) + 4}">${n(vMax)}${u}</text>`
+    : `<text x="2" y="${yOf(vMax) + 4}">${n(vMax)}${u}</text><text x="2" y="${yOf(vMin) + 4}">${n(vMin)}${u}</text><path d="M44 ${yOf(vMax)}H350M44 ${yOf(vMin)}H350" stroke="#52616c" stroke-opacity=".25" stroke-dasharray="3 4"/>`;
+  return `<div class="trend-chart-wrap"><h3>${U.esc(label)}</h3><svg class="touch-chart trend-chart" viewBox="0 0 380 190" role="img" aria-label="${U.esc(label)}"><path d="M48 20V150H350" fill="none" stroke="#52616c"/>${axis}<polyline points="${pos.map((p) => p.x + ',' + p.y).join(' ')}" fill="none" stroke="#55c3a7" stroke-width="3"/>${pos.map((p) => `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#e8a33d"/>`).join('')}<text class="trend-last" x="${Math.min(lp.x, 336)}" y="${Math.max(14, lp.y - 11)}" text-anchor="middle">${n(lastV)}</text><text x="48" y="180">${d(points[0].date)}</text><text x="350" y="180" text-anchor="end">${d(points.at(-1).date)}</text></svg></div>`;
+}
+/* v1.30.0 — Ritmo del peso (retta sui pesi delle ultime 4 settimane), letto con le stesse
+   soglie del check fisico per la massa pulita: 0,2-0,8 kg al mese va bene. */
+function weightPace(rows) {
+  const since = Date.now() - 28 * 864e5,
+    pts = rows.filter((x) => new Date(x.date).getTime() >= since).map((x) => ({ t: new Date(x.date).getTime() / 864e5, kg: x.kg }));
+  if (pts.length < 3) return null;
+  const spanDays = pts.at(-1).t - pts[0].t;
+  if (spanDays < 10) return null;
+  const mt = pts.reduce((a, p) => a + p.t, 0) / pts.length,
+    mk = pts.reduce((a, p) => a + p.kg, 0) / pts.length,
+    slope = pts.reduce((a, p) => a + (p.t - mt) * (p.kg - mk), 0) / pts.reduce((a, p) => a + (p.t - mt) ** 2, 0),
+    kgMonth = slope * 30.4;
+  const weeks = Math.max(2, Math.round(spanDays / 7));
+  if (kgMonth > 0.8) return { kgMonth, weeks, cls: 'fast', text: 'Più veloce del previsto per la massa pulita (0,2-0,8 kg al mese): tieni d\u2019occhio il girovita al prossimo check.' };
+  if (kgMonth < 0.2) return { kgMonth, weeks, cls: 'slow', text: 'Più lento del previsto per la massa (0,2-0,8 kg al mese): se resta così, al check fisico il piano aumenta un po\u2019 le calorie.' };
+  return { kgMonth, weeks, cls: 'ok', text: 'In linea con la massa pulita (0,2-0,8 kg al mese).' };
 }
 function bodyWeightPage() {
   const rows = (gym.bodyWeights || []).slice().sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -2540,29 +2718,53 @@ function bodyWeightPage() {
   const first = chartPoints[0]?.value,
     last = chartPoints.at(-1)?.value,
     delta = first != null && last != null ? last - first : null;
-  return `${statsTabs()}<div class="card body-weight-entry"><h2>Peso</h2><form id="body-weight-form"><label>Giorno</label><input name="day" type="date" max="${ymd(new Date())}" value="${ymd(new Date())}" required><label>Peso (${weightLabel()})</label><input name="weight" type="number" min="0" step="0.1" inputmode="decimal" required><button class="primary weight-save">Salva peso</button></form></div><div class="card weight-chart-card"><div class="stats-section-head"><h2>Evoluzione del peso</h2>${delta != null && chartPoints.length > 1 ? `<span class="weight-delta ${delta > 0 ? 'up' : delta < 0 ? 'down' : ''}">${delta > 0 ? '+' : ''}${U.round(delta)} ${weightLabel()}</span>` : ''}</div>${trendChart(chartPoints, 'Peso nel tempo', weightLabel())}</div>${
+  const pace = weightPace(rows);
+  return `${statsTabs()}<div class="card body-weight-entry"><h2>Peso</h2><form id="body-weight-form"><label>Giorno</label><input name="day" type="date" max="${ymd(new Date())}" value="${ymd(new Date())}" required><label>Peso (${weightLabel()})</label><input name="weight" type="number" min="0" step="0.1" inputmode="decimal" required><button class="primary weight-save">Salva peso</button></form></div><div class="card weight-chart-card"><div class="stats-section-head"><h2>Evoluzione del peso</h2>${delta != null && chartPoints.length > 1 ? `<span class="weight-delta ${delta > 0 ? 'up' : delta < 0 ? 'down' : ''}">${delta > 0 ? '+' : ''}${String(Math.round(delta * 10) / 10).replace('.', ',')} ${weightLabel()}</span>` : ''}</div>${trendChart(chartPoints, 'Peso nel tempo', weightLabel())}${pace ? `<p class="weight-pace ${pace.cls}"><b>Ritmo: ${pace.kgMonth > 0 ? '+' : ''}${String(Math.round((weightUnit() === 'lb' ? pace.kgMonth * 2.2046226218 : pace.kgMonth) * 10) / 10).replace('.', ',')} ${weightLabel()} al mese</b> · ultime ${pace.weeks} settimane<br><span>${pace.text}</span></p>` : ''}</div>${
     rows
       .slice()
       .reverse()
       .map(
         (x) =>
-          `<div class="card row"><span>${U.date(x.date)}</span><b>${U.round(weightUnit() === 'lb' ? x.kg * 2.2046226218 : x.kg)} ${weightLabel()}</b><button class="danger" data-weight-delete="${U.esc(x.id)}" aria-label="Elimina peso del ${U.date(x.date)}">Elimina</button></div>`,
+          `<div class="card row"><span>${U.date(x.date)}</span><b>${String(U.round(weightUnit() === 'lb' ? x.kg * 2.2046226218 : x.kg)).replace('.', ',')} ${weightLabel()}</b><button class="danger" data-weight-delete="${U.esc(x.id)}" aria-label="Elimina peso del ${U.date(x.date)}">Elimina</button></div>`,
       )
       .join('') || '<div class="card empty">Nessun peso registrato.</div>'
   }`;
+}
+/* v1.31.0 — Sotto il grafico: quanto è cambiato dal primo all'ultimo punto e, per il
+   massimale stimato, una riga che spiega come si calcola. */
+function chartProgressHtml(points, m) {
+  const info = m === 'e1rm' ? '<p class="chart-note">Stima di quanto alzeresti per una sola ripetizione, calcolata da carico e ripetizioni (formula di Epley). Sale anche quando aumenti le ripetizioni a parità di carico.</p>' : '';
+  if (!['e1rm', 'weight', 'volume', 'reps'].includes(m) || points.length < 2) return info;
+  const a = Number(points[0].value), b = Number(points.at(-1).value);
+  if (!(a > 0) || !Number.isFinite(b)) return info;
+  const d = b - a, pct = Math.round((d / a) * 100),
+    unit = m === 'reps' ? 'rip.' : m === 'volume' ? weightLabel() + ' × rip.' : weightLabel(),
+    since = new Date(points[0].date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }),
+    cls = d > 0.004 ? 'up' : d < -0.004 ? 'down' : 'flat',
+    num = String(Math.round(Math.abs(d) * 10) / 10).replace('.', ',');
+  return `<p class="chart-progress ${cls}">Dal ${since}: <b>${d > 0.004 ? '+' : d < -0.004 ? '−' : ''}${num} ${unit}</b>${d !== 0 ? ` (${pct > 0 ? '+' : ''}${pct}%)` : ' · stabile'}</p>${info}`;
 }
 function stats() {
   if (statsView === 'sessions') return sessionsPage();
   if (statsView === 'weight') return bodyWeightPage();
   const names = new Map(gym.program.flatMap((d) => d.exercises).map((e) => [e.id, e.name]));
   gym.sessions.forEach((s) => s.exercises.forEach((e) => names.set(e.id, e.name)));
-  if (!names.has(selectedExercise)) selectedExercise = names.keys().next().value || '';
+  if (!names.has(selectedExercise)) {
+    // v1.30.0 — si parte dall'ultimo esercizio con i pesi (prima: il primo della scheda, il tapis roulant)
+    const recent = gym.sessions
+      .filter((x) => x.started)
+      .slice()
+      .sort((a, b) => new Date(b.started) - new Date(a.started))
+      .flatMap((x) => x.exercises)
+      .find((e) => !isCardio(e) && e.unit !== 'min' && e.rows.some((r) => r.done && r.weight > 0));
+    selectedExercise = recent && names.has(recent.id) ? recent.id : names.keys().next().value || '';
+  }
   const selectedModel =
     gym.program.flatMap((d) => d.exercises).find((e) => e.id === selectedExercise) ||
     gym.sessions.flatMap((s) => s.exercises).find((e) => e.id === selectedExercise);
   const cardio = selectedModel && isCardio(selectedModel);
-  if (cardio && ['weight', 'volume'].includes(metric)) metric = 'speed';
-  if (!cardio && ['speed', 'incline'].includes(metric)) metric = 'weight';
+  if (cardio && ['weight', 'volume', 'e1rm'].includes(metric)) metric = 'speed';
+  if (!cardio && ['speed', 'incline'].includes(metric)) metric = 'e1rm';
   const shown = gym.sessions.filter(
     (s) => !selectedDay || (s.started && U.local(new Date(s.started)).slice(0, 10) === selectedDay),
   );
@@ -2574,12 +2776,12 @@ function stats() {
     .map(({ s, e }) => {
       const t = totals(e),
         value = metric === 'frequency' ? 1 : metric === 'done' ? t.done : t[metric];
-      if (metric === 'weight' && value != null && weightUnit() === 'lb') value *= 2.2046226218;
+      if ((metric === 'weight' || metric === 'e1rm') && value != null && weightUnit() === 'lb') value *= 2.2046226218;
       if (metric === 'volume' && value != null && weightUnit() === 'lb') value *= 2.2046226218;
       return {
         date: s.started,
         value,
-        detail: `${U.date(s.started)} · ${e.name} · ${value == null ? 'Non rilevato' : U.round(value)} ${metric === 'speed' ? 'km/h' : metric === 'incline' ? '%' : metric === 'weight' ? weightLabel() : metric === 'volume' ? weightLabel() + ' × rip.' : metric === 'reps' ? (e.unit === 'min' || isCardio(e) ? 'min' : 'rip.') : metric === 'frequency' ? 'sessione' : 'serie'}${metric === 'volume' && t.partialVolume ? ' (solo serie con dati completi)' : ''}`,
+        detail: `${U.date(s.started)} · ${e.name} · ${value == null ? 'Non rilevato' : String(Math.round(value * 10) / 10).replace('.', ',')} ${metric === 'speed' ? 'km/h' : metric === 'incline' ? '%' : metric === 'weight' || metric === 'e1rm' ? weightLabel() : metric === 'volume' ? weightLabel() + ' × rip.' : metric === 'reps' ? (e.unit === 'min' || isCardio(e) ? 'min' : 'rip.') : metric === 'frequency' ? 'sessione' : 'serie'}${metric === 'volume' && t.partialVolume ? ' (solo serie con dati completi)' : ''}`,
       };
     })
     .filter((p) => p.value !== null);
@@ -2610,6 +2812,7 @@ function stats() {
           ['incline', 'Pendenza massima (%)'],
         ]
       : [
+          ['e1rm', `Massimale stimato (${weightLabel()}, 1 ripetizione)`],
           ['weight', `Carico massimo (${weightLabel()})`],
           ['volume', `Volume (${weightLabel()} × ripetizioni)`],
         ]),
@@ -2620,7 +2823,7 @@ function stats() {
     .map(([v, l]) => `<option value="${v}" ${metric === v ? 'selected' : ''}>${l}</option>`)
     .join(
       '',
-    )}</select>${U.chart(chartPoints, 'Andamento esercizio')}</div><details class="card stats-filter"><summary>Filtra per data ${selectedDay ? '· ' + selectedDay : ''}</summary><label for="session-day">Mostra una data specifica</label><input id="session-day" type="date" value="${selectedDay}"><button id="all-days">Mostra tutto lo storico</button></details><div class="stats-section-head"><h2>Ultime sessioni</h2><button data-stats-view="sessions">Vedi tutte</button></div>${
+    )}</select>${U.chart(chartPoints, 'Andamento esercizio')}${chartProgressHtml(chartPoints, metric)}</div><details class="card stats-filter"><summary>Filtra per data ${selectedDay ? '· ' + selectedDay : ''}</summary><label for="session-day">Mostra una data specifica</label><input id="session-day" type="date" value="${selectedDay}"><button id="all-days">Mostra tutto lo storico</button></details><div class="stats-section-head"><h2>Ultime sessioni</h2><button data-stats-view="sessions">Vedi tutte</button></div>${
     recent
       .map((s) => {
         const c = sessionCounts(s);
@@ -3078,16 +3281,38 @@ function generateNextBlock() {
       `<p>Inizia lunedì ${new Date(gym.settings.blockStart + 'T00:00:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })} e dura ${MAX_WEEKS} settimane.</p><ul class="block-changes">${changes.map((c) => `<li>${U.esc(c)}</li>`).join('')}</ul><p class="muted">Per una revisione completa della scheda esporta il backup e condividilo.</p>`,
   );
 }
+/* v1.30.0 — Altro con la stessa struttura di Bilancio: sezioni con titolo piccolo
+   in maiuscolo ed elenchi a righe con la freccia (prima: una scheda per ogni pulsante). */
 function more() {
-  return `${window.SuiteTheme ? SuiteTheme.card() : ''}${window.SuiteSync ? SuiteSync.cardHtml('recomp') : ''}<div class="card" id="pushCard"></div><div class="card ai-food-card" id="aiFoodCard" hidden><h2>Alimento dall\u2019etichetta</h2><p class="muted">Fotografa la tabella nutrizionale: nome e valori per 100 g entrano nel tuo elenco alimenti, pronti da usare nei pasti.</p><div class="actions"><button id="ai-food-shot">\ud83d\udcf7 Fotografa l\u2019etichetta</button><button id="ai-food-pick">\ud83d\uddbc\ufe0f Dalla galleria</button></div><input type="file" accept="image/*" capture="environment" hidden id="ai-food-cam"><input type="file" accept="image/*" hidden id="ai-food-gal"><p class="muted" id="ai-food-hint"></p></div><div class="card app-version-card"><h2>Versione app</h2><p class="muted">RecompApp ${APP_VERSION} · gli aggiornamenti vengono controllati automaticamente.</p><button id="check-app-update">Controlla aggiornamenti</button></div>${checksCard()}<div class="card"><h2>Le tue sessioni</h2><p class="muted">Durata, serie completate ed esercizi saltati.</p><button id="open-sessions">Riepilogo sessioni</button></div><div class="card"><h2>Backup e ripristino</h2><p class="muted">Dati salvati solo in questo browser. Ultima esportazione richiesta: ${gym.settings.lastExport ? U.date(gym.settings.lastExport) : 'mai'}.</p><div class="actions"><button id="export-gym">Esporta JSON</button><button id="import-gym">Importa backup</button></div><input type="file" accept=".json,application/json" hidden id="import-file"></div><div class="card"><h2>Unità di misura</h2><label for="weight-unit">Carichi e peso corporeo</label><select id="weight-unit"><option value="kg" ${weightUnit() === 'kg' ? 'selected' : ''}>kg</option><option value="lb" ${weightUnit() === 'lb' ? 'selected' : ''}>lb</option></select></div><div class="card"><h2>Storage locale</h2><p class="muted">${storageError ? U.esc(storageError) : 'Salvataggio locale disponibile. Le modifiche vengono confermate solo dopo la scrittura riuscita.'}</p></div><div class="card danger-zone"><h2>Reset dati</h2><p class="muted">Cancella allenamenti, note, peso e modifiche al piano da questo dispositivo.</p><button id="reset-data" class="danger">Azzera tutti i dati</button></div><div class="card"><h2>Integrazione</h2><details><summary>Indicazioni presenti nel piano</summary>${SUPPLEMENTS.map((s) => `<h3>${U.esc(s.title)}</h3><p class="muted">${U.esc(s.txt)}</p>`).join('')}</details></div><div class="card"><h2>Sessioni aperte</h2>${
-    gym.sessions
-      .filter((s) => !s.legacy && !s.ended)
-      .map(
-        (s) =>
-          `<p>${U.esc(s.day)} · ${U.date(s.started)}</p><button data-session-edit="${U.esc(s.id)}">Correggi / termina</button>`,
-      )
-      .join('') || '<p class="muted">Nessuna sessione aperta.</p>'
-  }</div>`;
+  const chev = '<span class="chev" aria-hidden="true">›</span>';
+  const row = (attrs, title, sub = '', cls = '') =>
+    `<button type="button" class="more-row ${cls}" ${attrs}><span class="more-row-txt"><b>${title}</b>${sub ? `<small>${sub}</small>` : ''}</span>${chev}</button>`;
+  const open = gym.sessions.filter((s) => !s.legacy && !s.ended);
+  const last = gym.settings.lastExport ? new Date(gym.settings.lastExport) : null,
+    days = last ? Math.floor((Date.now() - last.getTime()) / 86400000) : null,
+    backupWarn = !last || days > 30;
+  const backupText = !last
+    ? 'Backup consigliato: non hai ancora esportato i dati da questo telefono.'
+    : days > 30
+      ? `Backup consigliato: l’ultimo risale a ${days} giorni fa.`
+      : `Ultimo backup: ${U.date(gym.settings.lastExport)}.`;
+  return `<div class="more-page">${window.SuiteTheme ? SuiteTheme.card() : ''}
+<div class="card more-sec"><h2>Allenamento</h2><div class="more-rows">
+${row('id="open-sessions"', 'Riepilogo sessioni', 'Durata, serie completate ed esercizi saltati')}
+${open.map((x) => row(`data-session-edit="${U.esc(x.id)}"`, `Sessione aperta · ${U.esc(x.day)}`, `${U.date(x.started)} · correggi o termina`, 'warn')).join('')}
+<label class="more-row more-row-select" for="weight-unit"><span class="more-row-txt"><b>Unità di misura</b><small>Carichi e peso corporeo</small></span><select id="weight-unit"><option value="kg" ${weightUnit() === 'kg' ? 'selected' : ''}>kg</option><option value="lb" ${weightUnit() === 'lb' ? 'selected' : ''}>lb</option></select></label>
+</div></div>
+${checksCard()}
+${window.SuiteSync ? SuiteSync.cardHtml('recomp') : ''}<div class="card" id="pushCard"></div><div class="card ai-food-card" id="aiFoodCard" hidden><h2>Alimento dall\u2019etichetta</h2><p class="muted">Fotografa la tabella nutrizionale: nome e valori per 100 g entrano nel tuo elenco alimenti, pronti da usare nei pasti.</p><div class="actions"><button id="ai-food-shot">\ud83d\udcf7 Fotografa l\u2019etichetta</button><button id="ai-food-pick">\ud83d\uddbc\ufe0f Dalla galleria</button></div><input type="file" accept="image/*" capture="environment" hidden id="ai-food-cam"><input type="file" accept="image/*" hidden id="ai-food-gal"><p class="muted" id="ai-food-hint"></p></div>
+<div class="card more-sec"><h2>Dati</h2><p class="backup-status ${backupWarn ? 'warn' : ''}">${backupText}</p><div class="more-rows">
+${row('id="export-gym"', 'Esporta backup (.json)')}
+${row('id="import-gym"', 'Importa backup')}
+${row('id="reset-data"', 'Azzera tutti i dati', 'Allenamenti, note, peso e modifiche al piano', 'danger')}
+</div><input type="file" accept=".json,application/json" hidden id="import-file"></div>
+${storageError ? `<div class="card more-sec"><h2>Salvataggio sul telefono</h2><p class="muted">${U.esc(storageError)}</p></div>` : ''}
+<div class="card more-sec"><h2>Integrazione</h2><details><summary>Indicazioni presenti nel piano</summary>${SUPPLEMENTS.map((x) => `<h3>${U.esc(x.title)}</h3><p class="muted">${U.esc(x.txt)}</p>`).join('')}</details></div>
+<p class="app-version">RecompApp v${APP_VERSION} · <button type="button" class="link-btn" id="check-app-update">Controlla aggiornamenti</button></p>
+</div>`;
 }
 
 function exportGym() {

@@ -161,18 +161,30 @@ const U = {
     d.setMonth(d.getMonth() + delta);
     return U.local(d).slice(0, 7);
   },
+  /* v1.30.0 — Grafico dei progressi: scala sui valori veri (non più da 0, che appiattiva i
+     progressi), massimo e minimo con la virgola, ultimo valore in evidenza, date brevi. */
   chart: (points, label) => {
     if (!points.length) return '<div class="empty">Nessun dato disponibile per il periodo selezionato.</div>';
     const values = points.map((p) => p.value),
-      lo = Math.min(0, ...values),
-      hi = Math.max(1, ...values),
+      vMin = Math.min(...values),
+      vMax = Math.max(...values),
+      spanV = Math.max(vMax - vMin, Math.max(Math.abs(vMax) * 0.05, 1)),
+      lo = Math.max(0, vMin - spanV * 0.25),
+      hi = vMax + spanV * 0.25,
       first = Date.parse(points[0].date),
       last = Date.parse(points.at(-1).date),
+      yOf = (v) => 150 - ((v - lo) / (hi - lo || 1)) * 120,
+      n = (v) => String(Math.round(v * 10) / 10).replace('.', ','),
+      dd = (iso) => new Date(iso).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }),
       pos = points.map((p, i) => ({
         x: last === first ? 190 : 48 + ((Date.parse(p.date) - first) / (last - first)) * 290,
-        y: 150 - ((p.value - lo) / (hi - lo)) * 120,
-      }));
-    return `<svg class="touch-chart" viewBox="0 0 380 190" role="img" aria-label="${U.esc(label)}"><path d="M48 20V150H350" fill="none" stroke="#52616c"/><text x="0" y="30">${U.round(hi)}</text><text x="0" y="153">${U.round(lo)}</text><polyline points="${pos.map((p) => p.x + ',' + p.y).join(' ')}" fill="none" stroke="#55c3a7" stroke-width="3"/>${pos.map((p, i) => `<g class="chart-point" tabindex="0" role="button" aria-label="${U.esc(points[i].detail)}" data-chart-point="${i}"><circle cx="${p.x}" cy="${p.y}" r="18" fill="transparent"/><circle cx="${p.x}" cy="${p.y}" r="5" fill="#e8a33d"/></g>`).join('')}<text x="48" y="180">${new Date(points[0].date).toLocaleDateString('it-IT')}</text><text x="350" y="180" text-anchor="end">${new Date(points.at(-1).date).toLocaleDateString('it-IT')}</text></svg><p class="chart-detail muted" aria-live="polite">Tocca un punto per vedere il dettaglio.</p>`;
+        y: yOf(p.value),
+      })),
+      lp = pos.at(-1),
+      axis = vMax === vMin
+        ? `<text x="0" y="${yOf(vMax) + 4}">${n(vMax)}</text>`
+        : `<text x="0" y="${yOf(vMax) + 4}">${n(vMax)}</text><text x="0" y="${yOf(vMin) + 4}">${n(vMin)}</text><path d="M44 ${yOf(vMax)}H350M44 ${yOf(vMin)}H350" stroke="#52616c" stroke-opacity=".25" stroke-dasharray="3 4"/>`;
+    return `<svg class="touch-chart" viewBox="0 0 380 190" role="img" aria-label="${U.esc(label)}"><path d="M48 20V150H350" fill="none" stroke="#52616c"/>${axis}<text class="trend-last" x="${Math.min(lp.x, 336)}" y="${Math.max(14, lp.y - 11)}" text-anchor="middle">${n(values.at(-1))}</text><polyline points="${pos.map((p) => p.x + ',' + p.y).join(' ')}" fill="none" stroke="#55c3a7" stroke-width="3"/>${pos.map((p, i) => `<g class="chart-point" tabindex="0" role="button" aria-label="${U.esc(points[i].detail)}" data-chart-point="${i}"><circle cx="${p.x}" cy="${p.y}" r="18" fill="transparent"/><circle cx="${p.x}" cy="${p.y}" r="5" fill="#e8a33d"/></g>`).join('')}<text x="48" y="180">${dd(points[0].date)}</text><text x="350" y="180" text-anchor="end">${dd(points.at(-1).date)}</text></svg><p class="chart-detail muted" aria-live="polite">Tocca un punto per vedere il dettaglio.</p>`;
   },
   bindChart: (root, points) =>
     root.querySelectorAll('[data-chart-point]').forEach((b) => {

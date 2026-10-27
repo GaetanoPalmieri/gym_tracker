@@ -1,0 +1,11 @@
+VERSIONE 1.31.0 — Massimale stimato
+
+- Statistiche › Progressi esercizio: nuovo indicatore "Massimale stimato (kg, 1 ripetizione)",
+  ora quello predefinito. È la stima di quanto alzeresti per una sola ripetizione, calcolata
+  da carico e ripetizioni con la formula di Epley (carico × (1 + ripetizioni/30)); oltre le
+  15 ripetizioni non si calcola. Così si confrontano sessioni con ripetizioni diverse
+  (es. 60 × 8 e 65 × 5) e il grafico sale anche quando aumenti le ripetizioni.
+- Sotto il grafico: quanto è cambiato dal primo all'ultimo punto (es. "Dal 12 ott: +6 kg (+12%)"),
+  anche per carico massimo, volume e ripetizioni.
+- Durante la sessione, nella riga "Ultima sessione" dell'esercizio compare anche il
+  massimale stimato della volta scorsa.

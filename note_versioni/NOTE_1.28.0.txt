@@ -1,0 +1,26 @@
+VERSIONE 1.28.0 — Sessione più comoda e più "smart"
+
+Riquadri delle serie grandi
+- Carico, ripetizioni e ✓ ora sono alti 56 px (prima 32) con cifre a 24 px (prima 13):
+  si toccano bene anche con le mani sudate o i guanti.
+- Pulsante ✓ largo 62 px; "✓ Tutte" più leggibile.
+- Serie da fare adesso evidenziata (numero verde e bordo); serie fatte colorate di verde.
+- Con la scheda aperta sparisce il riepilogo a pillole sopra le serie (era un doppione).
+- Anche le etichette dentro i riquadri vuoti sono corte (kg, rip., km/h, %, min).
+
+Compilazione automatica
+- Carico proposto: in ogni serie vuota vedi in grigio il carico da usare
+  (serie sopra di questa sessione → "Oggi prova…" → carico della volta scorsa).
+  Se tocchi ✓ senza scrivere niente, viene registrato quel carico.
+- Scrivi il carico nella serie 1 e passa da solo alle serie successive ancora da fare
+  (se lo cambi, si aggiornano anche quelle che avevano il valore vecchio).
+- Toccando un riquadro il numero viene selezionato: si riscrive senza cancellare.
+- "✓ Tutte" usa anche lui il carico proposto per le serie senza carico.
+
+Esercizio successivo
+- Durante la sessione l'esercizio da fare è già aperto con i riquadri delle serie.
+  Se lo chiudi a mano resta chiuso.
+- Finita l'ultima serie (o "✓ Tutte") l'esercizio si chiude, si apre quello successivo
+  nella scheda e la pagina scorre fino a lui.
+- Il recupero "Cambio esercizio" indica come prossimo l'esercizio che viene dopo nella
+  scheda (prima indicava il primo rimasto indietro, es. il tapis roulant).

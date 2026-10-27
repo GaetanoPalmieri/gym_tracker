@@ -1,0 +1,22 @@
+VERSIONE 1.30.0 — Altro come in Bilancio, statistiche più chiare
+
+Altro
+- Stessa struttura di Bilancio: sezioni con il titolo piccolo in maiuscolo ed elenchi a
+  righe con la freccia (prima una scheda con un pulsante per ogni voce).
+- Sezioni: Aspetto, Allenamento (Riepilogo sessioni, eventuali sessioni aperte, Unità di
+  misura), Check fisico, Sincronizzazione, Apertura protetta, Notifiche, Dati, Integrazione.
+- Dati: "Backup consigliato" in rosso se non hai mai esportato o se l'ultimo backup ha
+  più di 30 giorni; altrimenti la data dell'ultimo backup.
+- La versione e "Controlla aggiornamenti" sono in fondo, come in Bilancio.
+- "Sessioni aperte" compare solo se ce n'è una (prima: "Nessuna sessione aperta").
+
+Statistiche
+- Grafici: la scala parte dai valori veri e non più da 0 (i progressi si vedono),
+  massimo e minimo con la virgola, ultimo valore in evidenza, date brevi ("12 ott").
+- Progressi esercizio: si apre sull'ultimo esercizio fatto con i pesi (prima sul tapis roulant).
+- Questa settimana: i record sono un elenco leggibile.
+- Peso: "Ritmo: +X kg al mese" sulle ultime 4 settimane, con la lettura per la massa pulita
+  (0,2-0,8 kg al mese, le stesse soglie del check fisico). Pesi con la virgola.
+
+Nutrizione
+- Le kcal del pasto non vanno più a capo ("361 / kcal").
