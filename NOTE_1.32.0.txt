@@ -1,0 +1,21 @@
+VERSIONE 1.32.0 — Vista focus: l'esercizio in corso sempre in primo piano
+
+Come funziona
+- In cima c'è un solo esercizio aperto, quello in corso: bordo e alone verdi, etichetta
+  "● IN CORSO" (il punto pulsa), "2 di 8", nome grande, serie, ultima volta, carico consigliato.
+- Tutti gli altri esercizi sono righe sottili (56 px invece di ~170): numero, nome,
+  "3 × 12-15 · attrezzo". Toccando una riga quell'esercizio sale in primo piano.
+- In fondo al riquadro in corso: "DOPO <prossimo esercizio>", da toccare per passarci subito.
+- Finita l'ultima serie (o "✓ Tutte", o "Salta") il riquadro passa da solo all'esercizio
+  successivo nella scheda, con una breve animazione, e la pagina sale fino a lui.
+- Completati e Saltati sono due elenchi richiudibili in fondo (chiusi all'inizio).
+  Toccando un esercizio completato lo riapri in primo piano per correggerlo.
+- Se scorri e il riquadro in corso esce dallo schermo, in alto compare una pastiglia verde
+  "● Panca piana · 2/4 serie ↑": toccandola torni all'esercizio.
+- Prima di avviare la sessione la vista è la stessa ("Si parte con" in cima, "Poi" sotto).
+
+Correzioni
+- Con il timer di recupero aperto la fine della pagina restava nascosta sotto il timer:
+  ora si scorre fino in fondo.
+- Lo scorrimento automatico verso l'esercizio successivo non funzionava (la pagina scorre
+  dentro l'app e non nella finestra): ora funziona.

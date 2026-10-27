@@ -4450,3 +4450,109 @@ html body #main .chart-progress.down b { color: #b7791f; }
 :root[data-theme="dark"] body #main .chart-progress.down b { color: #ffbc7d; }
 html body #main .chart-note { margin: 8px 2px 0; font-size: 12.5px; line-height: 1.4; color: var(--sub); }
 html body #main .previous-session .prev-1rm { font-weight: 700; color: #2f9e8f; white-space: nowrap; }
+
+/* =====================================================================
+   v1.32.0 — Vista focus
+   L'esercizio in primo piano è l'unico aperto: bordo e alone verdi, etichetta "In corso",
+   nome grande. Gli altri sono righe sottili (56 px) da toccare per portarli in primo piano.
+   ===================================================================== */
+html body #main .ex-focus {
+  position: relative; margin: 4px 0 18px !important; padding: 16px 16px 14px !important;
+  border-radius: 24px !important; border: 2px solid color-mix(in srgb, #3fb38e 75%, transparent) !important;
+  background:
+    radial-gradient(120% 70% at 0% 0%, color-mix(in srgb, #3fb38e 16%, transparent), transparent 60%),
+    var(--glass-card, var(--card)) !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #3fb38e 14%, transparent), 0 18px 40px -22px rgba(31,122,98,.55) !important;
+  scroll-margin-top: 150px;
+}
+html body #main .ex-focus.is-done { border-color: color-mix(in srgb, #3fb38e 45%, transparent) !important; box-shadow: 0 10px 30px -22px rgba(0,0,0,.4) !important; }
+html body #main .ex-focus.is-skipped { border-color: color-mix(in srgb, #e8a33d 60%, transparent) !important; box-shadow: 0 0 0 4px color-mix(in srgb, #e8a33d 12%, transparent) !important; }
+html body #main .ex-focus.focus-in { animation: exFocusIn .38s cubic-bezier(.2,.8,.2,1); }
+@keyframes exFocusIn { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { html body #main .ex-focus.focus-in { animation: none; } }
+html body #main .exf-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+html body #main .exf-badge {
+  display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px 5px 9px; border-radius: 999px;
+  font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #fff;
+  background: linear-gradient(135deg, #3fb38e, #1f7a62);
+}
+html body #main .exf-badge i { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: exPulse 1.6s ease-in-out infinite; }
+html body #main .ex-focus.is-done .exf-badge { background: color-mix(in srgb, #3fb38e 22%, transparent); color: #1f7a62; }
+html body #main .ex-focus.is-done .exf-badge i, html body #main .ex-focus.is-skipped .exf-badge i { animation: none; background: currentColor; }
+html body #main .ex-focus.is-skipped .exf-badge { background: color-mix(in srgb, #e8a33d 22%, transparent); color: #9a6212; }
+@keyframes exPulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+html body #main .exf-pos { font-size: 13px; font-weight: 700; color: var(--sub); }
+html body #main .exf-name { margin: 0 0 6px !important; font-size: 22px !important; line-height: 1.2 !important; font-weight: 800 !important; letter-spacing: -.015em; color: var(--text) !important; text-transform: none !important; }
+html body #main .exf-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 14px; color: var(--sub); margin-bottom: 8px; }
+html body #main .ex-focus .equipment-labels { margin-bottom: 10px; }
+html body #main .exf-progress { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--sub); margin: 2px 0 10px; }
+html body #main .exf-progress b { color: var(--text); font-size: 15px; }
+html body #main .exf-progress > i { flex: 1; height: 7px; border-radius: 99px; overflow: hidden; background: color-mix(in srgb, var(--text) 9%, transparent); }
+html body #main .exf-progress > i > b { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #3fb38e, #6fd3ae); transition: width .3s ease; }
+html body #main .exf-prev { display: flex; flex-wrap: wrap; gap: 5px 6px; align-items: center; margin: 0 0 8px; font-size: 13px; color: var(--sub); }
+html body #main .exf-prev > span { width: 100%; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+html body #main .exf-prev b { font-weight: 650; color: var(--text); padding: 3px 8px; border-radius: 8px; background: color-mix(in srgb, var(--text) 6%, transparent); white-space: nowrap; }
+html body #main .exf-prev em { font-style: normal; font-weight: 700; color: #2f9e8f; white-space: nowrap; }
+html body #main .exf-series { margin-top: 4px; }
+html body #main .exf-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+html body #main .exf-actions .exf-skip { min-height: 42px !important; padding: 0 14px !important; border-radius: 13px !important; font-weight: 700 !important; font-size: 14px !important; }
+html body #main .exf-next {
+  display: flex !important; align-items: center !important; gap: 10px; width: 100% !important; margin: 14px 0 0 !important;
+  padding: 11px 13px !important; min-height: 48px !important; border-radius: 14px !important; text-align: left !important;
+  background: color-mix(in srgb, var(--text) 5%, transparent) !important; border: 1px dashed var(--line) !important; box-shadow: none !important; color: var(--text) !important;
+}
+html body #main .exf-next span { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--sub); }
+html body #main .exf-next b { flex: 1; min-width: 0; font-size: 14.5px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html body #main .exf-next em { font-style: normal; font-size: 20px; color: var(--sub); }
+
+/* Righe degli altri esercizi */
+html body #main .ex-list { margin: 0 0 14px; }
+html body #main .ex-list-title {
+  display: block; margin: 0 4px 8px; font-size: 12.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--sub);
+  list-style: none; cursor: pointer;
+}
+html body #main details.ex-fold > summary::-webkit-details-marker { display: none; }
+html body #main details.ex-fold > summary::after { content: ' ▾'; }
+html body #main details.ex-fold[open] > summary::after { content: ' ▴'; }
+html body #main .ex-row {
+  display: flex !important; align-items: center !important; gap: 12px; width: 100% !important; min-height: 56px !important;
+  margin: 0 0 6px !important; padding: 8px 12px !important; border-radius: 16px !important; text-align: left !important;
+  background: color-mix(in srgb, var(--card) 72%, transparent) !important; border: 1px solid var(--glass-edge, var(--line)) !important;
+  box-shadow: none !important; color: var(--text) !important; font: inherit !important;
+}
+html body #main .ex-row:active { transform: scale(.985); }
+html body #main .exr-n {
+  flex: 0 0 30px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 13.5px; font-weight: 800; color: var(--sub); background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+html body #main .exr-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+html body #main .exr-txt b { font-size: 15px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html body #main .exr-txt small { font-size: 12.5px; color: var(--sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html body #main .exr-count { font-size: 13px; font-weight: 800; color: #2f9e8f; padding: 3px 8px; border-radius: 999px; background: color-mix(in srgb, #3fb38e 14%, transparent); }
+html body #main .exr-go { font-size: 20px; color: var(--sub); }
+html body #main .ex-row.is-done .exr-n { color: #fff; background: #3fb38e; }
+html body #main .ex-row.is-done .exr-txt b { color: var(--sub); }
+html body #main .ex-row.is-skipped { opacity: .7; }
+html body #main .ex-row.is-skipped .exr-n { color: #9a6212; background: color-mix(in srgb, #e8a33d 20%, transparent); }
+html body #main .ex-row.is-started .exr-n { color: #2f9e8f; background: color-mix(in srgb, #3fb38e 16%, transparent); }
+
+/* Pastiglia "in corso" quando il riquadro esce dallo schermo */
+.focus-pill {
+  position: fixed; left: 50%; top: 80px; z-index: 4500; transform: translate(-50%, -14px); opacity: 0; pointer-events: none;
+  display: flex; align-items: center; gap: 9px; max-width: min(calc(100% - 32px), 460px); min-height: 44px; padding: 8px 14px 8px 12px;
+  border-radius: 999px; border: 0; font: inherit; color: #fff; cursor: pointer;
+  background: linear-gradient(135deg, rgba(47,158,143,.96), rgba(31,122,98,.96));
+  box-shadow: 0 12px 28px -10px rgba(31,122,98,.7); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  transition: opacity .22s ease, transform .22s ease;
+}
+.focus-pill.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.focus-pill[hidden] { display: none; }
+.focus-pill i { flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: exPulse 1.6s ease-in-out infinite; }
+.focus-pill b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14.5px; font-weight: 750; }
+.focus-pill span { flex: 0 0 auto; font-size: 13px; font-weight: 600; opacity: .9; }
+.focus-pill em { flex: 0 0 auto; font-style: normal; font-weight: 800; font-size: 16px; }
+/* Con il timer di recupero aperto la fine della pagina resta raggiungibile (prima finiva sotto il timer) */
+html body:has(#rest-bar:not([hidden])) #main { padding-bottom: calc(240px + env(safe-area-inset-bottom)) !important; }
+/* Pulsanti d'azione del riquadro in primo piano tutti della stessa altezza */
+html body #main .exf-actions > button { min-height: 42px !important; height: 42px !important; }
+html body #main .exf-actions .alt-exercise { font-size: 14px !important; font-weight: 700 !important; padding: 0 14px !important; border-radius: 13px !important; }

@@ -502,7 +502,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.31.0';
+const APP_VERSION = '1.32.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -516,7 +516,11 @@ let gym = defaultGym(),
   expandedExerciseKeys = new Set(),
   // v1.28.0 — esercizi "prossimi" che hai chiuso a mano (non si riaprono da soli)
   autoClosedExerciseKeys = new Set(),
-  propagatedRows = [];
+  propagatedRows = [],
+  // v1.32.0 — vista focus: l'esercizio in primo piano (scelto o automatico) e quello mostrato l'ultima volta
+  focusPick = null,
+  lastFocusShown = '',
+  focusDetailsOpen = { done: false, skipped: false };
 function isNum(n) {
   return U.finite(n) && n >= 0;
 }
@@ -1534,31 +1538,81 @@ function isExerciseExpanded(e, i, s, next) {
 }
 /* Dopo l'ultima serie di un esercizio si apre il successivo nella scheda (non il primo
    rimasto indietro) e la pagina scorre fino a lui. */
+/* v1.32.0 — Vista focus: un solo esercizio in primo piano (in cima, aperto, evidenziato),
+   tutti gli altri come righe sottili. Il focus è quello che scegli toccando una riga oppure,
+   in automatico, il primo esercizio ancora da fare nell'ordine della scheda. */
+function focusCtx(s) {
+  return s ? 's:' + s.id : 'p:' + context();
+}
+function openIdx(list, from = -1) {
+  const ok = (x) => x && exStatus(x) !== 'Completato' && !x.stopped;
+  for (let k = from + 1; k < list.length; k++) if (ok(list[k])) return k;
+  for (let k = 0; k < list.length; k++) if (ok(list[k])) return k;
+  return -1;
+}
+function resolveFocus(list, s) {
+  const ctx = focusCtx(s);
+  if (focusPick && focusPick.ctx === ctx && list[focusPick.i] && list[focusPick.i].id === focusPick.id) return focusPick.i;
+  return openIdx(list);
+}
+function setFocus(list, s, i) {
+  focusPick = i >= 0 && list[i] ? { ctx: focusCtx(s), i, id: list[i].id } : null;
+}
+/* Dopo l'ultima serie (o "✓ Tutte", o "Salta") il focus passa all'esercizio che viene dopo
+   nella scheda; se dopo non c'è niente, al primo rimasto indietro. */
 function openExerciseAfter(i) {
   const s = active();
   if (!s) return null;
-  const list = s.exercises;
-  for (let k = i + 1; k < list.length; k++) {
-    const x = list[k];
-    if (exStatus(x) !== 'Completato' && !x.stopped) {
-      const key = exerciseExpandKey(x, k);
-      expandedExerciseKeys.add(key);
-      autoClosedExerciseKeys.delete(key);
-      return k;
-    }
-  }
-  return null;
+  const k = openIdx(s.exercises, i);
+  setFocus(s.exercises, s, k);
+  return k >= 0 ? k : null;
 }
-function focusNextExercise(k) {
+function focusNextExercise() {
   requestAnimationFrame(() => {
-    const card =
-      k != null
-        ? main.querySelector(`[data-exercise-toggle="${k}"]`)?.closest('.exercise-card')
-        : main.querySelector('.exercise-card.exercise-next.exercise-expanded');
+    const card = main.querySelector('.ex-focus');
     if (!card) return;
-    const top = card.getBoundingClientRect().top + window.scrollY - 140;
-    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    // la pagina scorre dentro <body>, non nella finestra: scrollIntoView va bene in tutti e due i casi
+    const head = document.querySelector('header.top');
+    card.style.scrollMarginTop = `${Math.round((head ? head.getBoundingClientRect().height : 70) + 12)}px`;
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
+}
+function focusCard(e, i, s, list) {
+  const status = exStatus(e),
+    prev = previous(e.id, s?.id),
+    alts = exerciseAlternatives(e),
+    t = totals(e),
+    pos = list.indexOf(e) + 1,
+    nextK = openIdx(list, i),
+    nextE = nextK >= 0 && nextK !== i ? list[nextK] : null,
+    label = !s ? 'Si parte con' : status === 'Completato' ? 'Completato · puoi correggerlo' : e.stopped ? 'Saltato' : 'In corso';
+  const prevHtml = prev
+    ? `<p class="exf-prev"><span>Ultima volta · ${U.date(prev.s.started)}</span>${prev.e.rows
+        .filter((r) => r.done)
+        .map((r) => `<b>${U.esc(rowText(prev.e, r))}</b>`)
+        .join('')}${totals(prev.e).e1rm ? `<em>massimale stimato ${String(Math.round(weightToDisplay(totals(prev.e).e1rm) * 2) / 2).replace('.', ',')} ${weightLabel()}</em>` : ''}</p>`
+    : '';
+  return `<section class="card ex-focus ${status === 'Completato' ? 'is-done' : e.stopped ? 'is-skipped' : ''}" data-focus-card="${i}" aria-label="${U.esc(label)}: ${U.esc(e.name)}">
+<div class="exf-top"><span class="exf-badge"><i aria-hidden="true"></i>${U.esc(label)}</span><span class="exf-pos">${pos} di ${list.length}</span></div>
+<h2 class="exf-name">${U.esc(e.name)}</h2>
+<div class="exf-meta"><span>${e.rows.length} serie · ${U.esc(e.target)}</span>${Number(e.rest) > 0 ? `<span>recupero ${fmtRest(e.rest)}</span>` : ''}</div>
+<div class="equipment-labels">${equipmentLabels(e)}</div>
+<div class="exf-progress"><span><b>${t.done}</b>/${e.rows.length} serie</span><i><b style="width:${e.rows.length ? Math.round((t.done / e.rows.length) * 100) : 0}%"></b></i></div>
+${prevHtml}${loadTipHtml(e, prev)}
+<div class="exf-series">${seriesInputs(e, i)}</div>
+<div class="exf-actions">${status !== 'Completato' ? `<button data-skip="${i}" class="exf-skip" aria-label="${e.stopped ? 'Ripristina' : 'Salta'} ${U.esc(e.name)}">${e.stopped ? '↺ Ripristina' : '↷ Salta'}</button>` : ''}${alts.length ? `<button data-alt="${i}" class="alt-exercise" aria-label="Versioni alternative per ${U.esc(e.name)}">↔ Variante</button>` : ''}<button data-info="${i}" class="strong-icon-action" aria-label="Informazioni esercizio">ⓘ</button><button data-note="${i}" class="strong-icon-action ${e.note ? 'has-note' : ''}" aria-label="Modifica note esercizio">✎︎</button></div>
+${e.note ? `<p class="exercise-note">${U.esc(e.note)}</p>` : ''}
+${nextE ? `<button type="button" class="exf-next" data-focus="${nextK}"><span>Dopo</span><b>${U.esc(nextE.name)}</b><em aria-hidden="true">›</em></button>` : ''}
+</section>`;
+}
+function exRow(e, i) {
+  const status = exStatus(e),
+    t = totals(e),
+    done = status === 'Completato',
+    started = !done && !e.stopped && t.done > 0,
+    best = t.weight != null && !isCardio(e) ? ` · max ${String(weightToDisplay(t.weight)).replace('.', ',')} ${weightLabel()}` : '',
+    sub = done ? `${t.done}/${e.rows.length} serie${best}` : e.stopped ? `saltato${t.done ? ` · ${t.done}/${e.rows.length} serie` : ''}` : `${e.rows.length} × ${e.target}${equipment(e) ? ' · ' + equipment(e) : ''}`;
+  return `<button type="button" class="ex-row ${done ? 'is-done' : e.stopped ? 'is-skipped' : started ? 'is-started' : ''}" data-focus="${i}" aria-label="Porta in primo piano: ${U.esc(e.name)}"><span class="exr-n" aria-hidden="true">${done ? '✓' : e.stopped ? '↷' : i + 1}</span><span class="exr-txt"><b>${U.esc(e.name)}</b><small>${U.esc(sub)}</small></span>${started ? `<span class="exr-count">${t.done}/${e.rows.length}</span>` : ''}<span class="exr-go" aria-hidden="true">›</span></button>`;
 }
 function exerciseCard(e, i, s, next) {
   const status = exStatus(e),
@@ -2101,39 +2155,80 @@ function workout() {
   if (s && sessionAllDone(s))
     return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div><section class="closed-session-complete-head active-complete-head"><div><span class="eyebrow">Giornata completata</span><strong>✓ Tutto completato</strong><p>Hai completato tutti gli esercizi. Controlla il riepilogo e salva la sessione.</p></div><div class="closed-session-actions active-complete-actions"><button id="finish-active-complete" class="primary">■ Termina e salva</button></div></section>${closedSessionSummary(s)}`;
   const ex = s ? s.exercises : freshExercises(),
-    next = ex.findIndex((e) => exStatus(e) !== 'Completato' && !e.stopped),
-    current = [],
+    fi = resolveFocus(ex, s),
+    fkey = fi >= 0 ? focusCtx(s) + '|' + fi : '',
+    animate = fkey && fkey !== lastFocusShown;
+  lastFocusShown = fkey;
+  const upcoming = [],
     completed = [],
     skipped = [];
-  const currentItems = [];
   ex.forEach((e, i) => {
-    if (exStatus(e) === 'Completato') completed.push(exerciseCard(e, i, s, i === next));
-    else if (e.stopped) skipped.push(exerciseCard(e, i, s, i === next));
-    else currentItems.push({ i, e, html: exerciseCard(e, i, s, i === next) });
+    if (i === fi) return;
+    if (exStatus(e) === 'Completato') completed.push(exRow(e, i));
+    else if (e.stopped) skipped.push(exRow(e, i));
+    else upcoming.push(exRow(e, i));
   });
-  // Esercizi consecutivi dello stesso gruppo muscolare (es. due di addominali) in un unico pannello richiudibile.
-  for (let k = 0; k < currentItems.length; ) {
-    const g = muscleGroup(currentItems[k].e);
-    let j = k + 1;
-    while (j < currentItems.length && g && muscleGroup(currentItems[j].e) === g && currentItems[j].i === currentItems[j - 1].i + 1) j++;
-    if (g && j - k >= 2) {
-      const items = currentItems.slice(k, j),
-        key = `${context()}|${items[0].i}`,
-        doneSets = items.reduce((t, x) => t + totals(x.e).done, 0),
-        allSets = items.reduce((t, x) => t + x.e.rows.length, 0),
-        open = !closedGroups.has(key);
-      current.push(
-        `<details class="card ex-group" data-group-key="${U.esc(key)}" ${open ? 'open' : ''}><summary><span class="ex-group-icon" aria-hidden="true">${GROUP_ICONS[g] || '•'}</span><span class="ex-group-title"><b>${U.esc(g)}</b><small>${items.length} esercizi · ${doneSets}/${allSets} serie</small></span><span class="ex-group-chev" aria-hidden="true">▾</span></summary><div class="ex-group-body">${items.map((x) => x.html).join('')}</div></details>`,
-      );
-    } else current.push(...currentItems.slice(k, j).map((x) => x.html));
-    k = j;
-  }
+  const current = [
+    fi >= 0 ? focusCard(ex[fi], fi, s, ex).replace('class="card ex-focus', `class="card ex-focus${animate ? ' focus-in' : ''}`) : '',
+    upcoming.length ? `<div class="ex-list"><p class="ex-list-title">${s ? 'Prossimi' : 'Poi'} · ${upcoming.length}</p>${upcoming.join('')}</div>` : '',
+  ];
   const topActions = !s
     ? `<div class="workout-top-actions session-action-row"><button id="start-session-inline" class="start-session-inline">▶ Avvia sessione</button><button id="skip-session" class="skip-session-page">↷ Salta sessione</button></div>`
     : `<div class="workout-top-actions session-action-row active-session-actions"><span id="session-clock" class="inline-session-clock" aria-label="Tempo totale sessione">${U.duration(elapsed(s))}</span><button id="pause-session-inline" class="pause-session-inline">${s.runningSince ? 'Ⅱ Pausa' : '▶ Riprendi'}</button><button id="finish-session-inline" class="finish-session-inline">■ Termina</button></div>${sessionProgressBar(s)}`;
-  return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div>${top}${topActions}${current.join('')}${completed.length ? `<details class="card completed-section" open><summary>✓ Completati · ${completed.length}</summary>${completed.join('')}</details>` : ''}${skipped.length ? `<details class="card skipped-section" open><summary>↷ Saltati / interrotti · ${skipped.length}</summary>${skipped.join('')}</details>` : ''}${!ex.length ? '<div class="card empty">Scheda vuota: aggiungi un esercizio dalla modifica scheda.</div>' : ''}`;
+  return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div>${top}${topActions}${current.join('')}${completed.length ? `<details class="ex-list ex-fold" data-fold="done" ${focusDetailsOpen.done ? 'open' : ''}><summary class="ex-list-title">✓ Completati · ${completed.length}</summary>${completed.join('')}</details>` : ''}${skipped.length ? `<details class="ex-list ex-fold" data-fold="skipped" ${focusDetailsOpen.skipped ? 'open' : ''}><summary class="ex-list-title">↷ Saltati · ${skipped.length}</summary>${skipped.join('')}</details>` : ''}${!ex.length ? '<div class="card empty">Scheda vuota: aggiungi un esercizio dalla modifica scheda.</div>' : ''}`;
+}
+/* v1.32.0 — Se scorri e l'esercizio in primo piano esce dallo schermo, in alto compare una
+   pastiglia con nome e serie: toccandola torni a lui. */
+let focusObserver = null;
+function setupFocusPill() {
+  let pill = document.getElementById('focus-pill');
+  if (!pill) {
+    pill = document.createElement('button');
+    pill.type = 'button';
+    pill.id = 'focus-pill';
+    pill.className = 'focus-pill';
+    pill.hidden = true;
+    pill.addEventListener('click', focusNextExercise);
+    document.body.appendChild(pill);
+  }
+  focusObserver?.disconnect();
+  const card = main.querySelector('.ex-focus');
+  const s = active();
+  if (!card || !s || gym.tab !== 'workout') {
+    pill.classList.remove('show');
+    pill.hidden = true;
+    return;
+  }
+  const i = Number(card.dataset.focusCard),
+    e = s.exercises[i],
+    t = totals(e);
+  pill.innerHTML = `<i aria-hidden="true"></i><b>${U.esc(e.name)}</b><span>${t.done}/${e.rows.length} serie</span><em aria-hidden="true">↑</em>`;
+  pill.setAttribute('aria-label', `Torna all'esercizio in corso: ${e.name}`);
+  pill.hidden = false;
+  focusObserver = new IntersectionObserver(
+    ([en]) => {
+      const head = document.querySelector('header.top');
+      pill.style.top = `${Math.round((head ? head.getBoundingClientRect().bottom : 60) + 8)}px`;
+      pill.classList.toggle('show', !en.isIntersecting && en.boundingClientRect.top < window.innerHeight);
+    },
+    { threshold: 0, rootMargin: '-140px 0px 0px 0px' },
+  );
+  focusObserver.observe(card);
 }
 function bindWorkout() {
+  main.querySelectorAll('[data-focus]').forEach((b) => {
+    b.onclick = () => {
+      const s = active(),
+        list = s ? s.exercises : freshExercises();
+      setFocus(list, s, Number(b.dataset.focus));
+      render();
+      focusNextExercise();
+    };
+  });
+  main.querySelectorAll('details[data-fold]').forEach((d) =>
+    d.addEventListener('toggle', () => (focusDetailsOpen[d.dataset.fold] = d.open)),
+  );
+  setupFocusPill();
   main.querySelectorAll('[data-exercise-toggle]').forEach((b) => {
     const toggle = () => {
       const i = Number(b.dataset.exerciseToggle),
@@ -2248,14 +2343,10 @@ function bindWorkout() {
             if (done) startRestAfterSet(n, n.sessions.find((x) => x.id === s.id), x);
           })
         ) {
-          let after = null;
-          if (wasLast) {
-            expandedExerciseKeys.delete(exerciseExpandKey(e, i));
-            after = openExerciseAfter(i);
-          }
+          if (wasLast) openExerciseAfter(i);
           render();
           updateRest();
-          if (wasLast) focusNextExercise(after);
+          if (wasLast) focusNextExercise();
           if (done) checkRecord(s.id, i, j);
         }
       }),
@@ -2291,11 +2382,10 @@ function bindWorkout() {
             startTransitionRest(n, n.sessions.find((x) => x.id === s.id), x);
           })
         ) {
-          expandedExerciseKeys.delete(exerciseExpandKey(e, i));
-          const after = openExerciseAfter(i);
+          openExerciseAfter(i);
           render();
           updateRest();
-          focusNextExercise(after);
+          focusNextExercise();
         }
       }),
   );
@@ -2359,8 +2449,13 @@ function bindWorkout() {
             // Salta esercizio = si passa al prossimo: parte il recupero tra esercizi (Ripristina non lo tocca).
             if (e.stopped) startTransitionRest(n, sx, e);
           })
-        )
+        ) {
+          const i = Number(b.dataset.skip), x = active()?.exercises[i];
+          if (x?.stopped) openExerciseAfter(i);
+          else if (x) setFocus(active().exercises, active(), i);
           render();
+          focusNextExercise();
+        }
       }),
   );
   main.querySelectorAll('[data-info]').forEach(
@@ -3380,6 +3475,7 @@ function render() {
           ? stats()
           : more();
   if (gym.tab === 'workout') { bindWorkout(); bindAiWorkout(); }
+  else { focusObserver?.disconnect(); document.getElementById('focus-pill')?.classList.remove('show'); }
   // v1.22.0 — la scheda Notifiche si riempie subito (prima restava vuota finché non arrivava un aggiornamento).
   // (all'avvio pushState non è ancora pronto: ci pensa refreshPushState poco dopo)
   if (document.getElementById('pushCard') && typeof pushState !== 'undefined' && pushState) renderPushCard();
