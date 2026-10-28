@@ -502,7 +502,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.33.0';
+const APP_VERSION = '1.34.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -1534,6 +1534,25 @@ function focusNextExercise() {
     card.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 }
+/* v1.34.0 — esercizio "fermo": il massimale stimato non supera quello precedente da almeno 3 sessioni. */
+function plateauInfo(e, excludeId) {
+  if (isCardio(e) || e.unit === 'min') return null;
+  const list = gym.sessions
+    .filter((s) => s.id !== excludeId && s.ended)
+    .sort((a, b) => new Date(a.started || 0) - new Date(b.started || 0))
+    .map((s) => s.exercises.find((x) => x.id === e.id))
+    .filter((x) => x && totals(x).done)
+    .map((x) => totals(x).e1rm)
+    .filter((v) => v);
+  if (list.length < 4) return null;
+  let streak = 0;
+  for (let i = list.length - 1; i >= 1; i--) {
+    const before = Math.max(...list.slice(0, i));
+    if (list[i] <= before * 1.005) streak++;
+    else break;
+  }
+  return streak >= 3 ? streak : null;
+}
 function focusCard(e, i, s, list) {
   const status = exStatus(e),
     prev = previous(e.id, s?.id),
@@ -1543,6 +1562,10 @@ function focusCard(e, i, s, list) {
     nextK = openIdx(list, i),
     nextE = nextK >= 0 && nextK !== i ? list[nextK] : null,
     label = !s ? 'Si parte con' : status === 'Completato' ? 'Completato · puoi correggerlo' : e.stopped ? 'Saltato' : 'In corso';
+  const plateau = plateauInfo(e, s?.id);
+  const plateauHtml = plateau
+    ? `<p class="exf-plateau"><i aria-hidden="true">📈</i><span>Fermo da ${plateau} sessioni: prova ad aumentare un po' il carico o a cambiare le ripetizioni.</span></p>`
+    : '';
   const prevHtml = prev
     ? `<p class="exf-prev"><span>Ultima volta · ${U.date(prev.s.started)}</span>${prev.e.rows
         .filter((r) => r.done)
@@ -1555,7 +1578,7 @@ function focusCard(e, i, s, list) {
 <div class="exf-meta"><span>${e.rows.length} serie · ${U.esc(e.target)}</span>${Number(e.rest) > 0 ? `<span>recupero ${fmtRest(e.rest)}</span>` : ''}</div>
 <div class="equipment-labels">${equipmentLabels(e)}</div>
 <div class="exf-progress"><span><b>${t.done}</b>/${e.rows.length} serie</span><i><b style="width:${e.rows.length ? Math.round((t.done / e.rows.length) * 100) : 0}%"></b></i></div>
-${prevHtml}${loadTipHtml(e, prev)}
+${plateauHtml}${prevHtml}${loadTipHtml(e, prev)}
 <div class="exf-series">${seriesInputs(e, i)}</div>
 <div class="exf-actions">${status !== 'Completato' ? `<button data-skip="${i}" class="exf-skip" aria-label="${e.stopped ? 'Ripristina' : 'Salta'} ${U.esc(e.name)}">${e.stopped ? '↺ Ripristina' : '↷ Salta'}</button>` : ''}${alts.length ? `<button data-alt="${i}" class="alt-exercise" aria-label="Versioni alternative per ${U.esc(e.name)}">↔ Variante</button>` : ''}<button data-info="${i}" class="strong-icon-action" aria-label="Informazioni esercizio">ⓘ</button><button data-note="${i}" class="strong-icon-action ${e.note ? 'has-note' : ''}" aria-label="Modifica note esercizio">✎︎</button></div>
 ${e.note ? `<p class="exercise-note">${U.esc(e.note)}</p>` : ''}
@@ -1952,7 +1975,7 @@ function weightReminder() {
   const today = ymd(new Date());
   if (weightOn(today)) return '';
   if (gym.settings.weightSkips?.[today]) return '';
-  return `<div class="card weigh-reminder" role="region" aria-label="Peso di oggi"><span class="weigh-icon" aria-hidden="true">⚖️</span><form id="weigh-today-form" class="weigh-form"><input name="weight" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Peso di oggi (${weightLabel()})" aria-label="Peso di oggi in ${weightLabel()}" required><button class="primary">Salva</button></form><button type="button" id="weigh-skip" class="weigh-skip" aria-label="Salta il peso di oggi, potrai registrarlo dopo">Dopo</button></div>`;
+  return `<div class="card weigh-reminder" role="region" aria-label="Peso di oggi"><span class="weigh-icon" aria-hidden="true">⚖️</span><form id="weigh-today-form" class="weigh-form"><input name="weight" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Peso di oggi (${weightLabel()})" aria-label="Peso di oggi in ${weightLabel()}" required><button class="primary">Salva</button></form><button type="button" id="weigh-skip" class="weigh-skip" aria-label="Salta il peso di oggi, potrai registrarlo dopo">Più tardi</button></div>`;
 }
 function weekWeightAvg(offsetWeeks = 0) {
   const end = new Date();
@@ -2808,6 +2831,7 @@ function stats() {
       .slice()
       .sort((a, b) => new Date(b.started || 0) - new Date(a.started || 0))
       .slice(0, 4);
+  if (!closed.length) return `${statsTabs()}<div class="card empty stats-empty-card"><b>Ancora nessun dato</b>Completa il primo allenamento: qui compariranno serie, minuti e i progressi di ogni esercizio.</div>`;
   return `${statsTabs()}<section class="stats-overview"><p class="stats-kpi-caption">Ultimi 30 giorni</p><div class="stats-kpi"><b>${last30.length}</b><small>Allenamenti</small></div><div class="stats-kpi"><b>${setCount}</b><small>Serie svolte</small></div><div class="stats-kpi"><b>${minutes}</b><small>Minuti</small></div></section>${weeklySummaryHtml()}<div class="card stats-focus"><div class="row"><div><h2>Progressi esercizio</h2><p class="muted">Scegli un esercizio e guarda un solo indicatore alla volta.</p></div></div><label>Esercizio</label><select id="stats-exercise">${[...names].map(([id, name]) => `<option value="${U.esc(id)}" ${id === selectedExercise ? 'selected' : ''}>${U.esc(name)}</option>`).join('')}</select><label>Indicatore</label><select id="stats-metric">${[
     ...(cardio
       ? [
@@ -2874,7 +2898,7 @@ function nutrition() {
       const rest = /^r/.test(k),
         firstRest = rest && !all.slice(0, idx).some(([x]) => /^r/.test(x));
       const label = FOOD_TABS.find((t) => t.key === k)?.short || v.label;
-      return `${firstRest ? '<span class="foodtabs-label" aria-hidden="true">Riposo</span>' : ''}<button data-foodtab="${k}" class="${key === k ? 'active' : ''}" aria-label="${U.esc(label)}">${U.esc(rest ? label.replace(/^Riposo\s+/, '') : label)}</button>`;
+      return `${firstRest ? '<span class="foodtabs-label" aria-hidden="true">Riposo</span>' : ''}<button data-foodtab="${k}" class="${key === k ? 'active' : ''}" aria-label="${U.esc(label)}">${U.esc(rest ? 'Menu ' + label.replace(/^Riposo\s+/, '') : label)}</button>`;
     })
     .join(
       '',
@@ -3309,6 +3333,7 @@ ${checksCard()}
 ${window.SuiteSync ? SuiteSync.cardHtml('recomp') : ''}<div class="card" id="pushCard"></div>
 <div class="card more-sec"><h2>Dati</h2><p class="backup-status ${backupWarn ? 'warn' : ''}">${backupText}</p><div class="more-rows">
 ${row('id="export-gym"', 'Esporta backup (.json)')}
+${row('id="export-csv"', 'Esporta allenamenti (.csv)', 'Una riga per serie, si apre in Excel')}
 ${row('id="import-gym"', 'Importa backup')}
 ${row('id="reset-data"', 'Azzera tutti i dati', 'Allenamenti, note, peso e modifiche al piano', 'danger')}
 </div><input type="file" accept=".json,application/json" hidden id="import-file"></div>
@@ -3318,6 +3343,31 @@ ${storageError ? `<div class="card more-sec"><h2>Salvataggio sul telefono</h2><p
 </div>`;
 }
 
+function exportCsv() {
+  const q = (v) => {
+    const t = v == null ? '' : String(v);
+    return /[";\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+  };
+  const lines = [['Data', 'Ciclo', 'Settimana', 'Giorno', 'Esercizio', 'Serie', 'Carico (' + weightLabel() + ')', 'Ripetizioni/min', 'Velocita km/h', 'Pendenza %', 'Completata']];
+  gym.sessions
+    .slice()
+    .sort((a, b) => new Date(a.started || 0) - new Date(b.started || 0))
+    .forEach((s) =>
+      s.exercises.forEach((e) =>
+        e.rows.forEach((r, i) => {
+          lines.push([
+            (s.started || '').slice(0, 10), s.cycle || 1, s.week, s.day, e.name, i + 1,
+            r.weight == null ? '' : weightToDisplay(r.weight), r.reps ?? '', r.speed ?? '', r.incline ?? '', r.done ? 'si' : 'no',
+          ]);
+        }),
+      ),
+    );
+  if (lines.length < 2) {
+    U.toast('Nessun allenamento da esportare.');
+    return;
+  }
+  U.downloadText('gym-allenamenti-' + U.local().slice(0, 10) + '.csv', '\ufeff' + lines.map((l) => l.map(q).join(';')).join('\n'), 'text/csv;charset=utf-8');
+}
 function exportGym() {
   const n = U.clone(gym);
   const snapshot = U.clone(gym);
@@ -3530,6 +3580,7 @@ function render() {
     .forEach((b) => (b.onclick = () => mealAlternatives(Number(b.dataset.mealAlt))));
   document.getElementById('shopping')?.addEventListener('click', shopping);
   document.getElementById('export-gym')?.addEventListener('click', exportGym);
+  document.getElementById('export-csv')?.addEventListener('click', exportCsv);
   document
     .getElementById('import-gym')
     ?.addEventListener('click', () => document.getElementById('import-file').click());

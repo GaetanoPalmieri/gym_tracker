@@ -1,0 +1,6 @@
+VERSIONE 1.33.0 — Via i suggerimenti con AI
+
+- Tolto "Scrivilo a parole" dalla scheda Allenamento.
+- Tolto "Alimento dall'etichetta" (foto della tabella nutrizionale) dalla scheda Altro.
+- Rimosso il blocco SuiteAI e i suoi stili: l'app non chiama più la funzione "suite-ai" su Supabase.
+- Restano i suggerimenti calcolati dall'app (carico consigliato, sostituzioni degli esercizi).

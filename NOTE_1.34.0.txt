@@ -1,0 +1,20 @@
+GYM 1.34.0
+
+Allenamento
+- Titolo dell'esercizio più piccolo (non va più su due righe).
+- La linguetta "S1" (piano della settimana) non sta più sul bordo della carta: è in alto a destra.
+- Etichette G1–G4 allineate.
+- "Dopo" nella riga del peso è diventato "Più tardi".
+- Nuovo avviso nella carta dell'esercizio: "Fermo da N sessioni" quando il massimale stimato non supera il precedente da almeno 3 sessioni.
+
+Nutrizione
+- I giorni di riposo hanno l'etichetta "🌙 Riposo" e i pulsanti "Menu A/B/C".
+- Orario del pasto su una riga e kcal sotto: i nomi lunghi non spostano più i numeri.
+- Colori degli orari più scuri in tema chiaro (si leggevano poco).
+- Gli integratori hanno un riquadro tratteggiato, più leggero dei pasti.
+
+Statistiche
+- Senza allenamenti si vede una sola carta con le istruzioni.
+
+Altro
+- Nuovo "Esporta allenamenti (.csv)": una riga per serie, si apre in Excel.

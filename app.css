@@ -4556,3 +4556,72 @@ html body:has(#rest-bar:not([hidden])) #main { padding-bottom: calc(240px + env(
 /* Pulsanti d'azione del riquadro in primo piano tutti della stessa altezza */
 html body #main .exf-actions > button { min-height: 42px !important; height: 42px !important; }
 html body #main .exf-actions .alt-exercise { font-size: 14px !important; font-weight: 700 !important; padding: 0 14px !important; border-radius: 13px !important; }
+
+/* =====================================================================
+   Gym 1.34.0 — titolo esercizio compatto · linguetta S1 · giorni uniformi
+   · Nutrizione più leggibile · avviso "fermo" · stato vuoto Statistiche
+   ===================================================================== */
+
+/* ---- Allenamento: scala compatta ---- */
+html body #main .exf-name { font-size: 17px !important; line-height: 1.25 !important; margin-bottom: 4px !important; }
+html body #main .exf-meta { font-size: 12.5px !important; }
+html body #main .exf-top .exf-pos { font-size: 12px !important; }
+
+/* ---- Linguetta "Piano settimana": in alto a destra, non sul bordo della carta ---- */
+html body .plan-tab {
+  top: calc(env(safe-area-inset-top, 0px) + 12px) !important; right: 14px !important;
+  width: auto !important; min-width: 0 !important; height: 34px !important; min-height: 34px !important;
+  padding: 0 11px !important; gap: 5px !important; flex-direction: row !important;
+  border-radius: 999px !important; border: 1px solid var(--glass-edge) !important;
+  box-shadow: 0 8px 20px -10px rgba(0,0,0,.55) !important;
+}
+html body .plan-tab .plan-tab-icon { font-size: 14px !important; }
+html body .plan-tab .plan-tab-week { font-size: 12.5px !important; font-weight: 800 !important; }
+html body .plan-tab .plan-tab-dot { position: static !important; margin: 0 !important; }
+
+/* ---- Giorni G1–G4: etichette allineate in alto ---- */
+html body header.top #daybar button { justify-content: flex-start !important; padding-top: 8px !important; }
+html body header.top #daybar button .day-name { min-height: 2.4em; display: block; }
+
+/* ---- Nutrizione: giorni di riposo con un'etichetta chiara ---- */
+html body .foodtabs .foodtabs-label {
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  font-size: 12.5px !important; font-weight: 800 !important; letter-spacing: .02em; text-transform: uppercase;
+  color: var(--muted, #6b7a74) !important;
+}
+html body .foodtabs .foodtabs-label::before { content: "🌙"; margin-right: 5px; font-size: 13px; text-transform: none; }
+
+/* ---- Nutrizione: orario su una riga, kcal sotto; colore con contrasto in tema chiaro ---- */
+html body #main .meal-smart-head > div { display: flex !important; flex-direction: column !important; align-items: flex-start !important; gap: 2px !important; }
+html body #main .meal-smart-head { align-items: center !important; }
+:root:where([data-theme="light"]) html body #main .meal-time,
+:root:where([data-theme="light"]) .meal-time { color: #a35f0a !important; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]):not([data-theme="light"]) .meal-time { color: #a35f0a !important; } }
+html body #main .meal-smart-head b { font-size: 13px !important; }
+
+/* ---- Integratori: più leggeri dei pasti ---- */
+html body #main .supplement-timing {
+  background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  border: 1px dashed color-mix(in srgb, var(--text, #14181a) 22%, transparent) !important;
+  padding: 8px 12px !important; border-radius: 12px !important;
+}
+html body #main .supplement-timing b { font-size: 12.5px !important; font-weight: 700 !important; }
+html body #main .supplement-timing small { font-size: 11px !important; }
+html body #main .supplement-timing .supplement-timing-icon { font-size: 15px !important; opacity: .85; }
+
+/* ---- Avviso: esercizio fermo da più sessioni ---- */
+.exf-plateau {
+  display: flex; gap: 8px; align-items: flex-start; margin: 0 0 8px; padding: 8px 10px; border-radius: 12px;
+  font-size: 12.5px; line-height: 1.35; font-weight: 600;
+  color: #9a5a06; background: color-mix(in srgb, #e8a33d 16%, transparent);
+  border: 1px solid color-mix(in srgb, #e8a33d 40%, transparent);
+}
+:root:where([data-theme="dark"]) .exf-plateau { color: #f2b65a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .exf-plateau { color: #f2b65a; } }
+.exf-plateau i { font-style: normal; flex: 0 0 auto; }
+
+/* ---- Statistiche senza dati: una sola carta ---- */
+.stats-empty-card { text-align: center; padding: 22px 16px !important; font-size: 14px; line-height: 1.45; }
+.stats-empty-card b { display: block; font-size: 15px; margin-bottom: 4px; }
+:root:where([data-theme="light"]) html body #main .eyebrow, :root:where([data-theme="light"]) #main .eyebrow { color: #a35f0a !important; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]):not([data-theme="light"]) #main .eyebrow { color: #a35f0a !important; } }

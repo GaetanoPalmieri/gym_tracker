@@ -41,6 +41,14 @@ const U = {
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   },
+  downloadText: (name, text, type = 'text/plain') => {
+    const url = URL.createObjectURL(new Blob([text], { type }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  },
   toast: (text, undo) => {
     document.querySelector('.app-toast')?.remove();
     const div = document.createElement('div');
