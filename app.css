@@ -4630,3 +4630,7 @@ html body #main .supplement-timing .supplement-timing-icon { font-size: 15px !im
 :root { --tab-bottom: max(6px, calc(env(safe-area-inset-bottom) - 16px)); }
 html:root body .tabbar-bottom { bottom: var(--tab-bottom) !important; }
 html body #rest-bar { bottom: calc(var(--tab-bottom) + 84px) !important; }
+
+/* 1.35.0 — Statistiche: niente titolo, come nella money e in Noi Due */
+body[data-active-tab='stats'] header.top .title-row { display: none !important; }
+body[data-active-tab='stats'] header.top { padding-bottom: 0 !important; }

@@ -502,7 +502,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.34.1';
+const APP_VERSION = '1.35.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -1351,7 +1351,7 @@ function header() {
   if (pageNav) {
     pageNav.innerHTML = TAB_ORDER.map(
       (tab) =>
-        `<button type="button" data-page-tab="${tab}" class="tab ${gym.tab === tab ? 'active' : ''}" aria-current="${gym.tab === tab ? 'page' : 'false'}">${TAB_ICONS[tab] || ''}<span>${tabLabels[tab]}</span></button>`,
+        `<button type="button" data-page-tab="${tab}" class="tab ${gym.tab === tab ? 'active' : ''}" aria-label="${tabLabels[tab]}" aria-current="${gym.tab === tab ? 'page' : 'false'}">${TAB_ICONS[tab] || ''}<span>${tabLabels[tab]}</span></button>`,
     ).join('');
     pageNav
       .querySelectorAll('[data-page-tab]')
