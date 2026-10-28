@@ -502,7 +502,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.34.0';
+const APP_VERSION = '1.34.1';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,

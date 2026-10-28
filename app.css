@@ -4625,3 +4625,8 @@ html body #main .supplement-timing .supplement-timing-icon { font-size: 15px !im
 .stats-empty-card b { display: block; font-size: 15px; margin-bottom: 4px; }
 :root:where([data-theme="light"]) html body #main .eyebrow, :root:where([data-theme="light"]) #main .eyebrow { color: #a35f0a !important; }
 @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]):not([data-theme="light"]) #main .eyebrow { color: #a35f0a !important; } }
+
+/* ---- Barra di navigazione più in basso (v. 1.34.1) ---- */
+:root { --tab-bottom: max(6px, calc(env(safe-area-inset-bottom) - 16px)); }
+html:root body .tabbar-bottom { bottom: var(--tab-bottom) !important; }
+html body #rest-bar { bottom: calc(var(--tab-bottom) + 84px) !important; }
