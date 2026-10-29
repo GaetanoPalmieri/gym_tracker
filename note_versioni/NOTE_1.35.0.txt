@@ -1,0 +1,6 @@
+GYM 1.35.0
+
+- Statistiche: tolto il titolo della scheda (come in money e Noi Due).
+- Barra in basso: ogni voce ha il nome letto dagli screen reader.
+
+Per aggiornare: pubblica su GitHub, poi chiudi e riapri l'app.
