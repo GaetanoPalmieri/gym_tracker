@@ -59,16 +59,14 @@
 .suite-modal .suite-sync-form{gap:10px;}
 /* --- Allineamento --- */
 /* --- Tema chiaro (generato dai colori del tema scuro) --- */
-:root:where([data-theme="light"]){--bg:#eef1f5;--card:#e7ebf0;--card2:#e1e6ec;--accent:#2f9e8f;--accent2:#e8a33d;--text:#111816;--sub:#566863;--danger:#e5584f;--line:#cacfd3}
-html:where([data-theme="light"]),:where(:root[data-theme="light"]) body{background:var(--bg);color:var(--text)}
-:where(:root[data-theme="light"]) header.top{background:var(--bg)}
+:root:where([data-theme="light"]){--bg:#eef1f5;--card:#e7ebf0;--card2:#e1e6ec;--accent:#2f9e8f;--accent2:#e8a33d;--text:#111816;--danger:#e5584f;--line:#cacfd3}
+html:where([data-theme="light"]),:where(:root[data-theme="light"]) body{color:var(--text)}
 :where(:root[data-theme="light"]) .seg{background:var(--card)}
 :where(:root[data-theme="light"]) .seg button{border:none;background:transparent;color:var(--sub)}
 :where(:root[data-theme="light"]) .seg button.active{background:var(--accent);color:#08201c}
 :where(:root[data-theme="light"]) .weekgrid button{border:1px solid var(--line);background:var(--card);color:var(--sub)}
 :where(:root[data-theme="light"]) .weekgrid button.active{background:var(--accent);color:#08201c;border-color:var(--accent)}
 :where(:root[data-theme="light"]) .daytabs button{border:1px solid var(--line);background:var(--card);color:var(--sub)}
-:where(:root[data-theme="light"]) .daytabs button.active{background:var(--accent2);color:#231600;border-color:var(--accent2)}
 :where(:root[data-theme="light"]) .banner{background:linear-gradient(135deg,#dfebe8,#e7ebf0);border:1px solid var(--line);color:var(--sub)}
 :where(:root[data-theme="light"]) .banner b{color:var(--accent)}
 :where(:root[data-theme="light"]) .card{background:var(--card);border:1px solid var(--line)}
@@ -92,7 +90,7 @@ html:where([data-theme="light"]),:where(:root[data-theme="light"]) body{backgrou
 :where(:root[data-theme="light"]) .weightrow input{background:var(--card2);border:1px solid var(--line);color:var(--text)}
 :where(:root[data-theme="light"]) .weightrow .prev{color:var(--sub)}
 :where(:root[data-theme="light"]) .deload{background:#f4ece0;color:var(--accent2)}
-:where(:root[data-theme="light"]) nav.bottom{background:var(--card);border-top:1px solid var(--line)}
+:where(:root[data-theme="light"]) nav.bottom{border-top:1px solid var(--line)}
 :where(:root[data-theme="light"]) nav.bottom button{background:none;border:none;color:var(--sub)}
 :where(:root[data-theme="light"]) nav.bottom button.active{color:var(--accent)}
 :where(:root[data-theme="light"]) .modal-bg{background:rgba(255,255,255,0.72)}
@@ -129,28 +127,18 @@ html:where([data-theme="light"]),:where(:root[data-theme="light"]) body{backgrou
 :where(:root[data-theme="light"]) .session-panel{background:none;border:0}
 :where(:root[data-theme="light"]) input,:where(:root[data-theme="light"]) select,:where(:root[data-theme="light"]) textarea{background:#e1e6ec;border:1px solid #cacfd3;color:#111816}
 :where(:root[data-theme="light"]) button{border:1px solid #cacfd3;background:#dfe5ea;color:#111816}
-:where(:root[data-theme="light"]) button.primary{background:#e8a33d;color:#241800}
 :where(:root[data-theme="light"]) button.danger,:where(:root[data-theme="light"]) button[data-close]{color:#650c05;background:#e7dcdf;border-color:#cab9bc}
-:where(:root[data-theme="light"]) button.good{background:#d6ece4;color:#4dd997}
-:where(:root[data-theme="light"]) button.blue{background:#c8d8e9;color:#042d52}
 :where(:root[data-theme="light"]) .muted{color:#566863}
 :where(:root[data-theme="light"]) .empty{color:#566863}
-:where(:root[data-theme="light"]) .positive{color:#2e846e}
-:where(:root[data-theme="light"]) .negative{color:#e5342b}
 :where(:root[data-theme="light"]) label{color:#566863}
 :where(:root[data-theme="light"]) .app-toast{background:#d9e9e4;color:#141414;box-shadow:0 6px 24px rgba(20,24,26,0.171)}
-:where(:root[data-theme="light"]) dialog{background:#eef1f5;color:#111816;border:1px solid #cacfd3}
-:where(:root[data-theme="light"]) dialog::backdrop{background:rgba(236,242,248,0.8)}
-:where(:root[data-theme="light"]) .editor-head{background:#eef1f5}
+:where(:root[data-theme="light"]) dialog{color:#111816}
 :where(:root[data-theme="light"]) .calendar-grid button small{color:#566863}
 :where(:root[data-theme="light"]) .calendar-grid .chosen{border-color:#e8a33d;background:#ede5da}
 :where(:root[data-theme="light"]) .touch-chart text{fill:#566863}
 :where(:root[data-theme="light"]) .error{color:#760d06}
 :where(:root[data-theme="light"]) .pill{background:#dfe5ea}
-:where(:root[data-theme="light"]) .restore-box{border:1px solid #e8a33d}
 :where(:root[data-theme="light"]) .storage-alert{background:#e5d2d2}
-:where(:root[data-theme="light"]) .list-table{border-collapse:collapse}
-:where(:root[data-theme="light"]) .list-table td,:where(:root[data-theme="light"]) .list-table th{border-bottom:1px solid #cacfd3}
 :where(:root[data-theme="light"]) .series-head{color:#566863}
 :where(:root[data-theme="light"]) #rest-bar{background:#daeae6;border:1px solid #b7ccc5}
 :where(:root[data-theme="light"]) .ingredient{border:1px solid #cacfd3}
@@ -160,12 +148,8 @@ html:where([data-theme="light"]),:where(:root[data-theme="light"]) body{backgrou
 :where(:root[data-theme="light"]) button[data-close],:where(:root[data-theme="light"]) button[data-remove-ingredient],:where(:root[data-theme="light"]) button.close{color:#8a9099 !important;background:transparent !important;border:none !important;box-shadow:none !important}
 :where(:root[data-theme="light"]) .tap-feedback{border:2px solid #e8a33d}
 :where(:root[data-theme="light"]) #daybar button.holding{box-shadow:inset 0 -4px #e8a33d;filter:brightness(1.25)}
-:where(:root[data-theme="light"]) .completed-section > summary{color:#2dc189}
-:where(:root[data-theme="light"]) .skipped-section > summary{color:#ff7f0e}
-:where(:root[data-theme="light"]) .completed-section{border-color:#b7ccc5}
-:where(:root[data-theme="light"]) .skipped-section{border-color:#cec1b5}
 :where(:root[data-theme="light"]) .equipment-label{color:#8a5a0f;background:rgba(216,151,41,0.14);border-color:rgba(216,151,41,0.35)}
-:where(:root[data-theme="light"]) .info-box{background:#f3f5e6;border-color:#cdd4a8;color:#51561f}
+:where(:root[data-theme="light"]) .info-box{background:#f3f5e6;color:#51561f}
 :where(:root[data-theme="light"]) .pause-symbol{background:#ebe7df;color:#ab6e14}
 :where(:root[data-theme="light"]) .saved-check{background:#d6ece4;color:#29d48e}
 :where(:root[data-theme="light"]) .summary-counts > div{background:#e1e6ec}
@@ -214,23 +198,19 @@ html:where([data-theme="light"]),:where(:root[data-theme="light"]) body{backgrou
 :where(:root[data-theme="light"]) .session-closed-chip{border:1px solid var(--line)}
 :where(:root[data-theme="light"]) .session-closed-chip.is-complete{color:#45da98;background:#dff0eb;border-color:#b8cbc6}
 :where(:root[data-theme="light"]) .session-closed-chip.is-skipped{color:#ff8921;background:#ece5df;border-color:#ccc1b8}
-:where(:root[data-theme="light"]) .closed-session-banner{border:1px solid var(--line);background:var(--card)}
 :where(:root[data-theme="light"]) .closed-session-banner.complete{border-color:#b8cbc6;background:#e5f1ef}
 :where(:root[data-theme="light"]) .closed-session-banner.skipped{border-color:#ccc1b8;background:#ede8e3}
 :where(:root[data-theme="light"]) .closed-session-banner p{color:#31413b}
 :where(:root[data-theme="light"]) nav.bottom{border:0 !important;box-shadow:none !important}
-html:where([data-theme="light"]),:where(:root[data-theme="light"]) body,:where(:root[data-theme="light"]) #app{background:var(--bg) !important}
 @media (display-mode: standalone){html:where([data-theme="light"]),:where(:root[data-theme="light"]) body,:where(:root[data-theme="light"]) #app{background:var(--bg) !important}
 }@media (display-mode: standalone){:where(:root[data-theme="light"]) header.top{background:var(--bg) !important}
 }:where(:root[data-theme="light"]) #rest-bar{box-shadow:0 10px 30px rgba(20,24,26,0.192) !important}
 html:where([data-theme="light"]).ios-resume-repaint,html:where([data-theme="light"]).ios-resume-repaint body,html:where([data-theme="light"]).ios-resume-repaint #app{background:var(--bg) !important}
 :root:where([data-theme="light"]){--sub:#41504b}
-:where(:root[data-theme="light"]) .danger-zone{border-color:#cab9bc;background:#eee8ea}
 :where(:root[data-theme="light"]) #gym-storage{color:#141414;background:#e6c6c9;border-bottom:1px solid #b25b61}
 :where(:root[data-theme="light"]) .page-nav button:focus-visible{outline:2px solid #85cdb2;outline-offset:2px}
 :where(:root[data-theme="light"]) .stats-tabs{border:1px solid #c8cfd3;background:#ecf0f4}
 :where(:root[data-theme="light"]) .stats-tabs button{border:1px solid transparent !important;background:transparent !important;color:#4b5954 !important;box-shadow:none !important}
-:where(:root[data-theme="light"]) .stats-tabs button.active{background:#dfeae7 !important;border-color:#b9cac5 !important;color:#0e1b15 !important;box-shadow:0 1px 0 rgba(20,24,26,0.107) !important}
 :where(:root[data-theme="light"]) .page-nav{border:1px solid #c8cfd3 !important;background:#ecf0f4 !important}
 :where(:root[data-theme="light"]) .page-nav button{border:1px solid transparent !important;background:transparent !important;color:#4b5954 !important;box-shadow:none !important}
 :where(:root[data-theme="light"]) .page-nav button.active{background:#dfeae7 !important;border-color:#b9cac5 !important;color:#0e1b15 !important;box-shadow:0 1px 0 rgba(20,24,26,0.107) !important}
@@ -242,7 +222,7 @@ html:where([data-theme="light"]).ios-resume-repaint,html:where([data-theme="ligh
 :where(:root[data-theme="light"]) .compact-set.is-done{border-color:color-mix(in srgb, var(--accent) 45%, var(--line));color:var(--text)}
 :where(:root[data-theme="light"]) .exercise-expanded-body{border-top:1px solid var(--line)}
 :where(:root[data-theme="light"]) .closed-session-complete-head,:where(:root[data-theme="light"]) .closed-session-banner{border:1px solid var(--line);background:var(--panel)}
-:where(:root[data-theme="light"]) .closed-session-complete-head{border-color:#b8cbc6;background:#e9f2ef}
+:where(:root[data-theme="light"]) .closed-session-complete-head{background:#e9f2ef}
 :where(:root[data-theme="light"]) .closed-session-complete-head strong{color:#4cce91}
 :where(:root[data-theme="light"]) .closed-session-complete-head p{color:var(--sub)}
 :where(:root[data-theme="light"]) .closed-session-banner.incomplete{border-color:#cdc5b6;background:#efede8}
@@ -259,7 +239,6 @@ html:where([data-theme="light"]).ios-resume-repaint,html:where([data-theme="ligh
 :where(:root[data-theme="light"]) .closed-summary-set{border:1px solid var(--line);background:#eef2f5;color:#22302b}
 :where(:root[data-theme="light"]) .closed-summary-set b{color:#607972}
 :where(:root[data-theme="light"]) .closed-summary-note{border-top:1px solid var(--line);color:var(--sub)}
-:where(:root[data-theme="light"]) .start-session-inline{background:#e8a33d !important;border-color:#e8a33d !important;color:#241800 !important}
 :where(:root[data-theme="light"]) .weight-delta{background:var(--card2);color:var(--sub)}
 :where(:root[data-theme="light"]) .weight-delta.down{color:#3fca91}
 :where(:root[data-theme="light"]) .weight-delta.up{color:#ff8717}
@@ -267,7 +246,6 @@ html:where([data-theme="light"]).ios-resume-repaint,html:where([data-theme="ligh
 :where(:root[data-theme="light"]) .pause-session-inline{background:#d7e9e4 !important;border-color:#b9cbc5 !important;color:#134f37 !important}
 :where(:root[data-theme="light"]) .finish-session-inline{background:#e6d8da !important;border-color:#c9babc !important;color:#610e05 !important}
 :where(:root[data-theme="light"]) .exercise-expanded-actions .complete-all-series{border-width:2px !important}
-:where(:root[data-theme="light"]) .inline-session-clock{border:0 !important;background:transparent !important;box-shadow:none !important;color:var(--text) !important}
 :where(:root[data-theme="light"]) .series-all{border-width:2px !important}
 :where(:root[data-theme="light"]) .exercise-expanded-actions .strong-icon-action{border-width:2.5px !important}
 :where(:root[data-theme="light"]) .exercise-title-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
@@ -312,7 +290,6 @@ html:where([data-theme="light"]).is-scrolled header.top{border-bottom-color:var(
 :where(:root[data-theme="light"]) .card,:where(:root[data-theme="light"]) details.meal-smart,:where(:root[data-theme="light"]) .stats-kpi,:where(:root[data-theme="light"]) .week-stepper,:where(:root[data-theme="light"]) .supplement-timing,:where(:root[data-theme="light"]) .stats-tabs,:where(:root[data-theme="light"]) .compact-set,:where(:root[data-theme="light"]) .closed-session-banner,:where(:root[data-theme="light"]) .closed-session-complete-head,:where(:root[data-theme="light"]) .closed-summary-kpis > div,:where(:root[data-theme="light"]) .closed-summary-exercise,:where(:root[data-theme="light"]) .exercise-note,:where(:root[data-theme="light"]) .info-box{background-color:var(--glass-card)!important;border-color:var(--glass-edge)!important;box-shadow:var(--glass-shadow)!important}
 :where(:root[data-theme="light"]) .compact-set{box-shadow:none!important;background-color:rgba(20,24,26,0.03)!important}
 :where(:root[data-theme="light"]) .card.exercise-card.exercise-next{background:radial-gradient(120% 100% at 0% 0%,rgba(47,158,143,.26),transparent 62%),var(--glass-card)!important;border-color:rgba(63,179,142,.55)!important;box-shadow:0 16px 36px -18px rgba(47,158,143,.6),var(--glass-shadow)!important}
-:where(:root[data-theme="light"]) .card.danger-zone{background:radial-gradient(120% 100% at 0% 0%,rgba(231,106,100,.16),transparent 62%),var(--glass-card)!important;border-color:rgba(231,106,100,.35)!important}
 :where(:root[data-theme="light"]) .workout-time-marker{background:linear-gradient(90deg,rgba(58,166,132,.22),rgba(58,166,132,.06))!important;border-color:rgba(58,166,132,.4)!important}
 :where(:root[data-theme="light"]) #main button:not(.active):not(.primary):not(.danger):not(.good):not(.blue):not(.start-session-inline):not(.skip-session-page):not(.meal-alternatives):not([data-close]):not(.has-note),:where(:root[data-theme="light"]) header.top #daybar button:not(.active){background:rgba(20,24,26,0.045)!important;border-color:var(--glass-edge)!important}
 :where(:root[data-theme="light"]) #daybar button.active,:where(:root[data-theme="light"]) .daytabs button.active,:where(:root[data-theme="light"]) button.primary,:where(:root[data-theme="light"]) .start-session-inline{background:var(--amber-grad)!important;border-color:transparent!important;color:#241800!important;box-shadow:0 8px 20px -8px rgba(232,147,44,.75),inset 0 1px 0 rgba(255,255,255,.3)!important}

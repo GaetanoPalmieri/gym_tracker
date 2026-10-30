@@ -502,7 +502,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.35.0';
+const APP_VERSION = '1.37.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -1361,6 +1361,19 @@ function header() {
     s = active(),
     closed = !s ? closedCurrent() : null;
   const startRow = document.getElementById('workout-start-row');
+  /* v1.37.0 — MODALITÀ SESSIONE: con l'allenamento avviato spariscono settimana, giorni e peso; in alto restano giorno,
+     timer e serie (il tasto del giorno riapre settimana e giorni se servono). */
+  const sm = gym.tab === 'workout' && !!s;
+  document.body.classList.toggle('session-mode', sm);
+  if (!sm) document.body.classList.remove('session-bars');
+  if (sm) {
+    const list = (s.exercises || []).filter((e) => !e.stopped),
+      sets = list.reduce((t, e) => t + e.rows.length, 0),
+      done = list.reduce((t, e) => t + e.rows.filter((r) => r.done).length, 0),
+      dd = gym.program[gym.dayIdx] || {};
+    holder.innerHTML = `<div class="session-inline sm-head"><button type="button" class="sm-day" id="sm-day" data-no-icon aria-label="Mostra settimana e giorni">${U.esc(dd.short || 'G' + (gym.dayIdx + 1))} <i>${document.body.classList.contains('session-bars') ? '▴' : '▾'}</i></button><span class="sm-clock" id="session-clock" aria-label="Tempo totale sessione">${U.duration(elapsed(s))}</span><span class="sm-sets"><b>${done}</b>/${sets} serie</span><span class="sm-bar" aria-hidden="true"><i style="width:${sets ? Math.round((done / sets) * 100) : 0}%"></i></span></div>`;
+    holder.querySelector('#sm-day').onclick = () => { document.body.classList.toggle('session-bars'); header(); };
+  } else
   holder.innerHTML =
     gym.tab === 'workout'
       ? `<div class="session-inline">${closed ? `<span class="session-closed-chip ${closed.skippedSession ? 'is-skipped' : 'is-complete'}">${closed.skippedSession ? '↷ Saltata' : '✓ Conclusa'}</span>` : ''}</div>`
@@ -2105,8 +2118,8 @@ function workout() {
   ];
   const topActions = !s
     ? `<div class="workout-top-actions session-action-row"><button id="start-session-inline" class="start-session-inline">▶ Avvia sessione</button><button id="skip-session" class="skip-session-page">↷ Salta sessione</button></div>`
-    : `<div class="workout-top-actions session-action-row active-session-actions"><span id="session-clock" class="inline-session-clock" aria-label="Tempo totale sessione">${U.duration(elapsed(s))}</span><button id="pause-session-inline" class="pause-session-inline">${s.runningSince ? 'Ⅱ Pausa' : '▶ Riprendi'}</button><button id="finish-session-inline" class="finish-session-inline">■ Termina</button></div>${sessionProgressBar(s)}`;
-  return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div>${top}${topActions}${current.join('')}${completed.length ? `<details class="ex-list ex-fold" data-fold="done" ${focusDetailsOpen.done ? 'open' : ''}><summary class="ex-list-title">✓ Completati · ${completed.length}</summary>${completed.join('')}</details>` : ''}${skipped.length ? `<details class="ex-list ex-fold" data-fold="skipped" ${focusDetailsOpen.skipped ? 'open' : ''}><summary class="ex-list-title">↷ Saltati · ${skipped.length}</summary>${skipped.join('')}</details>` : ''}${!ex.length ? '<div class="card empty">Scheda vuota: aggiungi un esercizio dalla modifica scheda.</div>' : ''}`;
+    : `<div class="workout-top-actions session-action-row active-session-actions"><button id="pause-session-inline" class="pause-session-inline">${s.runningSince ? 'Ⅱ Pausa' : '▶ Riprendi'}</button><button id="finish-session-inline" class="finish-session-inline">■ Termina</button></div>`; /* v1.37.0 — l'avanzamento è nella barra in alto */
+  return `<div class="scroll-collapse-sentinel" data-collapse-sentinel aria-hidden="true"></div>${s ? '' : top}${topActions}${current.join('')}${completed.length ? `<details class="ex-list ex-fold" data-fold="done" ${focusDetailsOpen.done ? 'open' : ''}><summary class="ex-list-title">✓ Completati · ${completed.length}</summary>${completed.join('')}</details>` : ''}${skipped.length ? `<details class="ex-list ex-fold" data-fold="skipped" ${focusDetailsOpen.skipped ? 'open' : ''}><summary class="ex-list-title">↷ Saltati · ${skipped.length}</summary>${skipped.join('')}</details>` : ''}${!ex.length ? '<div class="card empty">Scheda vuota: aggiungi un esercizio dalla modifica scheda.</div>' : ''}${s ? top : ''}`;
 }
 /* v1.32.0 — Se scorri e l'esercizio in primo piano esce dallo schermo, in alto compare una
    pastiglia con nome e serie: toccandola torni a lui. */
@@ -2885,9 +2898,54 @@ function formatMacros(vals) {
 function supplementTiming(icon, time, title, txt) {
   return `<div class="supplement-timing"><span class="supplement-timing-icon">${icon}</span><div><b>${U.esc(time)} · ${U.esc(title)}</b><small>${U.esc(txt)}</small></div></div>`;
 }
+/* v1.37.0 — PASTO DEL MOMENTO: in base all'ora si evidenzia (e si apre) il prossimo pasto; con ✓ lo segni come fatto
+   (vale per oggi, salvato su questo telefono). */
+const MEAL_DONE_KEY = 'rc_meals_done';
+function mealDoneMap() {
+  try {
+    const all = JSON.parse(localStorage.getItem(MEAL_DONE_KEY) || '{}') || {}, today = ymd(new Date());
+    return all[today] || {};
+  } catch (e) {
+    return {};
+  }
+}
+function toggleMealDone(tab, i) {
+  try {
+    const today = ymd(new Date()), all = JSON.parse(localStorage.getItem(MEAL_DONE_KEY) || '{}') || {};
+    Object.keys(all).forEach((d) => { if (d !== today) delete all[d]; });
+    const day = (all[today] = all[today] || {}), list = (day[tab] = day[tab] || []);
+    const at = list.indexOf(i);
+    if (at >= 0) list.splice(at, 1); else list.push(i);
+    localStorage.setItem(MEAL_DONE_KEY, JSON.stringify(all));
+  } catch (e) { /* ok */ }
+}
+function mealMinutes(t) {
+  const m = /(\d{1,2})[:.](\d{2})/.exec(String(t || ''));
+  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+}
+function nextMealIndex(items, done) {
+  const d = new Date(), now = d.getHours() * 60 + d.getMinutes();
+  for (let i = 0; i < items.length; i++) {
+    const t = mealMinutes(items[i].time);
+    if (t == null || done.includes(i)) continue;
+    if (t >= now - 45) return i;
+  }
+  return -1;
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('[data-meal-done]');
+  if (!b) return;
+  e.preventDefault();
+  e.stopPropagation();
+  toggleMealDone(b.dataset.mealTab, Number(b.dataset.mealDone));
+  try { navigator.vibrate?.(12); } catch (x) { /* ok */ }
+  render();
+});
 function nutrition() {
   const key = Object.hasOwn(gym.meals, gym.foodTab) ? gym.foodTab : 'd1',
     d = gym.meals[key],
+    doneList = mealDoneMap()[key] || [],
+    nextI = nextMealIndex(d.items, doneList),
     sum = d.items.reduce((n, m) => n.map((v, j) => v + mealValues(m)[j]), [0, 0, 0, 0]),
     trainingDay = /^d[1-4]$/.test(key);
   // v1.22.0 — "Peso di oggi" solo in Allenamento (prima compariva anche qui)
@@ -2931,7 +2989,12 @@ function nutrition() {
                 'Dose secondo etichetta, considerando il contenuto di EPA + DHA',
               )
             : '',
-        meal = `<details class="meal-smart"><summary class="meal-smart-head"><div><span class="meal-time">${U.esc(m.time)}</span><b>${Math.round(vals[0])} kcal</b></div><span class="meal-macros">P ${Math.round(vals[1])} · C ${Math.round(vals[2])} · G ${Math.round(vals[3])}</span></summary><div class="meal-smart-body"><div class="meal-foods">${m.ingredients.map((v) => `<span><b>${fmtQty(v.qty)} ${gym.foods[v.food].unit}</b> ${U.esc(gym.foods[v.food].name)}</span>`).join('')}</div><div class="meal-actions"><button class="meal-alternatives" data-meal-alt="${i}">↔ Alternative equivalenti</button></div></div></details>`;
+        isDone = doneList.includes(i),
+        isNext = i === nextI,
+        tMin = mealMinutes(m.time),
+        nowMin = new Date().getHours() * 60 + new Date().getMinutes(),
+        nextTxt = isNext && tMin != null ? (tMin <= nowMin + 10 ? 'Adesso' : 'Prossimo · tra ' + (tMin - nowMin >= 60 ? Math.floor((tMin - nowMin) / 60) + ' h ' + ((tMin - nowMin) % 60 ? ((tMin - nowMin) % 60) + ' min' : '') : (tMin - nowMin) + ' min')) : '',
+        meal = `<details class="meal-smart${isDone ? ' meal-done' : ''}${isNext ? ' meal-next' : ''}"${isNext ? ' open' : ''}><summary class="meal-smart-head"><div>${isNext ? `<span class="meal-nexttag">${U.esc(nextTxt.trim())}</span>` : ''}<span class="meal-time">${U.esc(m.time)}</span><b>${Math.round(vals[0])} kcal</b></div><span class="meal-macros">P ${Math.round(vals[1])} · C ${Math.round(vals[2])} · G ${Math.round(vals[3])}</span><button type="button" class="meal-check${isDone ? ' on' : ''}" data-meal-done="${i}" data-meal-tab="${key}" data-no-icon aria-pressed="${isDone}" aria-label="${isDone ? 'Togli il segno di fatto' : 'Segna come fatto'}">✓</button></summary><div class="meal-smart-body"><div class="meal-foods">${m.ingredients.map((v) => `<span><b>${fmtQty(v.qty)} ${gym.foods[v.food].unit}</b> ${U.esc(gym.foods[v.food].name)}</span>`).join('')}</div><div class="meal-actions"><button class="meal-alternatives" data-meal-alt="${i}">↔ Alternative equivalenti</button></div></div></details>`;
       return `${i === 5 ? omega : ''}${preWorkout}${workoutMarker}${postWorkout}${meal}${i === 0 ? supplementTiming('⚡', '08:00', 'Colazione · Creatina monoidrato', '5 g ogni giorno, anche nei giorni di riposo') : ''}`;
     })
     .join(

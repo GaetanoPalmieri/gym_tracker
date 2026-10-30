@@ -1,0 +1,9 @@
+GYM_TRACKER 1.37.0
+
+- Modalita' sessione: con l'allenamento avviato spariscono settimana, giorni e peso; in alto restano giorno, tempo e serie fatte (con una barretta di avanzamento). L'esercizio in corso parte subito in alto. Il tasto del giorno riapre settimana e giorni.
+- Il peso di oggi, durante la sessione, e' in fondo alla pagina.
+- Nutrizione: il prossimo pasto (in base all'ora) e' evidenziato e aperto, con "tra quanto"; con il tasto di spunta lo segni come fatto (vale per oggi).
+- In Altro la versione ora e' quella giusta.
+- Grafica alleggerita: tolte le regole che non servivano piu'.
+
+Per aggiornare: pubblica su GitHub, poi chiudi e riapri l'app.

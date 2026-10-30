@@ -22,23 +22,12 @@ button {
   padding: 9px 12px;
 }
 button.primary {
-  background: #e8a33d;
-  color: #241800;
-  font-weight: 750;
-}
+  font-weight: 750;}
 button.danger,
 button[data-close] {
   color: #ffaaa4;
   background: #402b30;
   border-color: #714049;
-}
-button.good {
-  background: #214c3d;
-  color: #a1ebc8;
-}
-button.blue {
-  background: #244568;
-  color: #b8ddff;
 }
 .muted {
   color: #9fb0ab;
@@ -76,12 +65,6 @@ button.blue {
 }
 .card {
   overflow-wrap: anywhere;
-}
-.positive {
-  color: #55c3a7;
-}
-.negative {
-  color: #f08b86;
 }
 .section {
   margin: 22px 0 12px;
@@ -200,29 +183,9 @@ input[type='datetime-local'] {
   background: #25313b;
   font-size: 11px;
 }
-.restore-box {
-  border: 1px solid #e8a33d;
-  padding: 14px;
-  border-radius: 12px;
-  margin-bottom: 15px;
-}
 .storage-alert {
   padding: 12px;
   background: #542e2e;
-}
-.list-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.list-table td,
-.list-table th {
-  padding: 10px 4px;
-  border-bottom: 1px solid #2b3640;
-  text-align: left;
-}
-.list-table td:last-child {
-  text-align: right;
 }
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -442,9 +405,7 @@ dialog {
   box-sizing: border-box;
   width: calc(100% - 28px);
   max-width: 510px;
-  padding: 18px;
-  overflow-x: hidden;
-}
+  overflow-x: hidden;}
 #editor form, #editor .note-form {
   box-sizing: border-box;
   min-width: 0;
@@ -478,9 +439,7 @@ dialog {
 .exercise-note {
   padding: 12px;
   background: #222d38;
-  border-radius: 10px;
-  color: #c5d7d0;
-}
+  color: #c5d7d0;}
 button[data-close], button[data-remove-ingredient], button.close {
   color: #9aa5ad !important;
   background: transparent !important;
@@ -513,20 +472,6 @@ button[data-close], button[data-remove-ingredient], button.close {
 #daybar button.holding {
   box-shadow: inset 0 -4px #e8a33d;
   filter: brightness(1.25);
-}
-.completed-section > summary {
-  color: #75dfb7;
-  font-weight: 700;
-}
-.skipped-section > summary {
-  color: #ffb574;
-  font-weight: 700;
-}
-.completed-section {
-  border-color: #39735e;
-}
-.skipped-section {
-  border-color: #8c613b;
 }
 .exercise-complete {
   opacity: 0.8 !important;
@@ -574,9 +519,6 @@ button[data-close], button[data-remove-ingredient], button.close {
   display: grid;
   gap: 12px;
   margin: 24px 0 6px;
-}
-.pause-actions button {
-  font-weight: 700;
 }
 .summary-hero {
   text-align: center;
@@ -689,12 +631,6 @@ nav.bottom {
 }
 #app {
   min-height: 100dvh;
-}
-header.top #weekbar, header.top #daybar {
-  transition: max-height 0.22s ease,
-    opacity 0.18s ease,
-    margin 0.22s ease,
-    transform 0.22s ease;
 }
 /* 1.3 — nutrition: compact, daily-first layout */
 .foodtabs {
@@ -829,11 +765,9 @@ header.top #weekbar, header.top #daybar {
 .stats-kpi {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 13px;
   text-align: center;
   display: flex;
-  flex-direction: column;
-}
+  flex-direction: column;}
 .stats-kpi span, .stats-kpi small {
   font-size: 11px;
   color: var(--sub);
@@ -1214,14 +1148,8 @@ main {
 .skip-session-page {
   flex: 0 0 auto;
   min-width: 132px;
-  min-height: 44px;
-  padding: 9px 14px;
-  white-space: nowrap;
-  font-size: 13px;
-  font-weight: 700;
   color: #ffbf87;
-  border-color: #6e5037;
-}
+  border-color: #6e5037;}
 .session-closed-chip {
   display: inline-flex;
   align-items: center;
@@ -1242,13 +1170,6 @@ main {
   color: #ffbf87;
   background: #3b2d22;
   border-color: #6e5037;
-}
-.closed-session-banner {
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 14px;
-  margin: 2px 0 12px;
-  background: var(--card);
 }
 .closed-session-banner.complete {
   border-color: #315d50;
@@ -1325,9 +1246,6 @@ body::after {
   display: none !important;
   content: none !important;
   height: 0 !important;
-}
-html, body, #app {
-  background: var(--bg) !important;
 }
 body {
   padding-bottom: 0 !important;
@@ -1444,10 +1362,6 @@ button {
 .meal-actions button {
   flex: 1 1 150px;
 }
-.danger-zone {
-  border-color: #714049;
-  background: #2b1f24;
-}
 #gym-storage {
   position: sticky;
   top: 0;
@@ -1481,9 +1395,6 @@ body[data-active-tab='food'] header.top {
 body[data-active-tab='food'] header.top .title-row {
   margin-bottom: 12px !important;
 }
-body[data-active-tab='food'] main {
-  padding-top: 12px !important;
-}
 main {
   padding-top: 12px !important;
 }
@@ -1505,11 +1416,6 @@ main > .stats-tabs:first-child, main > .foodtabs:first-child, main > .workout-to
 header.top .title-row {
   align-items: center !important;
 }
-#header-session, .session-inline {
-  height: 44px;
-  min-height: 44px;
-  align-items: center;
-}
 .session-closed-chip {
   height: 44px !important;
   min-height: 44px !important;
@@ -1524,15 +1430,10 @@ header.top .title-row {
   min-height: 0 !important;
   margin: 0 0 12px !important;
   border: 1px solid #2b3942;
-  border-radius: 13px;
   background: #141d24;
-  box-sizing: border-box;
-}
+  box-sizing: border-box;}
 .stats-tabs button {
   margin: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
   border: 1px solid transparent !important;
   border-radius: 9px !important;
   background: transparent !important;
@@ -1541,14 +1442,7 @@ header.top .title-row {
   font-size: 13px !important;
   font-weight: 700 !important;
   line-height: 1.15 !important;
-  text-align: center;
-}
-.stats-tabs button.active {
-  background: #263b36 !important;
-  border-color: #3b6759 !important;
-  color: #f1f8f5 !important;
-  box-shadow: 0 1px 0 #0005 !important;
-}
+  text-align: center;}
 .stats-tabs button:active {
   transform: scale(0.98);
 }
@@ -1574,11 +1468,9 @@ header.top .title-row h1 {
   height: 44px !important;
   margin: 0 !important;
   padding: 0 168px 0 0 !important;
-  line-height: 44px !important;
   white-space: nowrap !important;
   overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
+  text-overflow: ellipsis !important;}
 #header-session {
   position: absolute !important;
   top: 0 !important;
@@ -1737,13 +1629,6 @@ body:not([data-active-tab='workout']) .workout-start-row {
   border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
   color: var(--text);
 }
-.compact-note {
-  margin: 9px 0 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
 .exercise-expanded-body {
   border-top: 1px solid var(--line);
 }
@@ -1766,9 +1651,6 @@ header.top {
 header.top .title-row {
   margin-bottom: 10px !important;
 }
-header.top .title-row h1 {
-  font-size: 22px !important;
-}
 .page-nav {
   height: 50px !important;
   min-height: 50px !important;
@@ -1786,10 +1668,8 @@ main {
   padding: 10px 14px 0 !important;
 }
 .card {
-  border-radius: 14px !important;
   padding: 14px !important;
-  margin-bottom: 10px !important;
-}
+  margin-bottom: 10px !important;}
 .card.exercise-next {
   padding: 18px 15px !important;
 }
@@ -1901,11 +1781,7 @@ main {
   padding: 3px !important;
 }
 .stats-tabs button {
-  height: 42px !important;
-  min-height: 42px !important;
-  max-height: 42px !important;
-  padding: 6px 5px !important;
-}
+  padding: 6px 5px !important;}
 @media (max-width: 380px) {
   header.top .title-row h1 {
     font-size: 17px !important;
@@ -1918,18 +1794,14 @@ main {
 .closed-session-complete-head, .closed-session-banner {
   margin: 8px 0 12px;
   border: 1px solid var(--line);
-  border-radius: 14px;
   padding: 14px;
-  background: var(--panel);
-}
+  background: var(--panel);}
 .closed-session-complete-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border-color: #315d50;
-  background: #172822;
-}
+  background: #172822;}
 .closed-session-complete-head > div {
   min-width: 0;
 }
@@ -2006,9 +1878,7 @@ main {
   padding: 10px 6px;
   text-align: center;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--panel);
-}
+  background: var(--panel);}
 .closed-summary-kpis b {
   display: block;
   font-size: 17px;
@@ -2026,10 +1896,8 @@ main {
 }
 .closed-summary-exercise {
   border: 1px solid var(--line);
-  border-radius: 13px;
   background: var(--panel);
-  padding: 11px 12px;
-}
+  padding: 11px 12px;}
 .closed-summary-exercise-head {
   display: flex;
   align-items: flex-start;
@@ -2221,11 +2089,6 @@ main {
   justify-content: center !important;
   white-space: nowrap !important;
 }
-.start-session-inline {
-  background: #e8a33d !important;
-  border-color: #e8a33d !important;
-  color: #241800 !important;
-}
 .skip-session-page {
   margin: 0 !important;
 }
@@ -2308,15 +2171,12 @@ body:not([data-active-tab='workout']) .workout-top-actions {
 /* 1.5.6 — active session controls */
 .pause-session-inline, .finish-session-inline {
   width: 100% !important;
-  min-height: 42px !important;
-  height: 42px !important;
   padding: 0 10px !important;
   border-radius: 11px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  white-space: nowrap !important;
-}
+  white-space: nowrap !important;}
 .pause-session-inline {
   background: #274b42 !important;
   border-color: #3b6c5d !important;
@@ -2335,10 +2195,6 @@ body:not([data-active-tab='workout']) .workout-top-actions {
 }
 /* 1.5.7 — in-app update banner */
 /* 1.5.9 — single active session guard + inline session timer */
-.inline-session-clock {
-  white-space: nowrap;
-  box-sizing: border-box;
-}
 .session-conflict-actions {
   display: grid;
   gap: 8px;
@@ -2349,13 +2205,8 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   min-height: 44px;
 }
 @media (max-width: 380px) {
-  .inline-session-clock {
-    padding-inline: 5px;
-  }
-  .pause-session-inline, .finish-session-inline {
-    font-size: 11px !important;
-    padding-inline: 5px !important;
-  }
+    .pause-session-inline, .finish-session-inline {
+    padding-inline: 5px !important;}
 }
 /* 1.6.0 — stronger exercise actions + complete-all control */
 .exercise-expanded-actions .complete-all-series {
@@ -2363,20 +2214,6 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   font-weight: 850 !important;
 }
 /* 1.6.1 — denser series controls, inline timer text and stronger icons */
-.inline-session-clock {
-  min-height: 42px !important;
-  height: 42px !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  line-height: 1 !important;
-  color: var(--text) !important;
-}
-.pause-session-inline, .finish-session-inline {
-  font-size: 13px !important;
-  font-weight: 800 !important;
-}
 .series-head, .series-row {
   gap: 5px !important;
 }
@@ -2393,26 +2230,8 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   font-size: 11px !important;
   opacity: 0.72 !important;
 }
-.series-done-btn {
-  width: 34px !important;
-  min-width: 34px !important;
-  height: 34px !important;
-  min-height: 34px !important;
-  padding: 0 !important;
-  border-radius: 9px !important;
-  display: grid !important;
-  place-items: center !important;
-}
 .series-all {
-  width: 36px !important;
-  min-width: 36px !important;
-  height: 28px !important;
-  min-height: 28px !important;
-  padding: 0 !important;
-  border-width: 2px !important;
-  border-radius: 8px !important;
-  align-self: center !important;
-}
+  border-width: 2px !important;}
 .exercise-expanded-actions .strong-icon-action {
   width: 42px !important;
   min-width: 42px !important;
@@ -2429,16 +2248,6 @@ body:not([data-active-tab='workout']) .workout-top-actions {
 @media (max-width: 380px) {
   .series-head, .series-row {
     gap: 4px !important;
-  }
-  .series-all {
-    width: 34px !important;
-    min-width: 34px !important;
-  }
-  .series-done-btn {
-    width: 32px !important;
-    min-width: 32px !important;
-    height: 32px !important;
-    min-height: 32px !important;
   }
 }
 /* 1.6.2 — title-area exercise toggle; remove pending status row */
@@ -2514,7 +2323,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   gap: 8px !important;
   align-items: stretch !important;
 }
-.inline-session-clock, .pause-session-inline, .finish-session-inline {
+.pause-session-inline,.finish-session-inline {
   height: 44px !important;
   min-height: 44px !important;
   box-sizing: border-box !important;
@@ -2522,10 +2331,6 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   font-size: 13px !important;
   font-weight: 800 !important;
   line-height: 1 !important;
-}
-.inline-session-clock {
-  display: flex !important;
-  align-items: center !important;
 }
 .series-head, .series-row {
   width: 100% !important;
@@ -2583,7 +2388,7 @@ body:not([data-active-tab='workout']) .workout-top-actions {
   .active-session-actions {
     gap: 6px !important;
   }
-  .inline-session-clock, .pause-session-inline, .finish-session-inline {
+  .pause-session-inline,.finish-session-inline {
     height: 42px !important;
     min-height: 42px !important;
     font-size: 11px !important;
@@ -2722,24 +2527,10 @@ body[data-active-tab='more'] main .card button {
   }
 }
 /* 1.7.1 — bordered week selector + refined active-session timer */
-@media (max-width: 380px) {
-  .inline-session-clock {
-    font-weight: 500 !important;
-  }
-}
+
 /* 1.7.2 — wider session timer + nutrition supplement schedule */
 .active-session-actions {
   grid-template-columns: minmax(112px, 1.05fr) minmax(0, 1fr) minmax(0, 1fr) !important;
-}
-.inline-session-clock {
-  justify-content: flex-end !important;
-  padding: 0 12px 0 0 !important;
-  font-size: 17px !important;
-  font-weight: 400 !important;
-  letter-spacing: 0.7px !important;
-  font-variant-numeric: tabular-nums !important;
-  transform: scaleX(1.06);
-  transform-origin: right center;
 }
 .supplement-timing {
   display: flex;
@@ -2749,9 +2540,7 @@ body[data-active-tab='more'] main .card button {
   padding: 9px 11px;
   margin: 7px 0;
   border: 1px solid #33424c;
-  border-radius: 12px;
-  background: #151f26;
-}
+  background: #151f26;}
 .supplement-timing-icon {
   width: 30px;
   min-height: 30px;
@@ -2778,12 +2567,7 @@ body[data-active-tab='more'] main .card button {
   .active-session-actions {
     grid-template-columns: minmax(102px, 1fr) minmax(0, 1fr) minmax(0, 1fr) !important;
   }
-  .inline-session-clock {
-    font-size: 17px !important;
-    padding-right: 9px !important;
-    letter-spacing: 0.5px !important;
   }
-}
 /* 1.7.3 — Review grafica */
 /* Nutrizione: griglia unica a 4 colonne, la riga Riposo è allineata alla riga G1–G4. */
 .foodtabs {
@@ -2850,9 +2634,7 @@ body[data-active-tab='more'] main .card button {
   gap: 2px;
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 2px;
-}
+  padding: 2px;}
 .week-stepper button {
   border: 0;
   background: transparent;
@@ -2940,9 +2722,7 @@ body[data-active-tab='workout'] header.top #daybar {
 }
 .ask-dialog .ask-ok.danger {
   background: var(--danger);
-  border-color: var(--danger);
-  color: #fff;
-}
+  border-color: var(--danger);}
 /* 1.9.0 — Barra di navigazione in basso (stile Bilancio) */
 .tabbar-bottom {
   position: fixed;
@@ -3083,9 +2863,6 @@ body[data-active-tab='more'] main > .card button {
 body[data-active-tab='more'] main > .card .actions {
   margin-top: 0 !important;
 }
-body[data-active-tab='more'] main > .danger-zone {
-  order: 99;
-}
 /* =========================================================
    1.11.0 — Estetica moderna (come Bilancio): sfondo con bagliori,
    superfici in vetro, accenti con gradiente, barra in basso fluttuante.
@@ -3132,14 +2909,9 @@ html.is-scrolled header.top {
   border-radius: 18px!important;
   box-shadow: var(--glass-shadow)!important;
 }
-.closed-summary-kpis > div,.closed-summary-exercise {
-  border-radius: 13px!important;
-}
 .compact-set {
-  border-radius: 10px!important;
   box-shadow: none!important;
-  background-color: rgba(255,255,255,.04)!important;
-}
+  background-color: rgba(255,255,255,.04)!important;}
 .week-stepper,.stats-kpi,.stats-tabs {
   -webkit-backdrop-filter: blur(14px) saturate(1.5);
   backdrop-filter: blur(14px) saturate(1.5);
@@ -3148,10 +2920,6 @@ html.is-scrolled header.top {
   background: radial-gradient(120% 100% at 0% 0%,rgba(47,158,143,.26),transparent 62%),var(--glass-card)!important;
   border-color: rgba(63,179,142,.55)!important;
   box-shadow: 0 16px 36px -18px rgba(47,158,143,.6),var(--glass-shadow)!important;
-}
-.card.danger-zone {
-  background: radial-gradient(120% 100% at 0% 0%,rgba(231,106,100,.16),transparent 62%),var(--glass-card)!important;
-  border-color: rgba(231,106,100,.35)!important;
 }
 .workout-time-marker {
   background: linear-gradient(90deg,rgba(58,166,132,.22),rgba(58,166,132,.06))!important;
@@ -3832,12 +3600,10 @@ button[data-close], button.close {
 .info-box {
   background: color-mix(in srgb, var(--card2) 48%, transparent)!important;
   border: 1px solid var(--glass-edge)!important;
-  border-radius: 14px!important;
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   font-size: 13px!important;
-  line-height: 1.5!important;
-}
+  line-height: 1.5!important;}
 /* ---------- Trasparenza: superfici dentro i popup ---------- */
 dialog {
   background: color-mix(in srgb, var(--card) 56%, transparent)!important;
@@ -3877,7 +3643,7 @@ dialog :is(.anim-box, .notearea, .exercise-note, .weightrow input, .setbtn:not(.
   border-color: var(--glass-edge)!important;
 }
 /* Pannello di pausa e riepilogo */
-.pause-panel, .closed-summary, .closed-session-banner {
+.pause-panel,.closed-session-banner {
   -webkit-backdrop-filter: blur(16px) saturate(1.6);
   backdrop-filter: blur(16px) saturate(1.6);
 }
@@ -3954,14 +3720,7 @@ h1, h2, h3,
   letter-spacing: -.015em;
 }
 /* ---------- Tipografia: Display e cifre tabulari sui numeri grandi ---------- */
-.session-clock,
-.inline-session-clock,
-.timer-num,
-.stats-kpi b,
-.closed-summary-kpis b,
-.weigh-value,
-.series-row input,
-.weightrow input {
+.session-clock,.timer-num,.stats-kpi b,.closed-summary-kpis b,.series-row input,.weightrow input {
   font-family: var(--font-display)!important;
   font-variant-numeric: tabular-nums;
 }
@@ -4010,25 +3769,6 @@ button[data-note].has-note {
   box-shadow: 0 6px 16px -8px rgba(232, 147, 44, .7)!important;
 }
 /* Indicatore "Nota" nella card ridotta: sostituisce il testo della nota */
-.note-flag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  border-radius: 999px;
-  padding: 1px 8px;
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1.4;
-  letter-spacing: .01em;
-  color: #f7c463;
-  background: rgba(247, 196, 99, .16);
-  border: 1px solid rgba(247, 196, 99, .5);
-}
-:root[data-theme="light"] .note-flag {
-  color: #7a4e07;
-  background: rgba(232, 147, 44, .16);
-  border-color: rgba(232, 147, 44, .45);
-}
 /* v1.18.0 — Card ridotta: pulsante nota giallo al posto del testo/badge */
 #main .exercise-header-row .compact-note-btn {
   flex: 0 0 auto;
@@ -4348,14 +4088,12 @@ html body #main .exercise-card.exercise-expanded .compact-series-summary { displ
    v1.29.0 — Giorni su due righe, "Salta" compatto, avanzamento sessione
    ===================================================================== */
 html body header.top #daybar button {
-  display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important;
-  gap: 1px !important; line-height: 1.15 !important; padding: 8px 4px !important; min-height: 58px !important;
-}
+  display: flex !important; flex-direction: column !important; align-items: center !important;
+  gap: 1px !important; line-height: 1.15 !important; padding: 8px 4px !important; min-height: 58px !important;}
 html body header.top #daybar button .day-code { font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
 html body header.top #daybar button .day-name {
   font-size: 11.5px; font-weight: 650; opacity: .85; max-width: 100%;
-  overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: normal;
-}
+  overflow: hidden; text-overflow: ellipsis; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: normal;}
 html body #main .exercise-header-row .skip-exercise {
   min-height: 34px !important; padding: 5px 11px !important; font-size: 13px !important; font-weight: 700 !important;
   border-radius: 999px !important; white-space: nowrap; flex: 0 0 auto;
@@ -4482,8 +4220,8 @@ html body #main .ex-focus.is-done .exf-badge i, html body #main .ex-focus.is-ski
 html body #main .ex-focus.is-skipped .exf-badge { background: color-mix(in srgb, #e8a33d 22%, transparent); color: #9a6212; }
 @keyframes exPulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
 html body #main .exf-pos { font-size: 13px; font-weight: 700; color: var(--sub); }
-html body #main .exf-name { margin: 0 0 6px !important; font-size: 22px !important; line-height: 1.2 !important; font-weight: 800 !important; letter-spacing: -.015em; color: var(--text) !important; text-transform: none !important; }
-html body #main .exf-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 14px; color: var(--sub); margin-bottom: 8px; }
+html body #main .exf-name { margin: 0 0 6px !important; font-weight: 800 !important; letter-spacing: -.015em; color: var(--text) !important; text-transform: none !important;}
+html body #main .exf-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--sub); margin-bottom: 8px;}
 html body #main .ex-focus .equipment-labels { margin-bottom: 10px; }
 html body #main .exf-progress { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--sub); margin: 2px 0 10px; }
 html body #main .exf-progress b { color: var(--text); font-size: 15px; }
@@ -4634,3 +4372,32 @@ html body #rest-bar { bottom: calc(var(--tab-bottom) + 84px) !important; }
 /* 1.35.0 — Statistiche: niente titolo, come nella money e in Noi Due */
 body[data-active-tab='stats'] header.top .title-row { display: none !important; }
 body[data-active-tab='stats'] header.top { padding-bottom: 0 !important; }
+
+/* =========================================================
+   v1.37.0 — Modalità sessione e pasto del momento
+   ========================================================= */
+body.session-mode:not(.session-bars) #weekbar,body.session-mode:not(.session-bars) #daybar,body.session-mode #workout-start-row,body.session-mode #plan-tab{display:none!important}
+body.session-mode header.top .title-row{margin-bottom:6px!important}
+body.session-mode header.top .title-row h1{visibility:hidden}
+body.session-mode #header-session{left:0!important;justify-content:stretch!important}
+body.session-mode #header-session .sm-head{width:100%}
+body.session-mode #header-session .sm-sets{margin-left:auto}
+#header-session .sm-head{display:flex!important;align-items:center;gap:8px;height:44px}
+#header-session .sm-day{display:inline-flex!important;align-items:center;gap:4px;height:34px!important;min-height:0!important;padding:0 10px!important;margin:0!important;border-radius:999px!important;border:1px solid var(--suite-glass-edge,var(--line))!important;background:var(--suite-glass-card,var(--card))!important;color:var(--suite-text,var(--text))!important;font-size:13px!important;font-weight:800!important;box-shadow:none!important}
+#header-session .sm-day i{font-style:normal;font-size:10px;opacity:.8}
+#header-session .sm-clock{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent2,#e8a33d);letter-spacing:-.3px}
+#header-session .sm-sets{font-size:12px;font-weight:700;color:var(--suite-text-soft,var(--sub));padding:4px 8px;border-radius:999px;background:color-mix(in srgb,var(--accent,#2f9e8f) 16%,transparent);font-variant-numeric:tabular-nums}
+#header-session .sm-sets b{color:var(--suite-text,var(--text));font-size:13px}
+body.session-mode .active-session-actions{display:flex;gap:8px}
+body.session-mode .active-session-actions button{flex:1 1 0}
+/* Nutrizione: prossimo pasto e pasti fatti */
+.meal-smart.meal-next{border:1.5px solid var(--accent,#2f9e8f)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent,#2f9e8f) 18%,transparent)!important}
+.meal-smart .meal-nexttag{display:inline-block;margin-right:6px;font-size:10.5px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--accent,#2f9e8f);color:#fff;vertical-align:1px}
+.meal-smart.meal-done{opacity:.6}
+.meal-smart.meal-done .meal-time,.meal-smart.meal-done b{text-decoration:line-through;text-decoration-thickness:1.5px}
+.meal-smart-head{position:relative}
+.meal-smart-head .meal-check{flex:none;width:34px!important;height:34px!important;min-height:0!important;margin:0 0 0 8px!important;padding:0!important;border-radius:50%!important;border:1.5px solid var(--suite-glass-edge,var(--line))!important;background:transparent!important;color:var(--suite-text-soft,var(--sub))!important;font-size:15px!important;font-weight:900!important;display:grid!important;place-items:center;box-shadow:none!important}
+.meal-smart-head .meal-check.on{background:var(--accent,#2f9e8f)!important;border-color:var(--accent,#2f9e8f)!important;color:#fff!important}
+#header-session .sm-head{position:relative}
+#header-session .sm-bar{position:absolute;left:0;right:0;bottom:-4px;height:3px;border-radius:3px;background:color-mix(in srgb,var(--accent,#2f9e8f) 18%,transparent);overflow:hidden}
+#header-session .sm-bar i{display:block;height:100%;background:var(--accent,#2f9e8f);border-radius:3px;transition:width .3s}
