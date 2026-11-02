@@ -4401,3 +4401,8 @@ body.session-mode .active-session-actions button{flex:1 1 0}
 #header-session .sm-head{position:relative}
 #header-session .sm-bar{position:absolute;left:0;right:0;bottom:-4px;height:3px;border-radius:3px;background:color-mix(in srgb,var(--accent,#2f9e8f) 18%,transparent);overflow:hidden}
 #header-session .sm-bar i{display:block;height:100%;background:var(--accent,#2f9e8f);border-radius:3px;transition:width .3s}
+/* v1.38.0 — suono a fine recupero (Altro › Notifiche) */
+.rest-sound-row{display:grid;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--suite-glass-edge,rgba(255,255,255,.12))}
+.rest-sound-row > span{display:grid;gap:3px}
+.rest-sound-row small{font-size:12.5px;line-height:1.35;color:var(--suite-text-soft,#9aa3ad)}
+.rest-sound-row #restSoundBtn{min-width:96px}

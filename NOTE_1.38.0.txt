@@ -1,0 +1,8 @@
+GYM_TRACKER 1.38.0
+
+- Suono a fine recupero con l'app aperta: tre "ding" quando il recupero arriva a zero. Si mescola alla musica (non la ferma). Con il tasto laterale su silenzioso l'iPhone non lo suona.
+- Notifica "Recupero terminato" con suono: prima, dalla seconda serie in poi, la nuova notifica sostituiva in silenzio quella precedente. Ora quella vecchia si chiude e ne arriva una nuova.
+- In Altro > Notifiche: interruttore "Suono a fine recupero" (acceso di base) e tasto "Prova".
+- A schermo bloccato il suono e' quello della notifica: controlla Impostazioni > Notifiche > RecompApp > Suoni.
+
+Per aggiornare: pubblica su GitHub (app.js, app.css, sw.js, index.html), poi chiudi e riapri l'app.

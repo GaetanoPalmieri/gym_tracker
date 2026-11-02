@@ -3,25 +3,25 @@
    - Pagina: rete con timeout di 3 secondi, poi la copia salvata (veloce anche con segnale scarso).
    - File con ?v= e icone: prima la cache; un nuovo rilascio cambia ?v= e quindi l'indirizzo.
    - Il nuovo worker resta in attesa finché l'app non chiede di attivarlo (avviso "Aggiorna"). */
-const VERSION = '1.37.0';
+const VERSION = '1.38.0';
 const PREFIX = 'recompapp-';
 const CACHE = PREFIX + VERSION;
 const SHELL = [
   './',
   './index.html',
-  './suite.js?v=1.37.0',
-  './suite.css?v=1.37.0',
-  './suite-ui.css?v=1.37.0',
-  './suite-tokens.css?v=1.37.0',
-  './app.css?v=1.37.0',
-  './data.js?v=1.37.0',
-  './foods.js?v=1.37.0',
-  './app.js?v=1.37.0',
-  './manifest.webmanifest?v=1.37.0',
-  './gym-icon-192.png?v=1.37.0',
-  './gym-icon-512.png?v=1.37.0',
-  './favicon-32.png?v=1.37.0',
-  './apple-touch-icon-gym.png?v=1.37.0'
+  './suite.js?v=1.38.0',
+  './suite.css?v=1.38.0',
+  './suite-ui.css?v=1.38.0',
+  './suite-tokens.css?v=1.38.0',
+  './app.css?v=1.38.0',
+  './data.js?v=1.38.0',
+  './foods.js?v=1.38.0',
+  './app.js?v=1.38.0',
+  './manifest.webmanifest?v=1.38.0',
+  './gym-icon-192.png?v=1.38.0',
+  './gym-icon-512.png?v=1.38.0',
+  './favicon-32.png?v=1.38.0',
+  './apple-touch-icon-gym.png?v=1.38.0'
 ];
 const NETWORK_TIMEOUT_MS = 3000;
 
@@ -82,14 +82,23 @@ self.addEventListener('push', (event) => {
   let d = {};
   try { d = event.data ? event.data.json() : {}; } catch (e) { d = { body: event.data ? event.data.text() : '' }; }
   const title = d.title || 'RecompApp';
+  const tag = d.tag || 'recompapp', rest = tag === 'rest-timer';
+  /* 1.38.0 — fine recupero CON SUONO: la notifica precedente con lo stesso tag veniva sostituita in silenzio
+     (succede a ogni serie). Si chiude quella vecchia e se ne apre una nuova, non silenziosa. */
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body: d.body || '',
-      tag: d.tag || 'recompapp',
-      icon: './gym-icon-192.png',
-      badge: './gym-icon-192.png',
-      data: { url: d.url || './' }
-    })
+    (rest ? self.registration.getNotifications({ tag }).then((L) => L.forEach((n) => n.close())).catch(() => {}) : Promise.resolve()).then(() =>
+      self.registration.showNotification(title, {
+        body: d.body || '',
+        tag,
+        renotify: rest || !!d.renotify,
+        silent: false,
+        vibrate: rest ? [200, 100, 200] : undefined,
+        requireInteraction: rest,
+        icon: './gym-icon-192.png',
+        badge: './gym-icon-192.png',
+        data: { url: d.url || './' },
+        actions: rest ? [{ action: 'done', title: 'Completato' }, { action: 'add15', title: '+15s' }, { action: 'skip', title: 'Salta recupero' }] : undefined
+      }))
   );
 });
 

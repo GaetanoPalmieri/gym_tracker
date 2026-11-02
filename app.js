@@ -502,7 +502,7 @@ function normalizeStateOnOpen(state) {
     );
 }
 
-const APP_VERSION = '1.37.0';
+const APP_VERSION = '1.38.0';
 let gym = defaultGym(),
   storageError = '',
   wakeWarned = false,
@@ -2529,6 +2529,7 @@ function updateRest() {
     // Una sola notifica: quella locale solo se l'app è aperta e il recupero è appena finito.
     // A schermo bloccato (o se l'app torna davanti dopo) ci ha già pensato il server.
     const fresh = Date.now() - r.end < 4000;
+    if (fresh && document.visibilityState === 'visible') restBeep(); // v1.38.0 — suono con l'app aperta
     if (fresh && (document.visibilityState === 'visible' || restPushServerEnd !== r.end)) showRestEndNotification();
   }
 }
@@ -4408,7 +4409,10 @@ function renderPushCard() {
     inner = `<button type="button" class="suite-sync-primary primary push-on-btn" id="pushOnBtn"${pushState.busy || Notification.permission === "denied" ? " disabled" : ""}>🔔 Attiva notifiche</button>`;
   }
   const msg = pushState.msg ? `<p class="push-msg${pushState.err ? " err" : ""}">${U.esc(pushState.msg)}</p>` : "";
-  card.innerHTML = `<h2>Notifiche</h2><p class="suite-sync-status"><span class="suite-sync-dot ${dot}" aria-hidden="true"></span>${U.esc(status)}</p>${inner}${msg}`;
+  /* v1.38.0 — suono a fine recupero */
+  const sndOn = !(gym.settings && gym.settings.restSound === false);
+  const snd = `<div class="rest-sound-row"><span><b>🔊 Suono a fine recupero</b><small>Con l'app aperta. A schermo bloccato suona la notifica: controlla Impostazioni › Notifiche › RecompApp › Suoni.</small></span><div class="suite-sync-actions"><button type="button" id="restSoundBtn" class="${sndOn ? "primary" : ""}" data-no-icon>${sndOn ? "Attivo" : "Spento"}</button><button type="button" id="restSoundTest" data-no-icon>▶ Prova</button></div></div>`;
+  card.innerHTML = `<h2>Notifiche</h2><p class="suite-sync-status"><span class="suite-sync-dot ${dot}" aria-hidden="true"></span>${U.esc(status)}</p>${inner}${msg}${snd}`;
 }
 // v1.22.0 — all'avvio (anche se si apre l'app direttamente su Altro) la scheda Notifiche non resta vuota
 setTimeout(() => { if (document.getElementById('pushCard')) renderPushCard(); }, 0);
@@ -4471,9 +4475,51 @@ document.addEventListener("click", (e) => {
   if (id === "pushOnBtn") pushEnable();
   else if (id === "pushOffBtn") pushDisable();
   else if (id === "pushTestBtn") pushTest();
+  else if (id === "restSoundTest") restBeep(true);
+  else if (id === "restSoundBtn") { mutate((n) => { n.settings = n.settings || {}; n.settings.restSound = n.settings.restSound === false; }); renderPushCard(); }
 });
 setTimeout(refreshPushState, 1500);
 
+/* v1.38.0 — SUONO A FINE RECUPERO con l'app aperta. Web Audio (si mescola alla musica, non la ferma). iPhone sblocca
+   l'audio solo dopo un tocco: al primo tocco (e dopo ogni ritorno in primo piano) il contesto audio viene preparato,
+   così a fine recupero il suono parte anche senza toccare nulla. Con il tasto laterale su silenzioso iOS non lo suona.
+   Interruttore in Altro › Notifiche (gym.settings.restSound, acceso di base). */
+var restAudioCtx = null;
+function restAudioReady() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!restAudioCtx || restAudioCtx.state === 'closed') restAudioCtx = new AC();
+    if (restAudioCtx.state !== 'running') restAudioCtx.resume().catch(() => {});
+    return restAudioCtx;
+  } catch (e) { return null; }
+}
+function restAudioUnlock() {
+  const ctx = restAudioReady();
+  if (!ctx) return;
+  try { const b = ctx.createBuffer(1, 1, 22050), src = ctx.createBufferSource(); src.buffer = b; src.connect(ctx.destination); src.start(0); } catch (e) {}
+}
+['pointerdown', 'touchend', 'keydown'].forEach((t) => document.addEventListener(t, () => { if (!restAudioCtx || restAudioCtx.state !== 'running') restAudioUnlock(); }, { passive: true, capture: true }));
+function restBeep(force) {
+  if (!force && gym.settings && gym.settings.restSound === false) return;
+  const ctx = restAudioReady();
+  if (!ctx) return;
+  try {
+    const t0 = ctx.currentTime + 0.05;
+    // tre "ding" in salita: si sente anche sopra la musica in cuffia
+    [[0, 880], [0.22, 1175], [0.44, 1568]].forEach(([dt, f]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t0 + dt);
+      g.gain.exponentialRampToValueAtTime(0.7, t0 + dt + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dt + (dt > 0.4 ? 0.6 : 0.2));
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t0 + dt); o.stop(t0 + dt + 0.65);
+    });
+  } catch (e) {}
+  try { navigator.vibrate?.([200, 100, 200]); } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && restAudioCtx && restAudioCtx.state !== 'running') restAudioCtx.resume().catch(() => {}); });
 /* ---------------- Timer di recupero: notifica locale a fine recupero ----------------
    iOS non supporta showTrigger per notifiche programmate: quando il timer di recupero
    gestito da JS arriva a zero, mostriamo una notifica locale via Service Worker con i
@@ -4625,9 +4671,13 @@ async function showRestEndNotification() {
   try {
     const reg = await navigator.serviceWorker.ready;
     const txt = restText(gym.rest);
+    /* v1.38.0 — la notifica precedente con lo stesso tag veniva SOSTITUITA in silenzio: si chiude e se ne apre una nuova, con suono */
+    try { (await reg.getNotifications({ tag: "rest-timer" })).forEach((x) => x.close()); } catch (e) {}
     await reg.showNotification("⏱️ Recupero terminato", {
       body: txt.push || "▶️ Si riparte",
       vibrate: [200, 100, 200],
+      silent: false,
+      renotify: true,
       tag: "rest-timer",
       actions: [
         { action: "done", title: "Completato" },
